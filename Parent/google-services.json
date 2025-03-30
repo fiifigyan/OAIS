@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "753847017527",
+    "project_id": "royals-international-school",
+    "storage_bucket": "royals-international-school.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:753847017527:android:fc99a534ec99a3e0941fb2",
+        "android_client_info": {
+          "package_name": "com.mcwesses.RIS"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBT4SSwRC183gt7kwcL2CPnmpWckIIxHgM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
