@@ -44,7 +44,7 @@ const WelcomeScreen = () => {
                     <Text style={styles.subtitle}>Let's continue your child's educational journey</Text>
                 </View>
                 <Image 
-                    source={require('../assets/icon.png')} 
+                    source={require('../assets/icons/OAIS-logo.png')} 
                     style={styles.headerImage}
                 />
             </LinearGradient>

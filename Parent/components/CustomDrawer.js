@@ -54,7 +54,7 @@ const CustomDrawer = (props) => {
       >
         <View style={styles.drawerHeader}>
           <Image
-            source={require('../assets/icon.png')}
+            source={require('../assets/icons/OAIS-logo.png')}
             style={styles.logo}
           />
           <Text style={styles.appName}>{appConfig.APP_NAME}</Text>

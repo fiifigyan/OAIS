@@ -129,15 +129,19 @@ export const AdmissionProvider = ({ children }) => {
 
   // Deep merge helper function
   const deepMerge = useCallback((target, source) => {
-    const result = { ...target };
+    if (typeof target !== 'object' || typeof source !== 'object') {
+      return source;
+    }
+    
+    const output = { ...target };
     for (const key in source) {
-      if (source[key] instanceof Object && key in target && target[key] instanceof Object) {
-        result[key] = deepMerge(target[key], source[key]);
+      if (source[key] instanceof Object && key in target) {
+        output[key] = deepMerge(target[key], source[key]);
       } else {
-        result[key] = source[key];
+        output[key] = source[key];
       }
     }
-    return result;
+    return output;
   }, []);
 
   // Update form data

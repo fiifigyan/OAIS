@@ -61,7 +61,7 @@ const AuthService = {
     try {
       console.debug('Submitting:', { 
         email: userData.email, 
-        password: '•••••••' // Never log actual passwords
+        password: '•••••••'
       });
 
       const response = await axios.post(
@@ -148,13 +148,51 @@ const AuthService = {
     }
   },
 
+  // async verifyToken() {
+  //   console.debug('[Auth] Verifying stored token');
+  //   try {
+  //     const token = await AsyncStorage.getItem('authToken');
+  //     console.debug(token ? 'Token exists' : 'No token found');
+  //     return token ? { token } : null;
+      
+  //   } catch (error) {
+  //     console.error('Token verification failed:', error);
+  //     return null;
+  //   }
+  // },
+
   async verifyToken() {
     console.debug('[Auth] Verifying stored token');
     try {
       const token = await AsyncStorage.getItem('authToken');
-      console.debug(token ? 'Token exists' : 'No token found');
-      return token ? { token } : null;
-      
+      if (!token) {
+        console.debug('No token found');
+        return null;
+      }
+  
+      // Basic JWT structure validation
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.error('Invalid token structure');
+        await this.logout();
+        return null;
+      }
+  
+      // Optional: Add expiration check if using JWT
+      try {
+        const payload = JSON.parse(atob(parts[1]));
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+          console.error('Token expired');
+          await this.logout();
+          return null;
+        }
+        console.debug('Token is valid');
+        return { token, payload };
+      } catch (e) {
+        console.error('Token parsing failed:', e);
+        await this.logout();
+        return null;
+      }
     } catch (error) {
       console.error('Token verification failed:', error);
       return null;
