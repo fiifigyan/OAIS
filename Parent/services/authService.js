@@ -148,19 +148,6 @@ const AuthService = {
     }
   },
 
-  // async verifyToken() {
-  //   console.debug('[Auth] Verifying stored token');
-  //   try {
-  //     const token = await AsyncStorage.getItem('authToken');
-  //     console.debug(token ? 'Token exists' : 'No token found');
-  //     return token ? { token } : null;
-      
-  //   } catch (error) {
-  //     console.error('Token verification failed:', error);
-  //     return null;
-  //   }
-  // },
-
   async verifyToken() {
     console.debug('[Auth] Verifying stored token');
     try {

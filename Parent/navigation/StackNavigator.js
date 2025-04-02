@@ -23,6 +23,8 @@ import GradesScreen from '../screens/GradeScreen';
 import OTPVerificationScreen from '../screens/OTPVerificationScreen';
 import PaymentProcessing from '../screens/PaymentProcessing';
 import PaymentSuccess from '../components/PaymentSuccess';
+import FeeBreakdown from '../screens/FeeBreakdown';
+import AdmissionPurchase from '../screens/AdmissionPurchase';
 
 const Stack = createNativeStackNavigator();
 
@@ -56,6 +58,8 @@ const StackNavigator = () => {
       <Stack.Screen name="OTP" component={OTPVerificationScreen} />
       <Stack.Screen name="PaymentProcessing" component={PaymentProcessing} />
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+      <Stack.Screen name="FeeBreakdown" component={FeeBreakdown} />
+      <Stack.Screen name="AdmissionPurchase" component={AdmissionPurchase} />
     </Stack.Navigator>
   );
 };

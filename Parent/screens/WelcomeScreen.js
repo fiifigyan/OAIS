@@ -35,7 +35,7 @@ const WelcomeScreen = () => {
         <SafeAreaView style={styles.container}>
             {/* Header with greeting */}
             <LinearGradient
-                colors={['#000080', '#1a237e']}
+                colors={['#03C043', '#03AC13']}
                 style={styles.header}
             >
                 <View style={styles.headerContent}>
@@ -71,10 +71,10 @@ const WelcomeScreen = () => {
                     />
 
                     <QuickActionCard
-                        iconName="calendar-outline"
-                        title="Upcoming Events"
-                        description="View important school dates"
-                        onPress={() => navigation.navigate('Events')}
+                        iconName="wallet-outline"
+                        title="Bill For New Admissions"
+                        description="View payment breadown"
+                        onPress={() => navigation.navigate('FeeBreakdown')}
                         color="#ff9800"
                     />
                 </View>
@@ -149,8 +149,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
+        borderBottomEndRadius: 80,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 5 },
         shadowOpacity: 0.2,

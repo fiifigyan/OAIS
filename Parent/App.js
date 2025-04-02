@@ -32,9 +32,9 @@ function MainAppContent() {
 
   return (
     <NavigationContainer>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#000080' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#03AC13' }}>
         <StatusBar barStyle="default"/>
-        {userInfo ? <AuthStack /> : <StackNavigator />}
+        {userInfo ? <StackNavigator /> : <AuthStack />}
         <NotificationListener />
       </SafeAreaView>
     </NavigationContainer>
