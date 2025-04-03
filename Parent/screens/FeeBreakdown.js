@@ -325,9 +325,9 @@ const FeeBreakdownPage = ({ navigation }) => {
 
         {/* Fee Breakdown Table */}
         <DataTable style={styles.dataTable}>
-          <DataTable.Header>
-            <DataTable.Title style={styles.tableHeader}>Description</DataTable.Title>
-            <DataTable.Title numeric style={styles.tableHeader}>Amount (GHC)</DataTable.Title>
+          <DataTable.Header style={styles.tableHeader}>
+            <DataTable.Title style={styles.tableHeaderTitle}>Description</DataTable.Title>
+            <DataTable.Title numeric style={styles.tableHeaderTitle}>Amount (GHC)</DataTable.Title>
           </DataTable.Header>
 
           {currentFees.items.filter(item => item.id !== 'total').map(item => (
@@ -401,24 +401,25 @@ const FeeBreakdownPage = ({ navigation }) => {
       {/* Action Buttons - Fixed at bottom */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
-          style={styles.buyButton}
-          onPress={navigateToAdmissionPurchase}
-          disabled={isProcessing}
-        >
-          <Icon name="shopping-cart" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Buy Admission Form</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
           style={[styles.saveButton, isProcessing && styles.disabledButton]}
           onPress={generatePDF}
           disabled={isProcessing}
         >
-          <Icon name="picture-as-pdf" size={20} color="#fff" />
-          <Text style={styles.buttonText}>
+          <Icon name="picture-as-pdf" size={20} color="#03AC13" />
+          <Text style={styles.saveButtonText}>
             {isProcessing ? 'Processing...' : 'Save as PDF'}
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.buyButton}
+          onPress={navigateToAdmissionPurchase}
+          disabled={isProcessing}
+        >
+          <Icon name="shopping-cart" size={20} color="aliceblue" />
+          <Text style={styles.buyButtonText}>Buy Admission</Text>
+        </TouchableOpacity>
+        
       </View>
     </View>
   );
@@ -439,11 +440,10 @@ const getRequiredItems = (level) => {
   return baseItems;
 };
 
-// Styles remain the same as in your original file
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: 'aliceblue',
   },
   scrollContainer: {
     padding: 16,
@@ -472,10 +472,10 @@ const styles = StyleSheet.create({
     fontWeight: '500'
   },
   picker: {
-    backgroundColor: '#fff',
+    backgroundColor: 'aliceblue',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd'
+    borderColor: '#03AC13'
   },
   dataTable: {
     backgroundColor: '#fff',
@@ -484,7 +484,10 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   tableHeader: {
-    backgroundColor: '#f2f2f2'
+    backgroundColor: '#03AC13'
+  },
+  tableHeaderTitle: {
+    color: 'aliceblue'
   },
   tableRow: {
     borderBottomWidth: 1,
@@ -568,6 +571,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 15,
     padding: 16,
     backgroundColor: '#f5f5f5',
     borderTopWidth: 1,
@@ -579,29 +583,35 @@ const styles = StyleSheet.create({
   },
   buyButton: {
     flex: 1,
-    backgroundColor: '#FF5722',
+    backgroundColor: '#03AC13',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 15,
     borderRadius: 8,
-    marginRight: 8
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#2E7D32',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 15,
     borderRadius: 8,
-    marginLeft: 8
+    borderWidth: 1,
+    borderColor: '#03AC13',
   },
   disabledButton: {
     opacity: 0.6
   },
-  buttonText: {
-    color: '#fff',
+  buyButtonText: {
+    color: 'aliceblue',
+    marginLeft: 8,
+    fontWeight: 'bold',
+    fontSize: 16
+  },
+   saveButtonText: {
+    color: '#03AC13',
     marginLeft: 8,
     fontWeight: 'bold',
     fontSize: 16

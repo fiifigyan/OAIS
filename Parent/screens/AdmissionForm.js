@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
     marginTop: 12,
     marginBottom: 8,
   },
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   calendarButton: {
     padding: 10,
     marginLeft: 8,
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     borderRadius: 4,
   },
   calendarButtonText: {
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
   resetButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#000080',
+    borderColor: '#03AC13',
     borderRadius: 4,
     padding: 12,
     flex: 1,
@@ -579,11 +579,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resetButtonText: {
-    color: '#000080',
+    color: '#03AC13',
     fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     borderRadius: 4,
     padding: 12,
     flex: 2,
@@ -773,7 +773,7 @@ export default AdmissionForm;
 //           placeholder="YYYY-MM-DD"
 //           onChangeText={(text) => handleChange(path, text)}
 //           keyboardType={Platform.OS === 'ios' ? 'default' : 'numeric'}
-//           rightIcon={<Icon name="calendar" size={20} color="#000080" />}
+//           rightIcon={<Icon name="calendar" size={20} color="#03AC13" />}
 //           onRightIconPress={() => setShowDatePicker(true)}
 //           error={validationErrors[path]}
 //         />
@@ -810,7 +810,7 @@ export default AdmissionForm;
 //             accessibilityLabel={`Upload ${label}`}
 //           >
 //             {fileUploading ? (
-//               <ActivityIndicator color="#000080" size="small" />
+//               <ActivityIndicator color="#03AC13" size="small" />
 //             ) : (
 //               <Text style={[
 //                 styles.uploadText,
@@ -1026,7 +1026,7 @@ export default AdmissionForm;
 //   },
 //   header: {
 //     padding: 20,
-//     backgroundColor: '#000080',
+//     backgroundColor: '#03AC13',
 //     alignItems: 'center',
 //     shadowColor: '#000',
 //     shadowOffset: {
@@ -1077,7 +1077,7 @@ export default AdmissionForm;
 //   sectionTitle: {
 //     fontSize: 18,
 //     fontWeight: 'bold',
-//     color: '#000080',
+//     color: '#03AC13',
 //     marginBottom: 16,
 //     borderBottomWidth: 1,
 //     borderBottomColor: '#eee',
@@ -1086,7 +1086,7 @@ export default AdmissionForm;
 //   sectionSubtitle: {
 //     fontSize: 16,
 //     fontWeight: 'bold',
-//     color: '#000080',
+//     color: '#03AC13',
 //     marginTop: 12,
 //     marginBottom: 8,
 //   },
@@ -1117,7 +1117,7 @@ export default AdmissionForm;
 //   calendarButton: {
 //     padding: 10,
 //     marginLeft: 8,
-//     backgroundColor: '#000080',
+//     backgroundColor: '#03AC13',
 //     borderRadius: 4,
 //   },
 //   calendarButtonText: {
@@ -1194,7 +1194,7 @@ export default AdmissionForm;
 //   resetButton: {
 //     backgroundColor: 'transparent',
 //     borderWidth: 1,
-//     borderColor: '#000080',
+//     borderColor: '#03AC13',
 //     borderRadius: 4,
 //     padding: 12,
 //     flex: 1,
@@ -1202,11 +1202,11 @@ export default AdmissionForm;
 //     alignItems: 'center',
 //   },
 //   resetButtonText: {
-//     color: '#000080',
+//     color: '#03AC13',
 //     fontWeight: '500',
 //   },
 //   submitButton: {
-//     backgroundColor: '#000080',
+//     backgroundColor: '#03AC13',
 //     borderRadius: 4,
 //     padding: 12,
 //     flex: 2,

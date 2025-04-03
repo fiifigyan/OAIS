@@ -15,28 +15,28 @@ const slides = [
     title: 'Welcome to RIS',
     text: 'Simplify admissions and manage school life in one place.',
     image: ICONS.SPLASH1,
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
   },
   {
     key: '2',
     title: 'Simplified Admissions',
     text: 'Apply for admissions and track your application easily.',
     image: ICONS.SPLASH2,
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
   },
   {
     key: '3',
     title: 'Stay Connected',
     text: 'Get real-time updates and stay informed.',
     image: ICONS.SPLASH3,
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
   },
   {
     key: '4',
     title: 'Secure Document Storage',
     text: 'Store and access important documents anytime.',
     image: ICONS.SPLASH4,
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
   },
 ];
 
@@ -64,7 +64,7 @@ const OnboardingScreen = ({ navigation }) => {
       onDone={onDone}
       onSkip={onSkip}
       showSkipButton={true}
-      activeDotStyle={{ backgroundColor: '#007AFF' }}
+      activeDotStyle={{ backgroundColor: '#03C013' }}
       dotStyle={{ backgroundColor: 'aliceblue' }}
     />
   );

@@ -31,7 +31,7 @@ const PasswordRequirements = ({ password }) => {
 
 const SignupScreen = () => {
   const navigation = useNavigation();
-  const [userInfo, setUserInfo] = useState({
+  const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
@@ -51,12 +51,12 @@ const SignupScreen = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    const trimmedEmail = userInfo.email.trim();
+    const trimmedEmail = formData.email.trim();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       newErrors.email = 'Valid email is required';
     }
-    if (!validatePassword(userInfo.password)) {
+    if (!validatePassword(formData.password)) {
       newErrors.password = 'Password requirements not met';
     }
 
@@ -64,32 +64,35 @@ const SignupScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignup = async () => {
-    setTouched(Object.keys(userInfo).reduce((touched, field) => ({ ...touched, [field]: true }), {}));
+const handleSignup = async () => {
+  if (!validateForm()) return;
+  
+  try {
+    await register({
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password
+    });
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Welcome' }],
+    });
+  } catch (error) {
+    let errorMessage = 'Registration failed. Please try again.';
     
-    if (!validateForm()) return;
-
-    try {
-      await register({
-        email: userInfo.email.trim().toLowerCase(),
-        password: userInfo.password,
-      });
-      setUserInfo({
-        email: '',
-        password: '',
-      });
-      console.log('User registered successfully: ', userInfo);
-    } catch (error) {
-      console.error('Signup Error:', error);
-      setErrors(prev => ({
-        ...prev,
-        submit: error.message || 'Account creation failed. Please try again.'
-      }));
+    if (error.message.includes('email')) {
+      errorMessage = 'Email already registered';
+    } else if (error.message.includes('password')) {
+      errorMessage = 'Password requirements not met';
+    } else if (error.message.includes('network')) {
+      errorMessage = 'Network error. Please check your connection.';
     }
-  };
+    
+    setErrors({ submit: errorMessage });
+  }
+};
 
   const handleInputChange = (name, value) => {
-    setUserInfo(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (touched[name]) validateForm();
   };
 
@@ -108,7 +111,7 @@ const SignupScreen = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
           <CustomInput
             label="Email *"
-            value={userInfo.email}
+            value={formData.email}
             onChangeText={(text) => handleInputChange('email', text)}
             onBlur={() => handleInputBlur('email')}
             error={touched.email && errors.email}
@@ -120,7 +123,7 @@ const SignupScreen = () => {
 
           <CustomInput
             label="Password *"
-            value={userInfo.password}
+            value={formData.password}
             onChangeText={(text) => handleInputChange('password', text)}
             onBlur={() => handleInputBlur('password')}
             error={touched.password && errors.password}
@@ -129,8 +132,8 @@ const SignupScreen = () => {
             leftIcon={<Icon name="lock-closed" size={20} color="#666" />}
           />
 
-          {userInfo.password.length > 0 && (
-            <PasswordRequirements password={userInfo.password} />
+          {formData.password.length > 0 && (
+            <PasswordRequirements password={formData.password} />
           )}
 
           {errors.submit && (
@@ -177,7 +180,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
     color: '#757575',
   },
   submitButton: {
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     padding: 16,
     borderRadius: 12,
     marginTop: 24,
@@ -258,7 +261,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   loginLink: {
-    color: '#000080',
+    color: '#03AC13',
     fontSize: 16,
     fontWeight: '600',
   },

@@ -28,10 +28,10 @@ import AdmissionPurchase from '../screens/AdmissionPurchase';
 
 const Stack = createNativeStackNavigator();
 
-const StackNavigator = () => {
+const StackNavigator = ({ initialRouteName = 'Home' }) => {
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
+      initialRouteName={initialRouteName}
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Drawer" component={DrawerNavigator} />

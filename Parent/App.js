@@ -15,7 +15,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 
 function MainAppContent() {
-  const { userInfo } = useAuth();
+  const { userInfo, isNewUser } = useAuth();
   const [expoPushToken, setExpoPushToken] = React.useState('');
 
   // Register for push notifications
@@ -34,7 +34,13 @@ function MainAppContent() {
     <NavigationContainer>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#03AC13' }}>
         <StatusBar barStyle="default"/>
-        {userInfo ? <StackNavigator /> : <AuthStack />}
+        {!userInfo ? (
+        <AuthStack />
+      ) : isNewUser ? (
+        <StackNavigator initialRouteName="Welcome" />
+      ) : (
+        <StackNavigator initialRouteName="Home" />
+      )}
         <NotificationListener />
       </SafeAreaView>
     </NavigationContainer>

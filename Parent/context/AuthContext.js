@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '../services/authService';
 
@@ -8,76 +8,70 @@ export const AuthProvider = ({ children }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
 
-  const saveUserInfo = async (userInfo) => {
+  const saveUserData = useCallback(async (data) => {
     try {
-      if (!userInfo) {
-        console.warn('Attempted to save null userInfo');
-        return;
-      }
-      
-      if (!userInfo.token) {
-        console.warn('User info missing token');
-      }
-
-      await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
-      
-      if (userInfo.token) {
-        await AsyncStorage.setItem('authToken', userInfo.token);
-      }
+      await AsyncStorage.multiSet([
+        ['userInfo', JSON.stringify(data)],
+        ['authToken', data.token]
+      ]);
     } catch (error) {
-      console.error('AsyncStorage save error:', error);
-      throw new Error('Failed to save user session');
+      console.error('Failed to save user data:', error);
+      throw error;
     }
-  };
+  }, []);
 
-  const retrieveUserInfo = async () => {
+  const loadUserData = useCallback(async () => {
     try {
-      const userInfoString = await AsyncStorage.getItem('userInfo');
-      return userInfoString ? JSON.parse(userInfoString) : null;
+      const [userInfoString, token] = await AsyncStorage.multiGet(['userInfo', 'authToken']);
+      if (userInfoString[1] && token[1]) {
+        return JSON.parse(userInfoString[1]);
+      }
+      return null;
     } catch (error) {
-      console.error('AsyncStorage retrieval error:', error);
+      console.error('Failed to load user data:', error);
       return null;
     }
-  };
+  }, []);
+
+  const initializeAuth = useCallback(async () => {
+    try {
+      const storedUser = await loadUserData();
+      if (storedUser) {
+        const tokenStatus = await AuthService.verifyToken();
+        if (tokenStatus?.token) {
+          setUserInfo(storedUser);
+        } else {
+          await clearAuthData();
+        }
+      }
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+    } finally {
+      setInitialLoading(false);
+    }
+  }, [loadUserData]);
+
+  const clearAuthData = useCallback(async () => {
+    await AsyncStorage.multiRemove(['userInfo', 'authToken']);
+    setUserInfo(null);
+    setIsNewUser(false);
+  }, []);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const storedUser = await retrieveUserInfo();
-        const tokenStatus = await AuthService.verifyToken(); // Changed to verifyToken
-        
-        if (tokenStatus?.token) {
-          const userData = {
-            ...storedUser,
-            token: tokenStatus.token
-          };
-          await saveUserInfo(userData);
-          setUserInfo(userData);
-        } else if (storedUser) {
-          // Clear invalid session
-          await AsyncStorage.multiRemove(['userInfo', 'authToken']);
-          setUserInfo(null);
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
     initializeAuth();
-  }, []);
+  }, [initializeAuth]);
 
   const login = async (credentials) => {
     setIsLoading(true);
     try {
       const userData = await AuthService.login(credentials);
-      await saveUserInfo(userData);
+      await saveUserData(userData);
       setUserInfo(userData);
+      setIsNewUser(false);
       return userData;
     } catch (error) {
-      console.error('Login error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -88,21 +82,11 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await AuthService.signup(userData);
-      
-      if (!response || !response.token) {
-        throw new Error('Registration completed but no session established');
-      }
-
-      const completeUserData = {
-        ...response,
-        token: response.token
-      };
-
-      await saveUserInfo(completeUserData);
-      setUserInfo(completeUserData);
-      return completeUserData;
+      await saveUserData(response);
+      setUserInfo(response);
+      setIsNewUser(true);
+      return response;
     } catch (error) {
-      console.error('Registration error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -113,15 +97,10 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       await AuthService.logout();
-      setUserInfo(null);
-      await AsyncStorage.multiRemove(['userInfo', 'authToken']);
     } catch (error) {
-      console.error('Logout error:', error);
-      // Still clear local storage even if API fails
-      await AsyncStorage.multiRemove(['userInfo', 'authToken']);
-      setUserInfo(null);
-      throw new Error('Local session cleared, but server logout may have failed');
+      console.error('Logout API error:', error);
     } finally {
+      await clearAuthData();
       setIsLoading(false);
     }
   };
@@ -132,6 +111,7 @@ export const AuthProvider = ({ children }) => {
         userInfo,
         initialLoading,
         isLoading,
+        isNewUser,
         login,
         register,
         logout,

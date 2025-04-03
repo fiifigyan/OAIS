@@ -46,7 +46,7 @@ export const CustomInput = ({ label, value, onChangeText, onBlur, error, placeho
             style={styles.iconWrapper}
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
           >
-            <Icon name={isPasswordVisible ? 'eye' : 'eye-off'} size={20} color="#000080" />
+            <Icon name={isPasswordVisible ? 'eye' : 'eye-off'} size={20} color="#03AC13" />
           </TouchableOpacity>
         )}
         {rightIcon && !secureTextEntry && (
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000080',
+    color: '#03AC13',
     marginBottom: 8,
   },
   inputWrapper: {

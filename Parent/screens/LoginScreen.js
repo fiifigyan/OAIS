@@ -7,30 +7,27 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const [userInfo, setUserInfo] = useState({
+  const [formData, setFormData] = useState({
     student_ID: '',
     email: '',
     password: ''
   });
   
   const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
   const { login, isLoading } = useContext(AuthContext);
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!userInfo.student_ID.trim()){
+    if (!formData.student_ID.trim()) {
       newErrors.student_ID = 'Student ID is required';
-    } else if ((userInfo.student_ID)) {
-      newErrors.student_ID = 'Valid Student ID is required';
     }
 
-    if (!userInfo.email.trim()) {
+    if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     }
     
-    if (!userInfo.password.trim()) {
+    if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
     }
     
@@ -38,28 +35,36 @@ const LoginScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = async () => {
-    setTouched(Object.keys(userInfo).reduce((touched, field) => ({ ...touched, [field]: true }), {}));
+const handleLogin = async () => {
+  if (!validateForm()) return;
   
-    if (!validateForm()) return;
-  
-    try {
-      await login({
-        student_ID: userInfo.student_ID.trim(),
-        email: userInfo.email.trim().toLowerCase(),
-        password: userInfo.password
-      });
-      setUserInfo({ student_ID: '', email: '', password: '' });
-      //debuger
-      console.log('User logged in successfully: ', userInfo);
-    } catch (error) {
-      console.error('Login Error:', error);
-      setErrors(prev => ({
-        ...prev,
-        submit: error.message || 'Login failed. Please try again.'
-      }));
+  try {
+    const credentials = {
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
+      student_ID: formData.student_ID.trim()
+    };
+    
+    await login(credentials);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
+  } catch (error) {
+    let errorMessage = 'Login failed. Please try again.';
+    
+    // More specific error messages
+    if (error.message.includes('credentials')) {
+      errorMessage = 'Invalid email or password';
+    } else if (error.message.includes('student ID')) {
+      errorMessage = 'Student ID not found. Please ensure admission is approved.';
+    } else if (error.message.includes('network')) {
+      errorMessage = 'Network error. Please check your connection.';
     }
-  };
+    
+    setErrors({ submit: errorMessage });
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,8 +76,8 @@ const LoginScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
             <CustomInput
               label="Student ID *"
-              value={userInfo.student_ID}
-              onChangeText={(text) => setUserInfo(prev => ({ ...prev, student_ID: text }))}
+              value={formData.student_ID}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, student_ID: text }))}
               error={errors.student_ID}
               placeholder="Enter student ID"
               leftIcon={<Icon name="card" size={20} color="#666" />}
@@ -80,8 +85,8 @@ const LoginScreen = () => {
 
             <CustomInput
               label="Email *"
-              value={userInfo.email}
-              onChangeText={(text) => setUserInfo(prev => ({ ...prev, email: text }))}
+              value={formData.email}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, email: text }))}
               error={errors.email}
               placeholder="Enter your email"
               keyboardType="email-address"
@@ -91,8 +96,8 @@ const LoginScreen = () => {
             
             <CustomInput
               label="Password *"
-              value={userInfo.password}
-              onChangeText={(text) => setUserInfo(prev => ({ ...prev, password: text }))}
+              value={formData.password}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, password: text }))}
               error={errors.password}
               placeholder="Enter your password"
               secureTextEntry
@@ -152,7 +157,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -167,12 +172,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: 'aliceblue',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 18,
-    color: '#ffffff',
+    color: 'aliceblue',
   },
   form: {
     flex: 1,
@@ -185,12 +190,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   forgotPasswordText: {
-    color: '#000080',
+    color: '#03AC13',
     fontSize: 14,
     fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     padding: 16,
     borderRadius: 12,
     marginTop: 24,
@@ -205,7 +210,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   submitButtonText: {
-    color: '#ffffff',
+    color: 'aliceblue',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -220,7 +225,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   signupLink: {
-    color: '#000080',
+    color: '#03AC13',
     fontSize: 16,
     fontWeight: '600',
   },
