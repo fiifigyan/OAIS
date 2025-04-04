@@ -39,7 +39,7 @@ function MainAppContent() {
       ) : isNewUser ? (
         <StackNavigator initialRouteName="Welcome" />
       ) : (
-        <StackNavigator initialRouteName="Home" />
+        <StackNavigator initialRouteName="Welcome" />
       )}
         <NotificationListener />
       </SafeAreaView>

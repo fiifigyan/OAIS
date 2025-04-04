@@ -7,11 +7,11 @@ const manageAuthToken = async (token) => {
   try {
     if (token) {
       await AsyncStorage.setItem('authToken', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axios.defaults.headers.common['Authorization-Mobile'] = `Bearer ${token}`;
       console.debug('[Auth] Token stored and header set');
     } else {
       await AsyncStorage.removeItem('authToken');
-      delete axios.defaults.headers.common['Authorization'];
+      delete axios.defaults.headers.common['Authorization-Mobile'];
       console.debug('[Auth] Token cleared');
     }
   } catch (error) {

@@ -23,7 +23,7 @@ const PaymentScreen = ({ route, navigation }) => {
     { 
       label: 'Bank Transfer', 
       value: 'Bank Transfer', 
-      icon: 'swap-horizontal',
+      icon: 'account-balance',
       description: 'Direct transfer from your bank',
     },
   ];
@@ -38,7 +38,7 @@ const PaymentScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <LinearGradient 
-        colors={['#000080', '#1a237e']} 
+        colors={['#03AC13', '#03C04A']} 
         style={styles.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
@@ -68,7 +68,7 @@ const PaymentScreen = ({ route, navigation }) => {
                   <Icon 
                     name={option.icon} 
                     size={24} 
-                    color={method === option.value ? '#fff' : '#000080'} 
+                    color={method === option.value ? '#fff' : '#03AC13'} 
                   />
                 </View>
                 <View style={styles.methodTextContainer}>
@@ -96,7 +96,7 @@ const PaymentScreen = ({ route, navigation }) => {
           disabled={totalAmount <= 0}
         >
           <LinearGradient
-            colors={['#000080', '#FFC107']}
+            colors={['#03AC13', '#FFC107']}
             style={styles.payButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   methodOptionActive: {
     backgroundColor: 'rgba(0, 0, 128, 0.1)',
     borderLeftWidth: 4,
-    borderLeftColor: '#000080',
+    borderLeftColor: '#03AC13',
   },
   methodIconContainer: {
     width: 40,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   methodIconContainerActive: {
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
   },
   methodTextContainer: {
     flex: 1,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   methodLabelActive: {
-    color: '#000080',
+    color: '#03AC13',
   },
   methodDescription: {
     fontSize: 14,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   detailsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
     marginLeft: 10,
   },
   detailsText: {

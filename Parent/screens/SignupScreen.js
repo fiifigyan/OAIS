@@ -77,7 +77,7 @@ const handleSignup = async () => {
       routes: [{ name: 'Welcome' }],
     });
   } catch (error) {
-    let errorMessage = 'Registration failed. Please try again.';
+    let errorMessage = '';
     
     if (error.message.includes('email')) {
       errorMessage = 'Email already registered';
@@ -138,7 +138,7 @@ const handleSignup = async () => {
 
           {errors.submit && (
             <View style={styles.errorContainer}>
-              <Icon style={styles.errorIcon} name="sad-outline" size={20} color="red" />
+              <Icon name="sad-outline" size={20} color="red" />
               <Text style={styles.errorText}>{errors.submit}</Text>
             </View>
           )}

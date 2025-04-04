@@ -1,32 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Toast from 'react-native-toast-message';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
+import PaymentScreen from '../screens/PaymentScreen';
 
 const AdmissionPurchase = ({ route, navigation }) => {
-  // Get parameters from navigation
   const { level, gender, amount, feeDetails } = route.params;
   
-  // State management
   const [studentName, setStudentName] = useState('');
   const [parentName, setParentName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('mobile_money');
+  const [showPaymentScreen, setShowPaymentScreen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Payment methods
-  const paymentMethods = [
-    { id: 'mobile_money', name: 'Mobile Money', icon: 'phone-android' },
-    { id: 'bank_transfer', name: 'Bank Transfer', icon: 'account-balance' },
-    { id: 'card', name: 'Credit/Debit Card', icon: 'credit-card' },
-  ];
-
-  // Validate form
   const validateForm = () => {
     if (!studentName.trim()) {
       Toast.show({ type: 'error', text1: 'Error', text2: 'Please enter student name' });
@@ -43,18 +34,14 @@ const AdmissionPurchase = ({ route, navigation }) => {
     return true;
   };
 
-  // Handle payment submission
-  const handlePayment = async () => {
+  const handlePaymentInitiation = () => {
     if (!validateForm()) return;
+    setShowPaymentScreen(true);
+  };
 
+  const handlePaymentSuccess = async () => {
     setIsProcessing(true);
-    
     try {
-      // In a real app, you would integrate with a payment gateway here
-      // This is just a simulation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Generate receipt
       await generateReceipt();
       
       Toast.show({
@@ -63,7 +50,6 @@ const AdmissionPurchase = ({ route, navigation }) => {
         text2: `Admission form for ${level} purchased successfully!`,
       });
       
-      // Navigate back after successful payment
       navigation.goBack();
     } catch (error) {
       console.error('Payment failed:', error);
@@ -74,10 +60,10 @@ const AdmissionPurchase = ({ route, navigation }) => {
       });
     } finally {
       setIsProcessing(false);
+      setShowPaymentScreen(false);
     }
   };
 
-  // Generate payment receipt
   const generateReceipt = async () => {
     try {
       const html = `
@@ -110,7 +96,6 @@ const AdmissionPurchase = ({ route, navigation }) => {
               <div class="info-item"><strong>Parent/Guardian:</strong> ${parentName}</div>
               <div class="info-item"><strong>Contact:</strong> ${phoneNumber}</div>
               <div class="info-item"><strong>Level:</strong> ${level} ${gender !== 'Unisex' ? `(${gender})` : ''}</div>
-              <div class="info-item"><strong>Payment Method:</strong> ${paymentMethods.find(m => m.id === paymentMethod).name}</div>
             </div>
             
             <table>
@@ -143,15 +128,10 @@ const AdmissionPurchase = ({ route, navigation }) => {
         </html>
       `;
 
-      // Generate PDF file
       const { uri } = await Print.printToFileAsync({ html });
-      
-      // Save to device storage
       const fileName = `OAIS_Receipt_${studentName.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
       const newUri = `${FileSystem.documentDirectory}${fileName}`;
       await FileSystem.copyAsync({ from: uri, to: newUri });
-
-      // Share the receipt
       await shareAsync(newUri);
 
     } catch (error) {
@@ -160,12 +140,27 @@ const AdmissionPurchase = ({ route, navigation }) => {
     }
   };
 
+  if (showPaymentScreen) {
+    return (
+      <PaymentScreen 
+        route={{ params: { totalAmount: amount } }}
+        navigation={{
+          ...navigation,
+          replace: (screen, params) => {
+            if (screen === 'PaymentSuccess') {
+              handlePaymentSuccess();
+            }
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.header}>Purchase Admission Form</Text>
         
-        {/* Student Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>STUDENT INFORMATION</Text>
           
@@ -212,38 +207,6 @@ const AdmissionPurchase = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Payment Method */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PAYMENT METHOD</Text>
-          
-          {paymentMethods.map(method => (
-            <TouchableOpacity
-              key={method.id}
-              style={[
-                styles.paymentMethod,
-                paymentMethod === method.id && styles.selectedPaymentMethod
-              ]}
-              onPress={() => setPaymentMethod(method.id)}
-            >
-              <Icon 
-                name={method.icon} 
-                size={24} 
-                color={paymentMethod === method.id ? '#2E7D32' : '#555'} 
-              />
-              <Text style={[
-                styles.paymentMethodText,
-                paymentMethod === method.id && styles.selectedPaymentMethodText
-              ]}>
-                {method.name}
-              </Text>
-              {paymentMethod === method.id && (
-                <Icon name="check-circle" size={20} color="#2E7D32" style={styles.checkIcon} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Order Summary */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ORDER SUMMARY</Text>
           
@@ -275,7 +238,6 @@ const AdmissionPurchase = ({ route, navigation }) => {
           </DataTable>
         </View>
 
-        {/* Terms and Conditions */}
         <View style={styles.termsContainer}>
           <Text style={styles.termsText}>
             By proceeding, you agree to our Terms of Service and Privacy Policy. 
@@ -284,11 +246,10 @@ const AdmissionPurchase = ({ route, navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Payment Button - Fixed at bottom */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
           style={[styles.payButton, isProcessing && styles.disabledButton]}
-          onPress={handlePayment}
+          onPress={handlePaymentInitiation}
           disabled={isProcessing}
         >
           <Icon name="payment" size={20} color="#fff" />
@@ -300,7 +261,6 @@ const AdmissionPurchase = ({ route, navigation }) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -346,32 +306,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16
-  },
-  paymentMethod: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 10,
-    backgroundColor: '#f9f9f9'
-  },
-  selectedPaymentMethod: {
-    borderColor: '#2E7D32',
-    backgroundColor: '#E8F5E9'
-  },
-  paymentMethodText: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#555'
-  },
-  selectedPaymentMethodText: {
-    color: '#2E7D32',
-    fontWeight: 'bold'
-  },
-  checkIcon: {
-    marginLeft: 'auto'
   },
   dataTable: {
     backgroundColor: '#fff',

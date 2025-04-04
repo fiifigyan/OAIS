@@ -109,7 +109,7 @@ const getAuthHeaders = async () => {
     }
     return {
       'Accept': 'application/json',
-      'Authorization': `Bearer ${verification.token}`,
+      'Authorization-Mobile': `Bearer ${verification.token}`,
     };
   } catch (error) {
     logger.error('Failed to get auth headers:', error);
