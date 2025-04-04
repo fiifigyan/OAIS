@@ -104,7 +104,7 @@ const HomeScreen = () => {
                 style={styles.quickActionItem}
                 onPress={() => navigation.navigate(item.route)}
               >
-                <Icon name={item.icon} size={24} color="#000080" />
+                <Icon name={item.icon} size={24} color="#03AC13" />
                 <Text style={styles.quickActionText}>{item.title}</Text>
               </TouchableOpacity>
             ))}
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
     textAlign: 'left',
   },
   profileCard: {
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
   },
   profileDetails: {
     fontSize: 14,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     width: '48%',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#00008010',
+    backgroundColor: '#03AC1310',
     borderRadius: 10,
     elevation: 5,
     shadowColor: '#000',
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   },
   quickActionText: {
     fontSize: 14,
-    color: '#000080',
+    color: '#03AC13',
     marginTop: 10,
   },
   notificationsCard: {
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#000080',
+    color: '#03AC13',
   },
   viewAllButton: {
     flexDirection: 'row',

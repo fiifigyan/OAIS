@@ -6,7 +6,7 @@ import Toast from 'react-native-toast-message';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
-import PaymentMethod from '../screens/PaymentScreen';
+import PaymentMethod from '../screens/PaymentMethod';
 
 const AdmissionPurchase = ({ route, navigation }) => {
   const { level, gender, amount, feeDetails } = route.params;
@@ -72,7 +72,7 @@ const AdmissionPurchase = ({ route, navigation }) => {
             <style>
               body { font-family: Arial; padding: 20px; }
               .header { text-align: center; margin-bottom: 20px; }
-              h1 { color: #2E7D32; margin-bottom: 5px; }
+              h1 { color: #03AC13; margin-bottom: 5px; }
               h2 { color: #333; margin-top: 0; }
               .info { margin-bottom: 20px; }
               .info-item { margin-bottom: 5px; }
@@ -211,9 +211,9 @@ const AdmissionPurchase = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>ORDER SUMMARY</Text>
           
           <DataTable style={styles.dataTable}>
-            <DataTable.Header>
-              <DataTable.Title style={styles.tableHeader}>Description</DataTable.Title>
-              <DataTable.Title numeric style={styles.tableHeader}>Amount (GHC)</DataTable.Title>
+            <DataTable.Header style={styles.tableHeader}>
+              <DataTable.Title style={styles.tableHeaderTitle}>Description</DataTable.Title>
+              <DataTable.Title numeric style={styles.tableHeaderTitle}>Amount (GHS)</DataTable.Title>
             </DataTable.Header>
 
             {feeDetails.filter(item => item.id !== 'total').map(item => (
@@ -255,7 +255,7 @@ const AdmissionPurchase = ({ route, navigation }) => {
           onPress={handlePaymentInitiation}
           disabled={isProcessing}
         >
-          <Icon name="" size={20} color="#fff" />
+          <Icon name="wallet-outline" size={20} color="aliceblue" />
           <Text style={styles.buttonText}>
             {isProcessing ? 'Processing...' : `Pay GHS ${amount.toFixed(2)}`}
           </Text>
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#2E7D32',
+    color: '#03AC13',
     textAlign: 'center'
   },
   section: {
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#2E7D32',
+    color: '#03AC13',
     fontSize: 16
   },
   inputContainer: {
@@ -316,7 +316,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   tableHeader: {
-    backgroundColor: '#f2f2f2'
+    backgroundColor: '#03AC13',
+  },
+  tableHeaderTitle: {
+    fontWeight: 'bold',
+    color: 'aliceblue'
   },
   tableRow: {
     borderBottomWidth: 1,
@@ -341,11 +345,11 @@ const styles = StyleSheet.create({
   },
   totalText: {
     fontWeight: 'bold',
-    color: '#2E7D32'
+    color: '#03AC13'
   },
   totalAmount: {
     fontWeight: 'bold',
-    color: '#2E7D32'
+    color: '#03AC13'
   },
   termsContainer: {
     padding: 10,
@@ -378,7 +382,7 @@ const styles = StyleSheet.create({
     right: 0
   },
   payButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#03AC13',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

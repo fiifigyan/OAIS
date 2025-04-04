@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import CustomInput from '../components/CustomInput';
 import SuccessModal from '../components/SuccessModal';
-import AuthService from '../services/authService';
+import AuthService from '../services/AuthService';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const ResetPasswordScreen = ({ navigation }) => {

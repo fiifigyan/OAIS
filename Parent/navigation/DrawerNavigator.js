@@ -6,9 +6,9 @@ import TabNavigator from './TabNavigator';
 import { Easing } from 'react-native-reanimated';
 
 import AdmissionForm from '../screens/AdmissionForm';
-import PaymentHistoryScreen from '../screens/HistoryScreen';
-import AddAccountScreen from '../screens/AddAccountScreen';
-import SwitchAccountScreen from '../screens/SwitchAccountScreen';
+import PaymentHistoryScreen from '../screens/History';
+import AddAccountScreen from '../screens/AddAccount';
+import SwitchAccountScreen from '../screens/SwitchAccount';
 
 const Drawer = createDrawerNavigator();
 

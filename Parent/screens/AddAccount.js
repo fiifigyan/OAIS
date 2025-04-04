@@ -72,10 +72,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: 'center',
-    color: '#000080',
+    color: '#03AC13',
   },
   button: {
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',

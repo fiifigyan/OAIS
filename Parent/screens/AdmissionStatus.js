@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
   },
   statusCard: {
     backgroundColor: '#fff',

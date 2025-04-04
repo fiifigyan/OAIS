@@ -83,7 +83,7 @@ const GradesScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <LinearGradient colors={['#007BFF', '#00BFFF']} style={styles.header}>
+      <LinearGradient colors={['#03AC13', '#03C04A']} style={styles.header}>
         <Text style={styles.headerTitle}>Grades</Text>
       </LinearGradient>
 
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
   },
   selectedTermButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#03AC13',
   },
   termText: {
     fontSize: 14,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#007BFF',
+    color: '#03AC13',
   },
   gradesList: {
     paddingHorizontal: 20,
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#007BFF',
+    backgroundColor: '#03AC13',
   },
   gradeText: {
     fontSize: 14,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#007BFF',
+    backgroundColor: '#03AC13',
     padding: 15,
     borderRadius: 10,
     margin: 20,

@@ -4,10 +4,10 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { BlurView } from 'expo-blur';
 import CustomHeader from '../components/CustomHeader';
 
-import HomeScreen from '../screens/HomeScreen';
-import CalendarScreen from '../screens/CalendarScreen';
+import HomeScreen from '../screens/Home';
+import CalendarScreen from '../screens/Calendar';
 import ProfileScreen from '../screens/ParentProfile';
-import NotificationScreen from '../screens/NotificationScreen';
+import NotificationScreen from '../screens/Notification';
 
 const Tab = createBottomTabNavigator();
 

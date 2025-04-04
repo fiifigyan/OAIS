@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import axios from 'axios';
-import authService from '../services/authService';
+import authService from './AuthService';
 
 const logger = {
   error: (message, error) => console.error(`[AdmissionService] ${message}`, error),

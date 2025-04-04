@@ -199,7 +199,7 @@ const FeeBreakdownPage = ({ navigation }) => {
             <style>
               body { font-family: Arial; padding: 20px; }
               .header { text-align: center; margin-bottom: 20px; }
-              h1 { color: #2E7D32; margin-bottom: 5px; }
+              h1 { color: #03AC13; margin-bottom: 5px; }
               h2 { color: #333; margin-top: 0; }
               table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
               th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
@@ -298,7 +298,7 @@ const FeeBreakdownPage = ({ navigation }) => {
               selectedValue={selectedLevel}
               style={styles.picker}
               onValueChange={setSelectedLevel}
-              dropdownIconColor="#2E7D32"
+              dropdownIconColor="#03AC13"
             >
               {feeStructure.levels.map(level => (
                 <Picker.Item key={level} label={level} value={level} />
@@ -313,7 +313,7 @@ const FeeBreakdownPage = ({ navigation }) => {
                 selectedValue={selectedGender}
                 style={styles.picker}
                 onValueChange={setSelectedGender}
-                dropdownIconColor="#2E7D32"
+                dropdownIconColor="#03AC13"
               >
                 {feeStructure.genders.filter(g => g !== 'Unisex').map(gender => (
                   <Picker.Item key={gender} label={gender} value={gender} />
@@ -327,7 +327,7 @@ const FeeBreakdownPage = ({ navigation }) => {
         <DataTable style={styles.dataTable}>
           <DataTable.Header style={styles.tableHeader}>
             <DataTable.Title style={styles.tableHeaderTitle}>Description</DataTable.Title>
-            <DataTable.Title numeric style={styles.tableHeaderTitle}>Amount (GHC)</DataTable.Title>
+            <DataTable.Title numeric style={styles.tableHeaderTitle}>Amount (GHS)</DataTable.Title>
           </DataTable.Header>
 
           {currentFees.items.filter(item => item.id !== 'total').map(item => (
@@ -342,7 +342,7 @@ const FeeBreakdownPage = ({ navigation }) => {
                     <Icon 
                       name={expandedSections[item.id] ? 'expand-less' : 'expand-more'} 
                       size={22} 
-                      color="#2E7D32" 
+                      color="#03AC13" 
                     />
                   </View>
                 </DataTable.Cell>
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#2E7D32',
+    color: '#03AC13',
     textAlign: 'center'
   },
   controlsContainer: {
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     borderColor: '#03AC13'
   },
   dataTable: {
-    backgroundColor: '#fff',
+    backgroundColor: 'aliceblue',
     borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 20
@@ -487,7 +487,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#03AC13'
   },
   tableHeaderTitle: {
-    color: 'aliceblue'
+    color: 'aliceblue',
+    fontWeight: 'bold',
+    fontSize: 16
   },
   tableRow: {
     borderBottomWidth: 1,
@@ -530,20 +532,20 @@ const styles = StyleSheet.create({
   },
   totalText: {
     fontWeight: 'bold',
-    color: '#2E7D32'
+    color: '#03AC13'
   },
   totalAmount: {
     fontWeight: 'bold',
-    color: '#2E7D32'
+    color: '#03AC13'
   },
   itemsSection: {
-    backgroundColor: '#fff',
+    backgroundColor: 'aliceblue',
     padding: 15,
     borderRadius: 8,
     marginBottom: 15
   },
   notesSection: {
-    backgroundColor: '#fff',
+    backgroundColor: 'aliceblue',
     padding: 15,
     borderRadius: 8,
     marginBottom: 15
@@ -551,7 +553,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#2E7D32',
+    color: '#03AC13',
     fontSize: 16
   },
   itemRow: {

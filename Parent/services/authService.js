@@ -97,7 +97,7 @@ const AuthService = {
   async login(credentials) {
     console.group('[Auth] Login Process');
     try {
-      console.debug('Attempting login for:', credentials.email);
+      console.debug('Attempting login for:', credentials.email + ' with student ID:', credentials.StudentID);
 
       const response = await axios.post(
         'https://73xd35pq-2025.uks1.devtunnels.ms/api/parent/auth/login',

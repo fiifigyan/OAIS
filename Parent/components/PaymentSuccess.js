@@ -8,7 +8,7 @@ const PaymentSuccess = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#4CAF50', '#2E7D32']} style={styles.header}>
+      <LinearGradient colors={['#03AC13', '#03C04A']} style={styles.header}>
         <Icon name="checkmark-circle" size={80} color="#fff" />
         <Text style={styles.successText}>Payment Successful!</Text>
       </LinearGradient>
@@ -32,8 +32,10 @@ const PaymentSuccess = ({ route, navigation }) => {
 // Reuse DetailRow component from PaymentProcessingScreen.
 const DetailRow = ({ icon, label, value }) => (
   <View style={styles.detailRow}>
-    <Icon name={icon} size={18} color="#666" style={styles.rowIcon} />
-    <Text style={styles.detailLabel}>{label}:</Text>
+    <View style={styles.containerRow}>
+      <Icon name={icon} size={18} color="#03AC13" style={styles.rowIcon} />
+      <Text style={styles.detailLabel}>{label}:</Text>
+    </View>
     <Text style={styles.detailValue}>{value}</Text>
   </View>
 );
@@ -41,26 +43,53 @@ const DetailRow = ({ icon, label, value }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9ff',
+    backgroundColor: 'aliceblue',
+    gap: 20,
   },
   header: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    borderBottomEndRadius: 30,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingVertical: 10,
+    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  containerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  detailLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  detailValue: {
+    fontSize: 16,
+    color: '#2c3e50',
+    flex: 1,
+    textAlign: 'right',
   },
   successText: {
-    color: 'white',
+    color: 'aliceblue',
     fontSize: 24,
     fontWeight: 'bold',
     marginTop: 20,
   },
   card: {
-    backgroundColor: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: 'aliceblue',
     borderRadius: 15,
     padding: 25,
-    margin: 20,
+    gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -68,14 +97,14 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   button: {
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     borderRadius: 25,
     padding: 18,
     marginHorizontal: 20,
     alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: 'aliceblue',
     fontSize: 18,
     fontWeight: 'bold',
   },

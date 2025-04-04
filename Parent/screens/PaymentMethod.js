@@ -23,7 +23,7 @@ const PaymentMethod = ({ route, navigation }) => {
     { 
       label: 'Bank Transfer', 
       value: 'Bank Transfer', 
-      icon: 'account-balance',
+      icon: 'swap-horizontal',
       description: 'Direct transfer from your bank',
     },
   ];
@@ -68,7 +68,7 @@ const PaymentMethod = ({ route, navigation }) => {
                   <Icon 
                     name={option.icon} 
                     size={24} 
-                    color={method === option.value ? '#fff' : '#03AC13'} 
+                    color={method === option.value ? 'aliceblue' : '#03AC13'} 
                   />
                 </View>
                 <View style={styles.methodTextContainer}>
@@ -96,13 +96,13 @@ const PaymentMethod = ({ route, navigation }) => {
           disabled={totalAmount <= 0}
         >
           <LinearGradient
-            colors={['#03AC13', '#FFC107']}
+            colors={['#03AC13', '#03C04A']}
             style={styles.payButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
             <Text style={styles.payButtonText}>Pay GHS {totalAmount.toFixed(2)}</Text>
-            <Icon name="lock-closed" size={20} color="#fff" style={styles.lockIcon} />
+            <Icon name="lock-closed" size={20} color="aliceblue" style={styles.lockIcon} />
           </LinearGradient>
         </TouchableOpacity>
 
@@ -133,13 +133,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: 'aliceblue',
     marginBottom: 5,
   },
   headerAmount: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
+    color: 'aliceblue',
   },
   scrollContainer: {
     padding: 20,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   methodsContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: 'aliceblue',
     borderRadius: 12,
     padding: 5,
     shadowColor: '#000',
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   detailsCard: {
-    backgroundColor: '#fff',
+    backgroundColor: 'aliceblue',
     borderRadius: 12,
     padding: 20,
     shadowColor: '#000',
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   payButtonText: {
-    color: '#fff',
+    color: 'aliceblue',
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 10,

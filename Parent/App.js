@@ -35,11 +35,11 @@ function MainAppContent() {
       <SafeAreaView style={{ flex: 1, backgroundColor: '#03AC13' }}>
         <StatusBar barStyle="default"/>
         {!userInfo ? (
-        <StackNavigator initialRouteName="Welcome" />
+        <AuthStack />
       ) : isNewUser ? (
         <StackNavigator initialRouteName="Welcome" />
       ) : (
-        <StackNavigator initialRouteName="Welcome" />
+        <AuthStack initialRouteName="Login" />
       )}
         <NotificationListener />
       </SafeAreaView>

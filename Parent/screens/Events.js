@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { fetchEventById, registerForEvent } from '../services/eventService';
+import { fetchEventById, registerForEvent } from '../services/EventService';
 
 const EventScreen = () => {
   const route = useRoute();
@@ -81,7 +81,7 @@ const EventScreen = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#000080" />
+        <ActivityIndicator size="large" color="#03AC13" />
       </View>
     );
   }
@@ -109,11 +109,11 @@ const EventScreen = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color="#000080" />
+          <Icon name="arrow-back" size={24} color="#03AC13" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Event Details</Text>
         <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-          <Icon name="share-social" size={24} color="#000080" />
+          <Icon name="share-social" size={24} color="#03AC13" />
         </TouchableOpacity>
       </View>
 
@@ -127,7 +127,7 @@ const EventScreen = () => {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{event.title}</Text>
           <View style={styles.dateContainer}>
-            <Icon name="calendar" size={16} color="#000080" />
+            <Icon name="calendar" size={16} color="#03AC13" />
             <Text style={styles.date}>{event.date} • {event.time}</Text>
           </View>
         </View>
@@ -136,9 +136,9 @@ const EventScreen = () => {
           style={styles.locationContainer} 
           onPress={handleOpenLocation}
         >
-          <Icon name="location" size={18} color="#000080" />
+          <Icon name="location" size={18} color="#03AC13" />
           <Text style={styles.location}>{event.location}</Text>
-          <Icon name="open-outline" size={16} color="#000080" />
+          <Icon name="open-outline" size={16} color="#03AC13" />
         </TouchableOpacity>
 
         <View style={styles.categoryContainer}>
@@ -160,15 +160,15 @@ const EventScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Additional Information</Text>
           <View style={styles.detailItem}>
-            <Icon name="people" size={18} color="#000080" />
+            <Icon name="people" size={18} color="#03AC13" />
             <Text style={styles.detailText}>Open to all students and parents</Text>
           </View>
           <View style={styles.detailItem}>
-            <Icon name="time" size={18} color="#000080" />
+            <Icon name="time" size={18} color="#03AC13" />
             <Text style={styles.detailText}>Duration: {event.duration || '3 hours'}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Icon name="information" size={18} color="#000080" />
+            <Icon name="information" size={18} color="#03AC13" />
             <Text style={styles.detailText}>Bring your student ID for entry</Text>
           </View>
         </View>
@@ -208,7 +208,7 @@ const getCategoryColor = (category) => {
     case 'cultural':
       return '#9C27B0';
     default:
-      return '#000080';
+      return '#03AC13';
   }
 };
 
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     padding: 10,
     borderRadius: 5,
   },
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
   },
   shareButton: {
     padding: 5,
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
     marginBottom: 10,
   },
   description: {
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   primaryButton: {
-    backgroundColor: '#000080',
+    backgroundColor: '#03AC13',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -370,13 +370,13 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: '#000080',
+    borderColor: '#03AC13',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#000080',
+    color: '#03AC13',
     fontSize: 16,
     fontWeight: 'bold',
   },

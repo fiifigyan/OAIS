@@ -25,14 +25,14 @@ const CalendarView = ({ events, selectedDate, handleDayPress, addEvent }) => {
         onDayPress={handleDayPress}
         markedDates={{
           ...Object.keys(events).reduce((acc, date) => {
-            acc[date] = { marked: true, dotColor: '#007BFF' };
+            acc[date] = { marked: true, dotColor: '#03AC13' };
             return acc;
           }, {}),
-          [selectedDate]: { selected: true, selectedColor: '#007BFF' },
+          [selectedDate]: { selected: true, selectedColor: '#03AC13' },
         }}
         theme={{
-          todayTextColor: '#007BFF',
-          arrowColor: '#007BFF',
+          todayTextColor: '#03AC13',
+          arrowColor: '#03AC13',
           backgroundColor: '#f9f9f9',
           calendarBackground: '#f9f9f9',
           textSectionTitleColor: '#333',
@@ -149,8 +149,8 @@ const CalendarScreen = () => {
         screenOptions={{
           tabBarLabelStyle: { fontSize: 14, fontWeight: 'bold' },
           tabBarStyle: { backgroundColor: '#f9f9f9' },
-          tabBarIndicatorStyle: { backgroundColor: '#007BFF' },
-          tabBarActiveTintColor: '#007BFF',
+          tabBarIndicatorStyle: { backgroundColor: '#03AC13' },
+          tabBarActiveTintColor: '#03AC13',
           tabBarInactiveTintColor: '#666',
         }}
       >
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   addButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#03AC13',
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',

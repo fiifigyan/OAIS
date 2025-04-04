@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -6,11 +6,81 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const PaymentProcessing = ({ route, navigation }) => {
   const { method, amount } = route.params;
   const [isProcessing, setIsProcessing] = useState(false);
-  const [input, setInput] = useState('');
+  const [inputs, setInputs] = useState({
+    phoneNumber: '',
+    cardNumber: '',
+    expiry: '',
+    cvv: '',
+    accountNumber: ''
+  });
+  const [errors, setErrors] = useState({});
+
+  // Validation functions
+  const validateMoMo = () => {
+    const newErrors = {};
+    if (!inputs.phoneNumber) {
+      newErrors.phoneNumber = 'Phone number is required';
+    } else if (!inputs.phoneNumber.match(/^0[0-9]{9}$/)) {
+      newErrors.phoneNumber = 'Enter a valid 10-digit Ghanaian number';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateCreditCard = () => {
+    const newErrors = {};
+    if (!inputs.cardNumber) {
+      newErrors.cardNumber = 'Card number is required';
+    } else if (!inputs.cardNumber.match(/^[0-9]{16}$/)) {
+      newErrors.cardNumber = 'Enter a valid 16-digit card number';
+    }
+    if (!inputs.expiry) {
+      newErrors.expiry = 'Expiry date is required';
+    } else if (!inputs.expiry.match(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/)) {
+      newErrors.expiry = 'Enter valid expiry (MM/YY)';
+    }
+    if (!inputs.cvv) {
+      newErrors.cvv = 'CVV is required';
+    } else if (!inputs.cvv.match(/^[0-9]{3,4}$/)) {
+      newErrors.cvv = 'Enter valid 3 or 4-digit CVV';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateBankTransfer = () => {
+    const newErrors = {};
+    if (!inputs.accountNumber) {
+      newErrors.accountNumber = 'Account number is required';
+    } else if (!inputs.accountNumber.match(/^[0-9]{10}$/)) {
+      newErrors.accountNumber = 'Enter a valid 10-digit account number';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmitPayment = () => {
+    let isValid = false;
+    
+    switch (method) {
+      case 'MoMo':
+        isValid = validateMoMo();
+        break;
+      case 'Credit Card':
+        isValid = validateCreditCard();
+        break;
+      case 'Bank Transfer':
+        isValid = validateBankTransfer();
+        break;
+      default:
+        break;
+    }
+
+    if (!isValid) return;
+
     setIsProcessing(true);
     
+    // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
       navigation.replace('PaymentSuccess', { 
@@ -21,6 +91,31 @@ const PaymentProcessing = ({ route, navigation }) => {
     }, 2000);
   };
 
+  const handleInputChange = (name, value) => {
+    // Format inputs as they're entered
+    let formattedValue = value;
+    
+    if (name === 'cardNumber') {
+      formattedValue = value.replace(/\s/g, '').slice(0, 16);
+    } else if (name === 'expiry') {
+      formattedValue = value
+        .replace(/\D/g, '')
+        .replace(/^(\d{2})/, '$1/')
+        .slice(0, 5);
+    } else if (name === 'cvv') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 4);
+    } else if (name === 'phoneNumber' || name === 'accountNumber') {
+      formattedValue = value.replace(/\D/g, '');
+    }
+
+    setInputs(prev => ({ ...prev, [name]: formattedValue }));
+    
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
   const renderMethodForm = () => {
     switch (method) {
       case 'MoMo':
@@ -28,12 +123,14 @@ const PaymentProcessing = ({ route, navigation }) => {
           <>
             <Text style={styles.label}>MoMo Phone Number</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.phoneNumber && styles.errorInput]}
               placeholder="e.g., 0551234567"
               keyboardType="phone-pad"
-              value={input}
-              onChangeText={setInput}
+              value={inputs.phoneNumber}
+              onChangeText={(text) => handleInputChange('phoneNumber', text)}
+              maxLength={10}
             />
+            {errors.phoneNumber && <Text style={styles.errorText}>{errors.phoneNumber}</Text>}
             <Text style={styles.note}>
               A prompt will appear on your mobile money app
             </Text>
@@ -45,30 +142,40 @@ const PaymentProcessing = ({ route, navigation }) => {
           <>
             <Text style={styles.label}>Card Number</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.cardNumber && styles.errorInput]}
               placeholder="4242 4242 4242 4242"
               keyboardType="number-pad"
-              value={input}
-              onChangeText={setInput}
+              value={inputs.cardNumber.replace(/(.{4})/g, '$1 ').trim()}
+              onChangeText={(text) => handleInputChange('cardNumber', text)}
+              maxLength={19} // 16 digits + 3 spaces
             />
+            {errors.cardNumber && <Text style={styles.errorText}>{errors.cardNumber}</Text>}
             
             <View style={styles.row}>
               <View style={{ flex: 1, marginRight: 10 }}>
-                <Text style={styles.label}>Expiry</Text>
+                <Text style={styles.label}>Expiry Date</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, errors.expiry && styles.errorInput]}
                   placeholder="MM/YY"
                   keyboardType="number-pad"
+                  value={inputs.expiry}
+                  onChangeText={(text) => handleInputChange('expiry', text)}
+                  maxLength={5}
                 />
+                {errors.expiry && <Text style={styles.errorText}>{errors.expiry}</Text>}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.label}>CVV</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, errors.cvv && styles.errorInput]}
                   placeholder="123"
                   keyboardType="number-pad"
                   secureTextEntry
+                  value={inputs.cvv}
+                  onChangeText={(text) => handleInputChange('cvv', text)}
+                  maxLength={4}
                 />
+                {errors.cvv && <Text style={styles.errorText}>{errors.cvv}</Text>}
               </View>
             </View>
           </>
@@ -79,16 +186,18 @@ const PaymentProcessing = ({ route, navigation }) => {
           <>
             <Text style={styles.label}>Account Number</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.accountNumber && styles.errorInput]}
               placeholder="1234567890"
               keyboardType="number-pad"
-              value={input}
-              onChangeText={setInput}
+              value={inputs.accountNumber}
+              onChangeText={(text) => handleInputChange('accountNumber', text)}
+              maxLength={10}
             />
+            {errors.accountNumber && <Text style={styles.errorText}>{errors.accountNumber}</Text>}
             
             <View style={styles.transferDetails}>
               <Text style={styles.bankTitle}>Bank Details</Text>
-              <DetailRow icon="bank" label="Bank Name" value="Ghana Commercial Bank" />
+              <DetailRow icon="hospital" label="Bank Name" value="Ghana Commercial Bank" />
               <DetailRow icon="code" label="Branch Code" value="GH-ACC-100" />
               <DetailRow icon="person" label="Account Name" value="Ghana Premier Academy" />
             </View>
@@ -100,13 +209,21 @@ const PaymentProcessing = ({ route, navigation }) => {
     }
   };
 
+  const DetailRow = ({ icon, label, value }) => (
+    <View style={styles.detailRow}>
+      <Icon name={icon} size={18} color="#03AC13" style={styles.rowIcon} />
+      <Text style={styles.detailLabel}>{label}:</Text>
+      <Text style={styles.detailValue}>{value}</Text>
+    </View>
+  );
+
   return (
     <LinearGradient colors={['#f8f9ff', '#e6e9ff']} style={styles.container}>
       <View style={styles.header}>
         <Icon 
           name="arrow-back" 
           size={24} 
-          color="#000080" 
+          color="#03AC13" 
           onPress={() => navigation.goBack()}
         />
         <Text style={styles.headerTitle}>Complete Payment</Text>
@@ -123,10 +240,10 @@ const PaymentProcessing = ({ route, navigation }) => {
       <TouchableOpacity
         style={[styles.button, isProcessing && styles.buttonDisabled]}
         onPress={handleSubmitPayment}
-        disabled={isProcessing || (method !== 'Bank Transfer' && !input)}
+        disabled={isProcessing}
       >
         <LinearGradient
-          colors={isProcessing ? ['#CCCCCC', '#999999'] : ['#000080', '#1a237e']}
+          colors={isProcessing ? ['#03c04a', '#03AC13'] : ['#03AC13', '#03c04A']}
           style={styles.buttonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -149,14 +266,6 @@ const PaymentProcessing = ({ route, navigation }) => {
   );
 };
 
-const DetailRow = ({ icon, label, value }) => (
-  <View style={styles.detailRow}>
-    <Icon name={icon} size={18} color="#666" style={styles.rowIcon} />
-    <Text style={styles.detailLabel}>{label}:</Text>
-    <Text style={styles.detailValue}>{value}</Text>
-  </View>
-);
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -171,7 +280,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
   },
   card: {
     backgroundColor: 'white',
@@ -207,8 +316,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 10,
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 5,
     fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  errorInput: {
+    borderColor: '#ff4444',
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 12,
+    marginBottom: 15,
   },
   row: {
     flexDirection: 'row',
@@ -218,8 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     fontStyle: 'italic',
-    marginTop: -10,
-    marginBottom: 20,
+    marginTop: 10,
   },
   transferDetails: {
     marginTop: 20,
@@ -230,7 +348,7 @@ const styles = StyleSheet.create({
   bankTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000080',
+    color: '#03AC13',
     marginBottom: 15,
   },
   detailRow: {

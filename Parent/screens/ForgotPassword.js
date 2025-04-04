@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet, SafeAreaView } from 'react-native';
 import CustomInput from '../components/CustomInput';
-import authService from '../services/authService';
+import authService from '../services/AuthService';
 import { AuthContext } from '../context/AuthContext';
 
 const ForgotPasswordScreen = ({ navigation }) => {
@@ -79,7 +79,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color="aliceblue" />
               ) : (
                 <Text style={styles.buttonText}>Send</Text>
               )}
@@ -111,25 +111,25 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#03AC13',
     alignItems: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: 'aliceblue',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 18,
-    color: '#ffffff',
+    color: 'aliceblue',
   },
   form: {
     padding: 20,
     gap: 10,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#03AC13',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   buttonText: {    
     fontSize: 16,    
     fontWeight: 'bold',    
-    color: '#FFFFFF',  
+    color: 'aliceblue',  
   },
   backButton: {    
     marginTop: 20,    
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {    
     fontSize: 16,    
-    color: '#007AFF',  
+    color: '#03AC13',  
   },
 });
 

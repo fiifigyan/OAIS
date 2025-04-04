@@ -2,29 +2,29 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DrawerNavigator from './DrawerNavigator';
 import AdmissionForm from '../screens/AdmissionForm';
-import AddAccountScreen from '../screens/AddAccountScreen';
-import SwitchAccountScreen from '../screens/SwitchAccountScreen';
-import PaymentScreen from '../screens/PaymentScreen';
-import HistoryScreen from '../screens/HistoryScreen';
+import AddAccountScreen from '../screens/AddAccount';
+import SwitchAccountScreen from '../screens/SwitchAccount';
+import HistoryScreen from '../screens/History';
 import ParentProfile from '../screens/ParentProfile';
-import NotificationScreen from '../screens/NotificationScreen';
-import SettingScreen from '../screens/SettingScreen';
-import EventScreen from '../screens/EventScreen';
-import EditProfile from '../screens/EditProfileScreen';
+import NotificationScreen from '../screens/Notification';
+import SettingScreen from '../screens/AppSetting';
+import EventScreen from '../screens/Events';
+import EditProfile from '../screens/EditProfile';
 import WelcomeScreen from '../screens/WelcomeScreen';
-import HelpCenterScreen from '../screens/HelpCenterScreen';
+import HelpCenterScreen from '../screens/HelpCenter';
 import TourScreen from '../screens/TourScreen';
 import NotificationSettings from '../screens/NotificationSettings';
-import HomeWorkScreen from '../screens/HomeWorkScreen';
+import HomeWorkScreen from '../screens/HomeWork';
 import AdmissionStatus from '../screens/AdmissionStatus';
 import StudentProfile from '../screens/StudentProfile';
-import FeeDetailScreen from '../screens/FeeDetailScreen';
-import GradesScreen from '../screens/GradeScreen';
-import OTPVerificationScreen from '../screens/OTPVerificationScreen';
+import FeeDetailScreen from '../screens/FeeDetail';
+import GradesScreen from '../screens/Grades';
+import OTPVerificationScreen from '../screens/OTPVerification';
 import PaymentProcessing from '../screens/PaymentProcessing';
 import PaymentSuccess from '../components/PaymentSuccess';
-import FeeBreakdown from '../screens/FeeBreakdown';
+import FeeBreakdown from '../screens/AdmissionBreakdown';
 import AdmissionPurchase from '../screens/AdmissionPurchase';
+import PaymentMethod from '../screens/PaymentMethod';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,7 +45,7 @@ const StackNavigator = ({ initialRouteName = 'Home' }) => {
       <Stack.Screen name="AddAccount" component={AddAccountScreen} />
       <Stack.Screen name="SwitchAccount" component={SwitchAccountScreen} />
       <Stack.Screen name="FeeDetail" component={FeeDetailScreen} />
-      <Stack.Screen name="Payment" component={PaymentScreen} />
+      <Stack.Screen name="Payment" component={PaymentMethod} />
       <Stack.Screen name="History" component={HistoryScreen} />
       <Stack.Screen name="Events" component={EventScreen} />
       <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
