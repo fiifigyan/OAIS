@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { DataTable } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
-import PaymentScreen from '../screens/PaymentScreen';
+import PaymentMethod from '../screens/PaymentScreen';
 
 const AdmissionPurchase = ({ route, navigation }) => {
   const { level, gender, amount, feeDetails } = route.params;
@@ -15,7 +15,7 @@ const AdmissionPurchase = ({ route, navigation }) => {
   const [parentName, setParentName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
-  const [showPaymentScreen, setShowPaymentScreen] = useState(false);
+  const [showPaymentMethod, setShowPaymentMethod] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const validateForm = () => {
@@ -36,7 +36,7 @@ const AdmissionPurchase = ({ route, navigation }) => {
 
   const handlePaymentInitiation = () => {
     if (!validateForm()) return;
-    setShowPaymentScreen(true);
+    setShowPaymentMethod(true);
   };
 
   const handlePaymentSuccess = async () => {
@@ -60,7 +60,7 @@ const AdmissionPurchase = ({ route, navigation }) => {
       });
     } finally {
       setIsProcessing(false);
-      setShowPaymentScreen(false);
+      setShowPaymentMethod(false);
     }
   };
 
@@ -140,9 +140,9 @@ const AdmissionPurchase = ({ route, navigation }) => {
     }
   };
 
-  if (showPaymentScreen) {
+  if (showPaymentMethod) {
     return (
-      <PaymentScreen 
+      <PaymentMethod 
         route={{ params: { totalAmount: amount } }}
         navigation={{
           ...navigation,
@@ -241,8 +241,11 @@ const AdmissionPurchase = ({ route, navigation }) => {
         <View style={styles.termsContainer}>
           <Text style={styles.termsText}>
             By proceeding, you agree to our Terms of Service and Privacy Policy. 
-            All payments are secure and processed through our trusted payment partners.
           </Text>
+          <View style={styles.securityInfo}>
+            <Icon name="shield-checkmark" size={18} color="#4CAF50" />
+            <Text style={styles.securityText}>Secure payment encrypted with SSL</Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -252,7 +255,7 @@ const AdmissionPurchase = ({ route, navigation }) => {
           onPress={handlePaymentInitiation}
           disabled={isProcessing}
         >
-          <Icon name="payment" size={20} color="#fff" />
+          <Icon name="" size={20} color="#fff" />
           <Text style={styles.buttonText}>
             {isProcessing ? 'Processing...' : `Pay GHS ${amount.toFixed(2)}`}
           </Text>
@@ -352,6 +355,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center'
+  },
+  securityInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10
+  },
+  securityText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 5
   },
   buttonContainer: {
     padding: 16,

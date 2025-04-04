@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const PaymentScreen = ({ route, navigation }) => {
+const PaymentMethod = ({ route, navigation }) => {
   const totalAmount = route.params?.totalAmount || 0;
   const [method, setMethod] = useState('MoMo');
 
@@ -294,4 +294,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PaymentScreen;
+export default PaymentMethod;
