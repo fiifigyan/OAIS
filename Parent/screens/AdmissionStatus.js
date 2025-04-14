@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { AdmissionContext } from '../context/AdmissionContext';
 import { useAuth } from '../context/AuthContext';
-import SuccessModal from '../components/SuccessModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const AdmissionStatus = ({ route }) => {
@@ -12,33 +11,23 @@ const AdmissionStatus = ({ route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Check if coming from successful submission
   const applicationId = route?.params?.applicationId;
 
   const fetchAdmissionStatus = async () => {
     try {
       setError(null);
       setIsLoading(true);
-      
-      // Use the context method which already handles auth token
+
       const data = await getAdmissionStatus();
       
       if (applicationId && data) {
-        // Find the specific application if we have an ID
         const specificApp = Array.isArray(data) 
           ? data.find(app => app.id === applicationId) 
           : data;
         setAdmissionData(specificApp ? [specificApp] : []);
       } else {
-        // Handle both array and single object responses
         setAdmissionData(Array.isArray(data) ? data : (data ? [data] : []));
-      }
-
-      // Show success modal if coming from form submission
-      if (applicationId && !showSuccessModal) {
-        setShowSuccessModal(true);
       }
     } catch (error) {
       console.error('Failed to fetch admission status:', error);
@@ -162,15 +151,6 @@ const AdmissionStatus = ({ route }) => {
           </View>
         )}
       </ScrollView>
-
-      <SuccessModal
-        visible={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="Application Submitted!"
-        message="Your admission application has been successfully submitted. You can check the status here."
-        buttonText="View Status"
-        applicationId={applicationId}
-      />
     </View>
   );
 };

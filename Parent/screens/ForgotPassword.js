@@ -1,154 +1,160 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet, SafeAreaView } from 'react-native';
-import CustomInput from '../components/CustomInput';
-import authService from '../services/AuthService';
-import { AuthContext } from '../context/AuthContext';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
+import AuthService from '../services/AuthService';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { CustomInput } from '../components/CustomInput';
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
-  const [touched, setTouched] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const validateEmail = () => {
-    const trimmedEmail = email.trim();
-    if (!trimmedEmail) {
-      return 'Email is required';
+  const handleReset = async () => {
+    if (!email.trim()) {
+      return setError('Please enter your email address');
     }
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(trimmedEmail)) {
-      return 'Invalid email format';
-    }
-    return '';
-  };
 
-  const handleForgot = async () => {
-    setTouched(true);
-    const emailError = validateEmail();
-    if (emailError) {
-      setError(emailError);
-      return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return setError('Please enter a valid email address');
     }
 
     try {
       setIsLoading(true);
-      await authService.forgotPassword(email);
-      Alert.alert(
-        'Check Your Email',
-        'If an account exists with this email, you will receive password reset instructions.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
-      );
-    } catch (err) {
-      console.error('ForgotPassword Error:', err);
-      Alert.alert('Error', err.message || 'Unable to process your request. Please try again later.');
+      setError('');
+      await AuthService.requestPasswordReset(email.trim());
+      navigation.navigate('Login', { 
+        successMessage: 'Password reset email sent. Please check your inbox.' 
+      });
+    } catch (error) {
+      setError(error.message || 'Failed to send reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Reset Password</Text>
-            <Text style={styles.subtitle}>
-              Enter your email address and we'll send you instructions to reset your password.
-            </Text>
-          </View>
-        
-          <View style={styles.form}>
-            <CustomInput
-              name="email"
-              label="Email Address"
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={(text) => setEmail(text.trim())}
-              error={touched ? error : ''}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onBlur={() => {
-                setTouched(true);
-                const emailError = validateEmail();
-                setError(emailError);
-              }}
-            />
-            
-            <TouchableOpacity 
-              style={[styles.button, isLoading && styles.buttonDisabled]} 
-              onPress={handleForgot}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="aliceblue" />
-              ) : (
-                <Text style={styles.buttonText}>Send</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Reset Password</Text>
+        <Text style={styles.subtitle}>Enter your email to receive a reset link</Text>
+      </View>
 
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>Back to Login</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </SafeAreaView>
+      <View style={styles.form}>
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Icon name="alert-circle" size={20} color="#d32f2f" />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
+        <CustomInput
+          placeholder="Email Address"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (error) setError('');
+          }}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          returnKeyType="done"
+          leftIcon={<Icon name="mail-outline" size={20} color="#666" />}
+        />
+
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleReset}
+          disabled={isLoading}
+          accessibilityLabel="Send reset link button"
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Send Reset Link</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.backLink}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backLinkText}>Back to Login</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: 'darkblue',
-    flex: 1,
-  },
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
-  scrollContainer: {
-    flexGrow: 1,
+    backgroundColor: 'aliceblue',
   },
   header: {
     padding: 20,
     backgroundColor: '#03AC13',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: 'aliceblue',
+    color: '#fff',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 18,
-    color: 'aliceblue',
+    fontSize: 16,
+    color: '#fff',
+    opacity: 0.9,
+    textAlign: 'center',
   },
   form: {
+    flex: 1,
     padding: 20,
-    gap: 10,
   },
   button: {
     backgroundColor: '#03AC13',
-    padding: 12,
+    padding: 16,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 20,
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    opacity: 0.6,
   },
-  buttonText: {    
-    fontSize: 16,    
-    fontWeight: 'bold',    
-    color: 'aliceblue',  
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
-  backButton: {    
-    marginTop: 20,    
-    alignItems: 'center',  
+  backLink: {
+    alignSelf: 'center',
+    marginTop: 20,
   },
-  backButtonText: {    
-    fontSize: 16,    
-    color: '#03AC13',  
+  backLinkText: {
+    color: '#03AC13',
+    fontWeight: '600',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#ffebee',
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#d32f2f',
+    alignItems: 'center',
+    gap: 8,
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 14,
   },
 });
 

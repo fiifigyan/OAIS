@@ -5,7 +5,8 @@ import SuccessModal from '../components/SuccessModal';
 import AuthService from '../services/AuthService';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const ResetPasswordScreen = ({ navigation }) => {
+const ResetPasswordScreen = ({ navigation, route }) => {
+  const { token } = route.params || {};
   const [userInfo, setUserInfo] = useState({
     password: '',
     confirmPassword: '',
@@ -17,6 +18,7 @@ const ResetPasswordScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateField = (name, value) => {
     if (name === 'password') {
@@ -49,7 +51,7 @@ const ResetPasswordScreen = ({ navigation }) => {
     if (validateForm()) {
       setIsLoading(true);
       try {
-        await AuthService.resetPassword(token, userInfo.password);
+        await AuthService.confirmPasswordReset(token, userInfo.password);
         setIsModalVisible(true);
       } catch (error) {
         setErrors({ submit: error.message || 'Unable to reset password. Please try again later.' });
@@ -66,6 +68,10 @@ const ResetPasswordScreen = ({ navigation }) => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -76,6 +82,13 @@ const ResetPasswordScreen = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.form}>
+        {errors.submit && (
+          <View style={styles.errorContainer}>
+            <Icon name="alert-circle" size={20} color="#d32f2f" />
+            <Text style={styles.errorText}>{errors.submit}</Text>
+          </View>
+        )}
+
         <CustomInput
           name="password"
           label="New Password"
@@ -83,10 +96,14 @@ const ResetPasswordScreen = ({ navigation }) => {
           value={userInfo.password}
           onChangeText={(text) => handleInputChange('password', text)}
           error={touched.password ? errors.password : ''}
-          secureTextEntry
+          secureTextEntry={!showPassword}
           onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
-          leftIcon = {<Icon name="lock" size={24} color="#666666" />}
-          rightIcon = {<Icon name="eye" size={24} color="#666666" />}
+          leftIcon={<Icon name="lock" size={24} color="#666666" />}
+          rightIcon={
+            <TouchableOpacity onPress={togglePasswordVisibility}>
+              <Icon name={showPassword ? "eye-off" : "eye"} size={24} color="#666666" />
+            </TouchableOpacity>
+          }
         />
 
         <CustomInput
@@ -96,14 +113,16 @@ const ResetPasswordScreen = ({ navigation }) => {
           value={userInfo.confirmPassword}
           onChangeText={(text) => handleInputChange('confirmPassword', text)}
           error={touched.confirmPassword ? errors.confirmPassword : ''}
-          secureTextEntry
+          secureTextEntry={!showPassword}
           onBlur={() => setTouched(prev => ({ ...prev, confirmPassword: true }))}
+          leftIcon={<Icon name="lock" size={24} color="#666666" />}
         />
 
         <TouchableOpacity 
           style={[styles.button, isLoading && styles.buttonDisabled]} 
           onPress={handleReset}
           disabled={isLoading}
+          accessibilityLabel="Reset password button"
         >
           {isLoading ? (
             <ActivityIndicator color="#FFFFFF" />
@@ -113,20 +132,20 @@ const ResetPasswordScreen = ({ navigation }) => {
         </TouchableOpacity>
       </ScrollView>
 
-        <View style={styles.requirementsContainer}>
-          <Text style={styles.requirementsTitle}>Password Requirements:</Text>
-          {[
-            'Minimum 8 characters',
-            'At least one uppercase letter',
-            'At least one lowercase letter',
-            'At least one number',
-            'At least one special character'
-          ].map((requirement, index) => (
-            <Text key={index} style={styles.requirementItem}>
-              • {requirement}
-            </Text>
-          ))}
-        </View>
+      <View style={styles.requirementsContainer}>
+        <Text style={styles.requirementsTitle}>Password Requirements:</Text>
+        {[
+          'Minimum 8 characters',
+          'At least one uppercase letter',
+          'At least one lowercase letter',
+          'At least one number',
+          'At least one special character (@$!%*?&)'
+        ].map((requirement, index) => (
+          <Text key={index} style={styles.requirementItem}>
+            • {requirement}
+          </Text>
+        ))}
+      </View>
 
       <SuccessModal
         visible={isModalVisible}
@@ -145,55 +164,55 @@ const ResetPasswordScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#007AFF',
-},
-form: {
-  padding: 20,
-  backgroundColor: '#f5f5f5',
-},
-header: {
+    backgroundColor: 'aliceblue',
+  },
+  form: {
     padding: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    padding: 20,
+    backgroundColor: '#03AC13',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
-        width: 0,
-        height: 2,
+      width: 0,
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-},
-title: {
+  },
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-},
-subtitle: {
+  },
+  subtitle: {
     fontSize: 16,
     color: '#fff',
     opacity: 0.9,
-},
+  },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#03AC13',
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 24,
-},
-buttonDisabled: {
-  opacity: 0.7,
-},
-buttonText: {
-  color: '#FFFFFF',
-  fontSize: 16,
-  fontWeight: '600',
-},
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   requirementsContainer: {
     backgroundColor: '#F8F9FA',
     borderRadius: 8,
     padding: 16,
-    marginTop: 24,
+    margin: 20,
   },
   requirementsTitle: {
     fontSize: 16,
@@ -206,6 +225,21 @@ buttonText: {
     color: '#666666',
     marginBottom: 8,
     paddingLeft: 8,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#ffebee',
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#d32f2f',
+    alignItems: 'center',
+    gap: 8,
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 14,
   },
 });
 

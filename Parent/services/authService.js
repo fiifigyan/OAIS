@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { APIConfig } from '../config';
 
 // Helper function with debug logs
 const manageAuthToken = async (token) => {
@@ -20,7 +21,6 @@ const manageAuthToken = async (token) => {
   }
 };
 
-// Enhanced response processor with logs
 const processAuthResponse = (response) => {
   console.debug('[Auth] Processing response:', {
     status: response.status,
@@ -30,7 +30,6 @@ const processAuthResponse = (response) => {
       JSON.stringify(response.data).substring(0, 100) + '...'
   });
 
-  // String response handling
   if (typeof response.data === 'string') {
     console.debug('[Auth] Processing string response');
     const message = response.data.split('%')[0].trim();
@@ -45,7 +44,6 @@ const processAuthResponse = (response) => {
     }
   }
 
-  // JSON response handling
   if (response.data?.token) {
     console.debug('[Auth] Processing JSON response with token');
     return response.data;
@@ -65,7 +63,7 @@ const AuthService = {
       });
 
       const response = await axios.post(
-        'https://73xd35pq-2025.uks1.devtunnels.ms/api/parent/auth/signup', 
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`, 
         userData
       );
 
@@ -100,7 +98,7 @@ const AuthService = {
       console.debug('Attempting login for:', credentials.email + ' with student ID:', credentials.StudentID);
 
       const response = await axios.post(
-        'https://73xd35pq-2025.uks1.devtunnels.ms/api/parent/auth/login',
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`,
         credentials
       );
 
@@ -133,7 +131,11 @@ const AuthService = {
     console.group('[Auth] Logout Process');
     try {
       console.debug('Initiating logout');
-      await axios.post('https://73xd35pq-2025.uks1.devtunnels.ms/api/parent/auth/logout');
+      await axios.post(
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGOUT}`,
+        null,
+        { headers: { 'Authorization-Mobile': `Bearer ${await AsyncStorage.getItem('authToken')}` } }
+      );
       await manageAuthToken(null);
       
       console.debug('Logout completed');
@@ -156,16 +158,14 @@ const AuthService = {
         console.debug('No token found');
         return null;
       }
-  
-      // Basic JWT structure validation
+
       const parts = token.split('.');
       if (parts.length !== 3) {
         console.error('Invalid token structure');
         await this.logout();
         return null;
       }
-  
-      // Optional: Add expiration check if using JWT
+
       try {
         const payload = JSON.parse(atob(parts[1]));
         if (payload.exp && Date.now() >= payload.exp * 1000) {

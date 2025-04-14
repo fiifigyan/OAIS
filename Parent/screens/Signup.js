@@ -72,10 +72,6 @@ const handleSignup = async () => {
       email: formData.email.trim().toLowerCase(),
       password: formData.password
     });
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Welcome' }],
-    });
   } catch (error) {
     let errorMessage = '';
     

@@ -11,14 +11,13 @@ import { registerForPushNotifications, useNotificationListener, sendPushTokenToB
 import { StudentProvider } from './context/StudentContext';
 import { ParentProvider } from './context/ParentContext';
 import { PaymentProvider } from './context/PaymentContext';
-import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
+import BiometricScreen from './screens/Biometric';
 
 function MainAppContent() {
   const { userInfo, isNewUser } = useAuth();
   const [expoPushToken, setExpoPushToken] = React.useState('');
 
-  // Register for push notifications
   React.useEffect(() => {
     registerForPushNotifications()
       .then((token) => {
@@ -35,12 +34,12 @@ function MainAppContent() {
       <SafeAreaView style={{ flex: 1, backgroundColor: '#03AC13' }}>
         <StatusBar barStyle="default"/>
         {!userInfo ? (
-        <AuthStack />
-      ) : isNewUser ? (
-        <StackNavigator initialRouteName="Welcome" />
-      ) : (
-        <AuthStack initialRouteName="Login" />
-      )}
+          <AuthStack initialRouteName="Onboard" />
+        ) : isNewUser ? (
+          <StackNavigator initialRouteName="Welcome" />
+        ) : (
+          <StackNavigator initialRouteName="Welcome" />
+        )}
         <NotificationListener />
       </SafeAreaView>
     </NavigationContainer>
@@ -56,7 +55,6 @@ function NotificationListener() {
 function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider>
         <NotificationProvider>
           <AuthProvider>
             <AdmissionProvider>
@@ -70,7 +68,6 @@ function App() {
             </AdmissionProvider>
           </AuthProvider>
         </NotificationProvider>
-      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

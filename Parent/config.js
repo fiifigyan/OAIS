@@ -6,14 +6,24 @@ export const appConfig = {
     isDevelopment: process.env.NODE_ENV === 'development'
 };
 
-// Description: Authentication configuration.
-export const authConfig = {
-    AUTH_BASE_URL: 'https://xpnnkh6h-8082.uks1.devtunnels.ms',
-}
+// Description: API configuration.
+export const APIConfig = {
+    BASE_URL: 'https://73xd35pq-2025.uks1.devtunnels.ms',
+    AUTH:{
+      SIGNUP: '/api/parent/auth/signup',
+      LOGIN: '/api/parent/auth/login',
+      LOGOUT: '/api/parent/auth/logout',
+      FORGOT: '/api/parent/auth/forgot',
+      RESET: '/api/parent/auth/reset',
 
-// Description: Admission configuration.
-export const admissionConfig = {
-    ADMISSION_BASE_URL: 'https://73xd35pq-2025.uks1.devtunnels.ms',
+
+    },
+
+    ADMISSIONS:{
+      SUBMIT: '/api/parent/admission/submit',
+      STATUS: '/api/parent/admission/status',
+    }
+
 }
 
 // Description: Firebase configuration.

@@ -1,24 +1,38 @@
-import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect } from 'react';
+import { Modal, View, Text, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const SuccessModal = ({ visible, onClose, title, message, buttonText, applicationId }) => {
-  const navigation = useNavigation();
-
-  const handleViewStatus = () => {
-    onClose(); // Close the modal
-    navigation.navigate('AdmissionStatus', { applicationId }); // Navigate to AdmissionStatus with applicationId
-  };
+const SuccessModal = ({ 
+  visible, 
+  onClose, 
+  title, 
+  message, 
+  duration = 3000,
+  onAutoClose
+}) => {
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => {
+        onClose();
+        if (onAutoClose) onAutoClose();
+      }, duration);
+      return () => clearTimeout(timer);
+    }
+  }, [visible, onClose, duration, onAutoClose]);
 
   return (
-    <Modal visible={visible} transparent={true}>
+    <Modal 
+      visible={visible} 
+      transparent
+      animationType="fade"
+    >
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
+          <View style={styles.iconContainer}>
+            <Icon name="checkmark-circle" size={48} color="#03AC13" />
+          </View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
-          <TouchableOpacity style={styles.button} onPress={handleViewStatus}>
-            <Text style={styles.buttonText}>{buttonText}</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>

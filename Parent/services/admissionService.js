@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import axios from 'axios';
-import authService from './AuthService';
+import AuthService from '../services/AuthService';
+import { APIConfig } from '../config';
 
 const logger = {
   error: (message, error) => console.error(`[AdmissionService] ${message}`, error),
@@ -11,11 +12,16 @@ const logger = {
 
 const REQUIRED_FIELDS = {
   student: [
-    // Student Personal Information
-    'fullName', 'dateOfBirth', 'gender', 'nationality', 'religion', 
-    // Student Residential Address
-    'residentialAddress.streetName', 'residentialAddress.houseNumber', 'residentialAddress.city', 'residentialAddress.region', 'residentialAddress.country', 
-    // Student Medical Information
+    'fullName', 
+    'dateOfBirth', 
+    'gender', 
+    'nationality', 
+    'religion', 
+    'residentialAddress.streetName', 
+    'residentialAddress.houseNumber', 
+    'residentialAddress.city', 
+    'residentialAddress.region', 
+    'residentialAddress.country', 
     'medicalInformation.bloodType', 
     'medicalInformation.emergencyContactName', 
     'medicalInformation.emergencyContactNumber', 
@@ -103,40 +109,37 @@ const inspectFormData = async (formData) => {
 
 const getAuthHeaders = async () => {
   try {
-    const verification = await authService.verifyToken();
-    if (!verification) {
-      throw new Error('Authentication required - please login again');
+    const token = await AsyncStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('No authentication token found');
     }
+    
     return {
       'Accept': 'application/json',
-      'Authorization-Mobile': `Bearer ${verification.token}`,
+      'Content-Type': 'multipart/form-data',
+      'Authorization-Mobile': `Bearer ${token}`
     };
   } catch (error) {
     logger.error('Failed to get auth headers:', error);
-    throw new Error('Authentication failed');
+    throw new Error('Authentication failed - please login again');
   }
 };
 
 const admissionService = {
   async submitAdmissionForm(formData) {
     try {
-      // Validate form before submission
       const validation = await this.validateForm(formData);
       if (!validation.isValid) {
         throw new Error('Form validation failed: ' + Object.values(validation.errors).join(', '));
       }
 
-      // Validate all documents
       await Promise.all(Object.entries(formData.documents || {}).map(async ([key, fileInfo]) => {
         await this.validateDocument(fileInfo);
       }));
 
       const formSubmissionData = new FormData();
 
-      // Append form data excluding documents
       formSubmissionData.append('data', JSON.stringify({ ...formData, documents: undefined }));
-
-      // Append documents with explicit MIME type handling
       for (const [key, fileInfo] of Object.entries(formData.documents || {})) {
         const resolvedUri = resolveFileUri(fileInfo);
         if (!resolvedUri) throw new Error(`Invalid file information for ${key}`);
@@ -146,10 +149,8 @@ const admissionService = {
           throw new Error(`Invalid file type for ${key}`);
         }
 
-        // Log file details before appending to FormData
         logger.info(`Appending file: ${fileInfo.name}, MIME type: ${mimeType}, URI: ${resolvedUri}`);
 
-        // Append the file with the correct key (file1, file2, file3)
         formSubmissionData.append(key, {
           uri: resolvedUri,
           name: fileInfo.name,
@@ -157,36 +158,28 @@ const admissionService = {
         });
       }
 
-      // Log FormData parts for debugging
       await inspectFormData(formSubmissionData);
 
-      // Send data to the backend using Axios
-
       const headers = await getAuthHeaders();
-      headers['Content-Type'] = 'multipart/form-data';
 
       const response = await axios.post(
-        'https://73xd35pq-2025.uks1.devtunnels.ms/api/parent/admissions/submit',
+        `${APIConfig.BASE_URL}${APIConfig.ADMISSION.SUBMIT}`,
         formSubmissionData,
         { headers}
       );
 
-      // Clear draft data upon successful submission
       await this.clearFormDraft();
       return response.data;
     } catch (error) {
-      // Improve error logging
+
       logger.error('Admission Form Submission Failed:', error);
       if (error.response) {
-        // The request was made and the server responded with a status code
         logger.error('Response data:', error.response.data);
         logger.error('Response status:', error.response.status);
         logger.error('Response headers:', error.response.headers);
       } else if (error.request) {
-        // The request was made but no response was received
         logger.error('No response received:', error.request);
       } else {
-        // Something happened in setting up the request
         logger.error('Request setup error:', error.message);
       }
       throw new Error(sanitizeError(error));
@@ -248,7 +241,6 @@ const admissionService = {
       });
     });
 
-    // Conditional validation for sibling details
     if (formData.admissionDetail?.hasSiblingsInSchool) {
       if (isEmptyValue(formData.admissionDetail.siblingName)) {
         errors['admissionDetail.siblingName'] = 'sibling name is required';
@@ -291,13 +283,13 @@ const admissionService = {
     }
   },
 
-  async getAdmissionStatusById(id) {
+  async getAdmissionStatus(applicationId) {
     try {
       if (!id) throw new Error('Application ID is required');
 
       const headers = await getAuthHeaders();
       const response = await axios.get(
-        `https://73xd35pq-2025.uks1.devtunnels.ms/api/parent/admissions/status?id=${id}`,
+        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${applicationId}`,
         { headers }
       );
 
@@ -314,7 +306,7 @@ const admissionService = {
 
       const headers = await getAuthHeaders();
       const response = await axios.get(
-        `https://73xd35pq-2025.uks1.devtunnels.ms/api/parent/admissions/status?parentId=${parentId}`,
+        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${parentId}`,
         { headers }
       );
 
