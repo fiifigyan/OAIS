@@ -8,11 +8,11 @@ const manageAuthToken = async (token) => {
   try {
     if (token) {
       await AsyncStorage.setItem('authToken', token);
-      axios.defaults.headers.common['Authorization-Mobile'] = `Bearer ${token}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       console.debug('[Auth] Token stored and header set');
     } else {
       await AsyncStorage.removeItem('authToken');
-      delete axios.defaults.headers.common['Authorization-Mobile'];
+      delete axios.defaults.headers.common['Authorization'];
       console.debug('[Auth] Token cleared');
     }
   } catch (error) {
@@ -134,7 +134,7 @@ const AuthService = {
       await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGOUT}`,
         null,
-        { headers: { 'Authorization-Mobile': `Bearer ${await AsyncStorage.getItem('authToken')}` } }
+        { headers: { 'Authorization': `Bearer ${await AsyncStorage.getItem('authToken')}` } }
       );
       await manageAuthToken(null);
       

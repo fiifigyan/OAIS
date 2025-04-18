@@ -5,30 +5,31 @@ import { useAuth } from '../context/AuthContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const AdmissionStatus = ({ route }) => {
-  const { getAdmissionStatus } = useContext(AdmissionContext);
+  const { getAdmissionStatus, getAdmissionStatusById } = useContext(AdmissionContext);
   const { userInfo } = useAuth();
   const [admissionData, setAdmissionData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-
-  const applicationId = route?.params?.applicationId;
+  const { applicationId } = route.params || {};
 
   const fetchAdmissionStatus = async () => {
     try {
       setError(null);
       setIsLoading(true);
+      setRefreshing(true);
 
-      const data = await getAdmissionStatus();
-      
-      if (applicationId && data) {
-        const specificApp = Array.isArray(data) 
-          ? data.find(app => app.id === applicationId) 
-          : data;
-        setAdmissionData(specificApp ? [specificApp] : []);
-      } else {
-        setAdmissionData(Array.isArray(data) ? data : (data ? [data] : []));
-      }
+      let data;
+      if (applicationId) {
+        // Fetch specific application if ID is provided
+        data = await getAdmissionStatusById(applicationId);
+        setAdmissionData(data ? [data] : []);
+      } 
+      // else {
+      //   // Fetch all applications for the parent
+      //   data = await getAdmissionStatus();
+      //   setAdmissionData(Array.isArray(data) ? data : (data ? [data] : []));
+      // }
     } catch (error) {
       console.error('Failed to fetch admission status:', error);
       setError(error.message || 'Failed to load admission status');
@@ -44,7 +45,6 @@ const AdmissionStatus = ({ route }) => {
   }, [applicationId, userInfo]);
 
   const onRefresh = () => {
-    setRefreshing(true);
     fetchAdmissionStatus();
   };
 
@@ -127,7 +127,9 @@ const AdmissionStatus = ({ route }) => {
           />
         }
       >
-        <Text style={styles.title}>Admission Status</Text>
+        <Text style={styles.title}>
+          {applicationId ? 'Application Details' : 'Admission Status'}
+        </Text>
         
         {error && (
           <View style={styles.errorContainer}>
@@ -144,9 +146,12 @@ const AdmissionStatus = ({ route }) => {
         ) : (
           <View style={styles.emptyState}>
             <Icon name="document-outline" size={50} color="#999" />
-            <Text style={styles.emptyText}>No admission applications found</Text>
+            <Text style={styles.emptyText}>
+              {applicationId ? 'Application not found' : 'No admission applications found'}
+            </Text>
             <Text style={styles.emptySubtext}>
-              {error ? 'Could not load applications' : 'Submit an application to view status'}
+              {error ? 'Could not load applications' : 
+               applicationId ? 'Check the application ID' : 'Submit an application to view status'}
             </Text>
           </View>
         )}

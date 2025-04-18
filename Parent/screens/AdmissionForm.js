@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import { AdmissionContext } from '../context/AdmissionContext';
 import SuccessModal from '../components/SuccessModal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useAuth } from '../context/AuthContext';
 
 const AdmissionForm = () => {
   const navigation = useNavigation();
@@ -15,14 +14,11 @@ const AdmissionForm = () => {
   const [submitError, setSubmitError] = useState(null);
   const [fileValidationErrors, setFileValidationErrors] = useState({});
   const { formData, isLoading, error, validationErrors, draftSaveStatus, updateFormData, submitForm, resetForm, clearError } = useContext(AdmissionContext);
-  const [applicationId, setApplicationId] = useState(null);
 
-  // Clear any submit errors when form changes
   useEffect(() => {
     setSubmitError(null);
   }, [formData]);
 
-  // Display API errors
   useEffect(() => {
     if (error) {
       setSubmitError(error);
@@ -64,7 +60,7 @@ const AdmissionForm = () => {
   const handleDocumentPick = async (field) => {
     try {
       setFileValidationErrors(prev => ({ ...prev, [field]: null }));
-  
+    
       const result = await DocumentPicker.getDocumentAsync({
         type: ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'],
         copyToCacheDirectory: true,
@@ -78,13 +74,19 @@ const AdmissionForm = () => {
   
       if (result.assets && result.assets.length > 0) {
         const file = result.assets[0];
-  
+
         if (!file.name || !file.uri || !file.size) {
           Alert.alert('Error', 'Invalid file selected. Please try again.');
           return;
         }
   
-        const fileInfo = { name: file.name, uri: file.uri, size: file.size };
+        const fileInfo = { 
+          name: file.name, 
+          uri: file.uri, 
+          size: file.size,
+          type: file.mimeType || getMimeType(file.name) 
+        };
+        
         handleChange(`documents.${field}`, fileInfo);
       }
     } catch (error) {
@@ -230,11 +232,15 @@ const AdmissionForm = () => {
       clearError();
       
       const result = await submitForm();
-      if (result && result.id) {
+      console.log('Submission result:', result);
+  
+      if (result && !result.error) {
         setShowSuccessModal(true);
-        setApplicationId(result.id);
+      } else {
+        setSubmitError(result?.error || result?.message || 'Submission failed');
       }
     } catch (error) {
+      console.error('Submission error:', error);
       if (error.response?.status === 401) {
         navigation.navigate('Login', { 
           message: 'Session expired. Please login again.' 
@@ -366,15 +372,13 @@ const AdmissionForm = () => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {showSuccessModal && (
-        <SuccessModal
-          visible={showSuccessModal}
-          onClose={() => setShowSuccessModal(false)}
-          onAutoClose={() => navigation.navigate('AdmissionStatus', { applicationId })}
-          title="Application Submitted!"
-          message="Your admission form was successfully processed."
-        />
-      )}
+      <SuccessModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        onAutoClose={() => navigation.navigate('Login')}
+        title="Application Submitted!"
+        message="Your admission form was successfully processed."
+      />
     </SafeAreaView>
   );
 };

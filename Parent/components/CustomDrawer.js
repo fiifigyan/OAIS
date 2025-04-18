@@ -32,10 +32,7 @@ const CustomDrawer = (props) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
       await logout();
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
+      navigation.navigate('Login');
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -209,16 +206,10 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 20,
   },
-  drawerItem: {
-    // borderRadius: 12,
-    // marginHorizontal: 10,
-    // marginVertical: 4,
-  },
   drawerLabel: {
     fontSize: 15,
     fontWeight: '500',
     color: '#374151',
-    // marginLeft: -16,
   },
   drawerFooter: {
     padding: 20,

@@ -1,105 +1,104 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Switch, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ThemeContext } from '../context/ThemeContext';
-import { ParentContext } from '../context/ParentContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appConfig } from '../config';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
-  const { isDarkTheme, toggleTheme } = useContext(ThemeContext);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const { parentInfo } = useContext(ParentContext);
-  const profileImage = parentInfo?.profileImage || require('../assets/images/fiifi1.jpg');
-  const fullName = [parentInfo?.firstName, parentInfo?.lastName].filter(Boolean).join(' ') || 'N/A';
-  const relationship = parentInfo?.relationship || 'Parent/Guardian';
 
   const handleLogout = () => {
     navigation.replace('Login');
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDarkTheme ? '#333' : 'aliceblue' }]}>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-      <Text style={[styles.header, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>Settings</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Settings</Text>
+        </View>
 
-      {/* Parent Profile section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>Parent Profile</Text>
-        <View style={[styles.profile, { backgroundColor: isDarkTheme ? '#333' : 'aliceblue' }]}>
-          <View style={styles.profileInfo}>
-            <Image source={typeof profileImage === 'string' ? { uri: profileImage } : profileImage} style={styles.profileImage} />
-            <View style={styles.profileDetails}>
-              <Text style={[styles.profileName, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>{fullName}</Text>
-              <Text style={{ color: isDarkTheme ? '#FFF' : '#007AFF' }}>{relationship}</Text>
+        {/* Preferences Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          
+          <View style={styles.settingItem}>
+            <View style={styles.settingIcon}>
+              <Icon name="notifications" size={24} color="#5E7CE2" />
             </View>
+            <Text style={styles.settingText}>Notifications</Text>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+              trackColor={{ false: '#E0E0E0', true: '#5E7CE2' }}
+              thumbColor="#FFFFFF"
+            />
           </View>
         </View>
-      </View>
 
-      {/* App Preferences Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>App Preferences</Text>
-        
-        {/* Dark Theme Toggle */}
-        <View style={styles.settingItem}>
-          <Text style={{ color: isDarkTheme ? '#FFF' : '#007AFF' }}>Dark Theme</Text>
-          <TouchableOpacity onPress={toggleTheme}>
-            <Icon name={isDarkTheme ? 'sunny' : 'sunny'} size={24} color={isDarkTheme ? 'aliceblue' : '#767577'} />
+        {/* Account Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Profile')}  // Moved to separate screen
+          >
+            <View style={styles.menuIcon}>
+              <Icon name="person" size={24} color="#5E7CE2" />
+            </View>
+            <Text style={styles.menuText}>My Profile</Text>
+            <Icon name="chevron-right" size={24} color="#9E9E9E" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('ResetPassword')}
+          >
+            <View style={styles.menuIcon}>
+              <Icon name="lock" size={24} color="#5E7CE2" />
+            </View>
+            <Text style={styles.menuText}>Change Password</Text>
+            <Icon name="chevron-right" size={24} color="#9E9E9E" />
           </TouchableOpacity>
         </View>
 
-        {/* Enable Notifications */}
-        <View style={styles.settingItem}>
-          <Text style={{ color: isDarkTheme ? '#FFF' : '#007AFF' }}>Enable Notifications</Text>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={(value) => setNotificationsEnabled(value)}
-            trackColor={{ false: '#767577', true: '#767577' }}
-            thumbColor={isDarkTheme ? '#767577' : '#f4f3f4'}
-          />
+        {/* App Info Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About</Text>
+          
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>App Version</Text>
+            <Text style={styles.infoValue}>{appConfig.APP_VERSION}</Text>
+          </View>
+          
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuIcon}>
+              <Icon name="description" size={24} color="#5E7CE2" />
+            </View>
+            <Text style={styles.menuText}>Terms of Service</Text>
+            <Icon name="chevron-right" size={24} color="#9E9E9E" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={styles.menuIcon}>
+              <Icon name="security" size={24} color="#5E7CE2" />
+            </View>
+            <Text style={styles.menuText}>Privacy Policy</Text>
+            <Icon name="chevron-right" size={24} color="#9E9E9E" />
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Account Settings Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>Account Settings</Text>
-        
-        {/* Edit Profile */}
-        <TouchableOpacity
-          style={[styles.accountItem, { backgroundColor: isDarkTheme ? '#444' : '#FFF' }]}
-          onPress={() => navigation.navigate('EditProfile')}
-        >
-          <Icon name="person" size={24} color={isDarkTheme ? '#FFF' : '#007AFF'} />
-          <Text style={[styles.accountText, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>Edit Profile</Text>
-          <Icon name="chevron-right" size={24} color={isDarkTheme ? '#FFF' : '#007AFF'} />
-        </TouchableOpacity>
-
-        {/* Change Password */}
-        <TouchableOpacity
-          style={[styles.accountItem, { backgroundColor: isDarkTheme ? '#444' : '#FFF' }]}
-          onPress={() => navigation.navigate('ResetPassword')}
-        >
-          <Icon name="lock" size={24} color={isDarkTheme ? '#FFF' : '#007AFF'} />
-          <Text style={[styles.accountText, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>Change Password</Text>
-          <Icon name="chevron-right" size={24} color={isDarkTheme ? '#FFF' : '#007AFF'} />
-        </TouchableOpacity>
-
-        {/* Logout */}
-        <TouchableOpacity
-          style={[styles.accountItem, { backgroundColor: isDarkTheme ? '#444' : '#FFF' }]}
+        {/* Logout Button */}
+        <TouchableOpacity 
+          style={styles.logoutButton}
           onPress={handleLogout}
         >
-          <Icon name="logout" size={24} color={isDarkTheme ? '#FFF' : '#007AFF'} />
-          <Text style={[styles.accountText, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>Logout</Text>
-          <Icon name="chevron-right" size={24} color={isDarkTheme ? '#FFF' : '#007AFF'} />
+          <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Footer */}
-      <Text style={[styles.footer, { color: isDarkTheme ? '#FFF' : '#007AFF' }]}>App Version: {appConfig.APP_VERSION}</Text>
-    </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -107,85 +106,130 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: '#F8F9FB',
+  },
+  scrollContainer: {
+    padding: 20,
   },
   header: {
+    marginBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#2D3748',
+  },
+  profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  profile: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    gap: 10,
-    alignItems: 'center',
-    marginBottom: 10,
-    padding: 10,
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  profileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderColor: '#FFF',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     borderWidth: 2,
+    borderColor: '#EFF2F7',
+  },
+  profileInfo: {
+    marginLeft: 16,
   },
   profileName: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2D3748',
   },
-  profileDetails: {
-    flexDirection: 'column',
-    alignItems: 'center',
+  profileRole: {
+    fontSize: 14,
+    color: '#718096',
+    marginTop: 4,
   },
   section: {
-    marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#718096',
+    marginBottom: 16,
+    textTransform: 'uppercase',
   },
   settingItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    paddingVertical: 12,
   },
-  accountItem: {
+  settingIcon: {
+    width: 40,
+    alignItems: 'center',
+  },
+  settingText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#2D3748',
+    marginLeft: 8,
+  },
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 12,
+  },
+  menuIcon: {
+    width: 40,
+    alignItems: 'center',
+  },
+  menuText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#2D3748',
+    marginLeft: 8,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  infoLabel: {
+    flex: 1,
+    fontSize: 16,
+    color: '#2D3748',
+  },
+  infoValue: {
+    fontSize: 16,
+    color: '#718096',
+  },
+  logoutButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 16,
-    borderRadius: 8,
-    marginBottom: 10,
-    elevation: 2,
+    alignItems: 'center',
+    marginTop: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  accountText: {
-    flex: 1,
-    marginLeft: 16,
+  logoutText: {
+    color: '#E53E3E',
     fontSize: 16,
-  },
-  footer: {
-    marginTop: 20,
-    textAlign: 'center',
-    color: 'gray',
+    fontWeight: '600',
   },
 });
 

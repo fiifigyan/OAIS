@@ -33,8 +33,8 @@ const TabNavigator = () => {
           };
           return <Icon name={icons[route.name]} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#5E7CE2',
-        tabBarInactiveTintColor: '#000080',
+        tabBarActiveTintColor: '#03C0A4',
+        tabBarInactiveTintColor: '#03AC13',
         tabBarLabelStyle: { fontWeight: 'bold' },
         tabBarStyle: { position: 'absolute' },
         tabBarBackground: () => (

@@ -12,6 +12,7 @@ import { StudentProvider } from './context/StudentContext';
 import { ParentProvider } from './context/ParentContext';
 import { PaymentProvider } from './context/PaymentContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { HomeProvider } from './context/HomeContext';
 import BiometricScreen from './screens/Biometric';
 
 function MainAppContent() {
@@ -38,7 +39,7 @@ function MainAppContent() {
         ) : isNewUser ? (
           <StackNavigator initialRouteName="Welcome" />
         ) : (
-          <StackNavigator initialRouteName="Welcome" />
+          <StackNavigator initialRouteName="Drawer" />
         )}
         <NotificationListener />
       </SafeAreaView>
@@ -60,9 +61,11 @@ function App() {
             <AdmissionProvider>
               <ParentProvider>
                 <StudentProvider>
-                  <PaymentProvider>
-                    <MainAppContent />
-                  </PaymentProvider>
+                  <HomeProvider>                 
+                    <PaymentProvider>
+                      <MainAppContent />
+                    </PaymentProvider>                 
+                  </HomeProvider>
                 </StudentProvider>
               </ParentProvider>
             </AdmissionProvider>

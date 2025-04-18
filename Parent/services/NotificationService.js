@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+const { APIConfig } = require('../config');
 
 // Register for push notifications
 export const registerForPushNotifications = async () => {
@@ -67,7 +68,7 @@ export const loadSettings = async () => {
 // Send push token to backend
 export const sendPushTokenToBackend = async (token) => {
   try {
-    await axios.post('https://your-api.com/save-token', { token });
+    await axios.post(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.SAVE_PUSH_TOKEN}`, { token });
   } catch (error) {
     console.error('Error sending push token:', error);
   }

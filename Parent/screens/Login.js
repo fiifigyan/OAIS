@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const LoginScreen = () => {
   const navigation = useNavigation();
   const [formData, setFormData] = useState({
-    studentID: '',
+    StudentID: '',
     email: '',
     password: ''
   });
@@ -19,10 +19,10 @@ const LoginScreen = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.studentID.trim()) {
-      newErrors.studentID = 'Student ID is required';
-    } else if (!/^OAIS-\d{4}$/.test(formData.studentID.trim())) {
-      newErrors.studentID = 'Format: OAIS-0001 (4 digits after hyphen)';
+    if (!formData.StudentID.trim()) {
+      newErrors.StudentID = 'Student ID is required';
+    } else if (!/^OAIS-\d{4}$/.test(formData.StudentID.trim())) {
+      newErrors.StudentID = 'Format: OAIS-0001 (4 digits after hyphen)';
     }
 
     if (!formData.email.trim()) {
@@ -47,7 +47,7 @@ const LoginScreen = () => {
     try {
       const credentials = {
         email: formData.email.trim().toLowerCase(),
-        studentID: formData.studentID.trim().toUpperCase(),
+        StudentID: formData.StudentID.trim().toUpperCase(),
         Password: formData.password
       };
       
@@ -63,7 +63,7 @@ const LoginScreen = () => {
         const backendErrors = error.response.data;
         
         if (backendErrors.StudentID) {
-          setErrors(prev => ({ ...prev, studentID: backendErrors.StudentID }));
+          setErrors(prev => ({ ...prev, StudentID: backendErrors.StudentID }));
         }
         if (backendErrors.Password) {
           setErrors(prev => ({ ...prev, password: backendErrors.Password }));
@@ -95,8 +95,8 @@ const LoginScreen = () => {
       formattedText = formattedText.slice(0, 9);
     }
     
-    setFormData(prev => ({ ...prev, studentID: formattedText }));
-    if (errors.studentID) setErrors(prev => ({ ...prev, studentID: '' }));
+    setFormData(prev => ({ ...prev, StudentID: formattedText }));
+    if (errors.StudentID) setErrors(prev => ({ ...prev, StudentID: '' }));
   };
 
   return (
@@ -109,9 +109,9 @@ const LoginScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <CustomInput
             label="Student ID *"
-            value={formData.studentID}
+            value={formData.StudentID}
             onChangeText={handleStudentIDChange}
-            error={errors.studentID}
+            error={errors.StudentID}
             placeholder="OAIS-0000"
             autoCapitalize="characters"
             leftIcon={<Icon name="id-card" size={20} color="#666" />}

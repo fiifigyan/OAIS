@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import StudentService from '../services/StudentService';
-import { useParent } from './ParentContext';
+import { useParent } from '../context/ParentContext';
 
 export const StudentContext = createContext();
 

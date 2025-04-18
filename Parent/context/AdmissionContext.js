@@ -1,5 +1,6 @@
 import React, { createContext, useState, useCallback, useEffect, useRef } from 'react';
 import admissionService from '../services/AdmissionService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 
 export const AdmissionContext = createContext();
@@ -61,7 +62,6 @@ export const AdmissionProvider = ({ children }) => {
   const draftSaveTimer = useRef(null);
   const { userInfo } = useAuth();
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => { 
       isMounted.current = false;
@@ -71,7 +71,6 @@ export const AdmissionProvider = ({ children }) => {
     };
   }, []);
 
-  // Auto-save draft when form changes
   useEffect(() => {
     if (isLoading || JSON.stringify(formData) === JSON.stringify(INITIAL_FORM_STATE)) {
       return;
@@ -104,7 +103,6 @@ export const AdmissionProvider = ({ children }) => {
     };
   }, [formData, isLoading]);
 
-  // Load saved draft on mount
   useEffect(() => {
     const loadDraft = async () => {
       try {
@@ -127,7 +125,6 @@ export const AdmissionProvider = ({ children }) => {
     loadDraft();
   }, []);
 
-  // Deep merge helper function
   const deepMerge = useCallback((target, source) => {
     if (typeof target !== 'object' || typeof source !== 'object') {
       return source;
@@ -144,13 +141,11 @@ export const AdmissionProvider = ({ children }) => {
     return output;
   }, []);
 
-  // Update form data
   const updateFormData = useCallback((updates) => {
     setFormData(prev => deepMerge(prev || INITIAL_FORM_STATE, updates));
     setValidationErrors({});
   }, [deepMerge]);
 
-  // Validate form
   const validateForm = useCallback(async () => {
     try {
       const validation = await admissionService.validateForm(formData || INITIAL_FORM_STATE);
@@ -166,7 +161,6 @@ export const AdmissionProvider = ({ children }) => {
     }
   }, [formData]);
 
-  // Submit form
   const submitForm = useCallback(async () => {
     if (isLoading) return null;
   
@@ -180,12 +174,15 @@ export const AdmissionProvider = ({ children }) => {
         setIsLoading(false);
         return null;
       }
+
+      const token = await AsyncStorage.getItem('authToken');
+      console.debug('Submitting form with token:', token);
+      if (!token) {
+        throw new Error('Your session has expired. Please login again.');
+      }
   
-      const response = await admissionService.submitAdmissionForm(
-        formData,
-        userInfo?.token
-      );
-  
+      const response = await admissionService.submitAdmissionForm(formData);
+      
       if (isMounted.current) {
         setFormData(INITIAL_FORM_STATE);
       }
@@ -193,8 +190,13 @@ export const AdmissionProvider = ({ children }) => {
       await admissionService.clearFormDraft();
       return response;
     } catch (error) {
+      console.error('Submission Error:', error);
       if (isMounted.current) {
-        setError(error.message || 'Could not submit your form. Please try again.');
+        if (error.response?.status === 401) {
+          setError('Session expired. Please login again.');
+        } else {
+          setError(error.message || 'Could not submit your form. Please try again.');
+        }
       }
       return null;
     } finally {
@@ -202,28 +204,22 @@ export const AdmissionProvider = ({ children }) => {
         setIsLoading(false);
       }
     }
-  }, [formData, validateForm, isLoading, userInfo?.token]);  
+  }, [formData, validateForm, isLoading]);
 
-  // Reset form
   const resetForm = useCallback(() => {
     setFormData(INITIAL_FORM_STATE);
     setValidationErrors({});
     setError(null);
   }, []);
 
-  // Clear error
   const clearError = useCallback(() => setError(null), []);
 
-  // Get admission status
-  const getAdmissionStatus = useCallback(async () => {
-    if (!userInfo?.id) return null;
+  const getAdmissionStatusById = useCallback(async (applicationId) => {
+    if (!applicationId) return null;
     
     try {
       setIsLoading(true);
-      const response = await admissionService.getAdmissionStatus(
-        userInfo.id,
-        userInfo.token
-      );
+      const response = await admissionService.getAdmissionStatusById(applicationId);
       return response;
     } catch (error) {
       setError(error.message || 'Could not fetch admission status');
@@ -231,7 +227,22 @@ export const AdmissionProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [userInfo?.id, userInfo?.token]);
+  }, []);
+
+  // const getAdmissionStatus = useCallback(async () => {
+  //   if (!userInfo) return null;
+    
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await admissionService.getAdmissionStatus(userInfo.parentId);
+  //     return response;
+  //   } catch (error) {
+  //     setError(error.message || 'Could not fetch admission status');
+  //     return null;
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, [userInfo]);
 
   return (
     <AdmissionContext.Provider value={{
@@ -245,7 +256,10 @@ export const AdmissionProvider = ({ children }) => {
       submitForm,
       resetForm,
       clearError,
-      getAdmissionStatus
+      getAdmissionStatusById,
+      // getAdmissionStatus,
+      setFormData,
+      setIsLoading,
     }}>
       {children}
     </AdmissionContext.Provider>

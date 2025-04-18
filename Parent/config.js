@@ -15,15 +15,29 @@ export const APIConfig = {
       LOGOUT: '/api/parent/auth/logout',
       FORGOT: '/api/parent/auth/forgot',
       RESET: '/api/parent/auth/reset',
-
-
     },
-
     ADMISSIONS:{
-      SUBMIT: '/api/parent/admission/submit',
-      STATUS: '/api/parent/admission/status',
-    }
-
+      SUBMIT: '/api/parent/admissions/submit',
+      STATUS: '/api/parent/admissions/status',
+    },
+    NOTIFICATIONS:{
+      SEND: '/api/parent/notifications/send',
+      LIST: '/api/parent/notifications/list',
+      MARK_READ: '/api/parent/notifications/mark-read',
+      DELETE: '/api/parent/notifications/delete',
+      SAVE_PUSH_TOKEN: '/api/parent/notificationToken/saveToken',
+    },
+    STUDENT_INFO: {
+      PROFILE: '/api/parents/studentsInformation/profile',
+      HOME: '/api/parents/studentsInformation/home',
+      FEES: '/api/parents/studentsInformation/fees',
+      ATTENDANCE: '/api/parents/studentsInformation/attendance',
+      GRADE: '/api/parents/studentsInformation/grade',
+      PROGRESS: '/api/parents/studentsInformation/progressReport',
+    },
+    EVENTS:{
+      UPCOMING: '/api/events/upcoming',
+    },
 }
 
 // Description: Firebase configuration.

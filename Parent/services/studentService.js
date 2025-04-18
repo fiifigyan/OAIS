@@ -1,111 +1,97 @@
 import axios from 'axios';
-
-// Create a reusable axios instance with base config
-const apiClient = axios.create({
-  baseURL: 'https://73xd35pq-2025.uks1.devtunnels.ms',
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-  withCredentials: true,
-});
+import { APIConfig } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const StudentService = {
   /**
-   * Get student profile data
+   * Get student profile data using the endpoint from config.js
    * @param {string} studentId - The ID of the student
-   * @returns {Promise<Object>} - Student profile data
+   * @returns {Promise<Object>} - Student profile data matching StudentProfileDTO
    */
-  getProfile: async (studentId) => {
+  getStudentProfile: async (studentId) => {
     try {
-      const response = await apiClient.get(`/api/students/${studentId}/profile`);
-      return response.data;
-    } catch (error) {
-      console.error('Student Profile Fetch Error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch student profile');
-    }
-  },
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) throw new Error('Authentication required');
 
-  /**
-   * Get list of students by parent ID
-   * @param {string} parentId - The ID of the parent
-   * @returns {Promise<Array>} - List of student objects
-   */
-  getStudentsByParent: async (parentId) => {
-    try {
-      const response = await apiClient.get(`/api/parents/${parentId}/students`);
-      return response.data.students.map(student => ({
-        id: student.studentId,
-        fullName: student.fullName,
-        classLevel: student.classLevel,
-        relationship: student.relationship,
-        profileImage: student.profileImage,
-        status: student.status
-      }));
-    } catch (error) {
-      console.error('Students Fetch Error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch students');
-    }
-  },
-
-  /**
-   * Update student profile
-   * @param {string} studentId - The ID of the student
-   * @param {Object} profileData - Updated profile data
-   * @returns {Promise<Object>} - Updated profile data
-   */
-  updateProfile: async (studentId, profileData) => {
-    try {
-      const response = await apiClient.put(`/api/students/${studentId}`, profileData);
-      return response.data;
-    } catch (error) {
-      console.error('Student Profile Update Error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to update student profile');
-    }
-  },
-
-  /**
-   * Upload student profile image
-   * @param {string} studentId - The ID of the student
-   * @param {Object} imageFile - The image file to upload
-   * @returns {Promise<Object>} - Image URL and metadata
-   */
-  uploadProfileImage: async (studentId, imageFile) => {
-    try {
-      const formData = new FormData();
-      formData.append('file', imageFile);
-
-      const response = await apiClient.post(
-        `/api/students/${studentId}/profile-image`,
-        formData,
+      const response = await axios.get(
+        `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.PROFILE}/${studentId}`,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Map the response to match the StudentProfileDTO structure
+      return {
+        studentId: response.data.studentId,
+        fullName: response.data.fullName,
+        gender: response.data.gender,
+        dateOfBirth: response.data.dateOfBirth,
+        className: response.data.className,
+        Address: response.data.Address,
+        profileImagePath: response.data.profileImagePath
+      };
+    } catch (error) {
+      console.error('StudentService.getStudentProfile error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get academic information for a student
+   * @param {string} studentId - The ID of the student
+   * @returns {Promise<Object>} - Academic information
+   */
+  getAcademicInfo: async (studentId) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) throw new Error('Authentication required');
+
+      const response = await axios.get(
+        `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.PROGRESS}/${studentId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         }
       );
 
       return response.data;
     } catch (error) {
-      console.error('Student Profile Image Upload Error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to upload student profile image');
+      console.error('StudentService.getAcademicInfo error:', error);
+      throw error;
     }
   },
 
   /**
-   * Get student academic records
-   * @param {string} studentId - The ID of the student
-   * @returns {Promise<Object>} - Academic records
+   * Get students by parent ID
+   * @param {string} parentId - The ID of the parent
+   * @returns {Promise<Array>} - List of students
    */
-  getAcademicRecords: async (studentId) => {
+  getStudentsByParent: async (parentId) => {
     try {
-      const response = await apiClient.get(`/api/students/${studentId}/academic-records`);
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) throw new Error('Authentication required');
+
+      const response = await axios.get(
+        `${APIConfig.BASE_URL}/api/parents/${parentId}/students`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
       return response.data;
     } catch (error) {
-      console.error('Academic Records Fetch Error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch academic records');
+      console.error('StudentService.getStudentsByParent error:', error);
+      throw error;
     }
-  },
+  }
 };
 
 export default StudentService;

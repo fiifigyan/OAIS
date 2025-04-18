@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import axios from 'axios';
-import AuthService from '../services/AuthService';
 import { APIConfig } from '../config';
 
 const logger = {
@@ -116,8 +115,7 @@ const getAuthHeaders = async () => {
     
     return {
       'Accept': 'application/json',
-      'Content-Type': 'multipart/form-data',
-      'Authorization-Mobile': `Bearer ${token}`
+      'Authorization': `Bearer ${token}`
     };
   } catch (error) {
     logger.error('Failed to get auth headers:', error);
@@ -126,6 +124,66 @@ const getAuthHeaders = async () => {
 };
 
 const admissionService = {
+  // async submitAdmissionForm(formData) {
+  //   try {
+  //     const validation = await this.validateForm(formData);
+  //     if (!validation.isValid) {
+  //       throw new Error('Form validation failed: ' + Object.values(validation.errors).join(', '));
+  //     }
+  
+  //     await Promise.all(Object.entries(formData.documents || {}).map(async ([key, fileInfo]) => {
+  //       await this.validateDocument(fileInfo);
+  //     }));
+  
+  //     const formSubmissionData = new FormData();
+  
+  //     formSubmissionData.append('data', JSON.stringify({ ...formData, documents: undefined }));
+  //     for (const [key, fileInfo] of Object.entries(formData.documents || {})) {
+  //       const resolvedUri = resolveFileUri(fileInfo);
+  //       if (!resolvedUri) throw new Error(`Invalid file information for ${key}`);
+  
+  //       const mimeType = getMimeType(fileInfo.name);
+  //       if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+  //         throw new Error(`Invalid file type for ${key}`);
+  //       }
+  
+  //       logger.info(`Appending file: ${fileInfo.name}, MIME type: ${mimeType}, URI: ${resolvedUri}`);
+  
+  //       formSubmissionData.append(key, {
+  //         uri: resolvedUri,
+  //         name: fileInfo.name,
+  //         type: mimeType,
+  //       });
+  //     }
+  
+  //     await inspectFormData(formSubmissionData);
+  
+  //     const headers = await getAuthHeaders();
+  //     logger.info(`Submitting to URL: ${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`);
+  
+  //     const response = await axios.post(
+  //       `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
+  //       formSubmissionData,
+  //       ...headers,
+  //     );
+  
+  //     await this.clearFormDraft();
+  //     return response.data;
+  //   } catch (error) {
+  //     logger.error('Admission Form Submission Failed:', error);
+  //     if (error.response) {
+  //       logger.error('Response data:', error.response.data);
+  //       logger.error('Response status:', error.response.status);
+  //       logger.error('Response headers:', error.response.headers);
+  //     } else if (error.request) {
+  //       logger.error('No response received:', error.request);
+  //     } else {
+  //       logger.error('Request setup error:', error.message);
+  //     }
+  //     throw new Error(sanitizeError(error));
+  //   }
+  // },
+
   async submitAdmissionForm(formData) {
     try {
       const validation = await this.validateForm(formData);
@@ -133,17 +191,22 @@ const admissionService = {
         throw new Error('Form validation failed: ' + Object.values(validation.errors).join(', '));
       }
 
-      await Promise.all(Object.entries(formData.documents || {}).map(async ([key, fileInfo]) => {
-        await this.validateDocument(fileInfo);
-      }));
-
       const formSubmissionData = new FormData();
+  
+      formSubmissionData.append('data', JSON.stringify({ 
+        ...formData, 
+        documents: undefined 
+      }));
+  
+      await inspectFormData(formSubmissionData);
 
-      formSubmissionData.append('data', JSON.stringify({ ...formData, documents: undefined }));
+  
       for (const [key, fileInfo] of Object.entries(formData.documents || {})) {
+        if (!fileInfo) continue;
+        
         const resolvedUri = resolveFileUri(fileInfo);
         if (!resolvedUri) throw new Error(`Invalid file information for ${key}`);
-
+  
         const mimeType = getMimeType(fileInfo.name);
         if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
           throw new Error(`Invalid file type for ${key}`);
@@ -157,35 +220,30 @@ const admissionService = {
           type: mimeType,
         });
       }
-
-      await inspectFormData(formSubmissionData);
-
+  
       const headers = await getAuthHeaders();
-
+      logger.info(`Submitting to URL: ${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`);
+      logger.info('Headers:', headers);
+      logger.info('Form data:', formSubmissionData);
+  
       const response = await axios.post(
-        `${APIConfig.BASE_URL}${APIConfig.ADMISSION.SUBMIT}`,
+        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
         formSubmissionData,
-        { headers}
+        {
+          headers: {
+            ...headers,
+            'Content-Type': 'multipart/form-data'
+          },
+          transformRequest: (data) => data, // Prevent axios from transforming FormData
+        }
       );
-
       await this.clearFormDraft();
       return response.data;
     } catch (error) {
-
       logger.error('Admission Form Submission Failed:', error);
-      if (error.response) {
-        logger.error('Response data:', error.response.data);
-        logger.error('Response status:', error.response.status);
-        logger.error('Response headers:', error.response.headers);
-      } else if (error.request) {
-        logger.error('No response received:', error.request);
-      } else {
-        logger.error('Request setup error:', error.message);
-      }
       throw new Error(sanitizeError(error));
     }
   },
-
   async validateDocument(fileInfo) {
     try {
       if (!fileInfo) throw new Error('Invalid file information');
@@ -283,39 +341,39 @@ const admissionService = {
     }
   },
 
-  async getAdmissionStatus(applicationId) {
-    try {
-      if (!id) throw new Error('Application ID is required');
+  // async getAdmissionStatusByApplicationId(applicationId) {
+  //   try {
+  //     if (!id) throw new Error('Application ID is required');
 
-      const headers = await getAuthHeaders();
-      const response = await axios.get(
-        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${applicationId}`,
-        { headers }
-      );
+  //     const headers = await getAuthHeaders();
+  //     const response = await axios.get(
+  //       `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${applicationId}`,
+  //       { headers }
+  //     );
 
-      return response.data;
-    } catch (error) {
-      logger.error('Failed to fetch admission status by ID:', error);
-      throw new Error(sanitizeError(error));
-    }
-  },
+  //     return response.data;
+  //   } catch (error) {
+  //     logger.error('Failed to fetch admission status by ID:', error);
+  //     throw new Error(sanitizeError(error));
+  //   }
+  // },
 
-  async getAdmissionStatus(parentId) {
-    try {
-      if (!parentId) throw new Error('Parent ID is required');
+  // async getAdmissionStatusByParentId(parentId) {
+  //   try {
+  //     if (!parentId) throw new Error('Parent ID is required');
 
-      const headers = await getAuthHeaders();
-      const response = await axios.get(
-        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${parentId}`,
-        { headers }
-      );
+  //     const headers = await getAuthHeaders();
+  //     const response = await axios.get(
+  //       `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${parentId}`,
+  //       { headers }
+  //     );
 
-      return response.data;
-    } catch (error) {
-      logger.error('Failed to fetch admission status:', error);
-      throw new Error(sanitizeError(error));
-    }
-  },
+  //     return response.data;
+  //   } catch (error) {
+  //     logger.error('Failed to fetch admission status:', error);
+  //     throw new Error(sanitizeError(error));
+  //   }
+  // },
 };
 
 export default admissionService;
