@@ -5,31 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="da2bf76b-fe0a-48cf-8f47-b05387939a84" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Parent/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/App.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/components/CustomDrawer.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/components/CustomDrawer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/components/CustomHeader.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/components/CustomHeader.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/components/NotificationBadge.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/components/NotificationCenter.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/components/NotificationHandler.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/context/AdmissionContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/context/AdmissionContext.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/context/NotificationContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/context/NotificationContext.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/context/StudentContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/context/StudentContext.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/firebase.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/firebase.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/navigation/DrawerNavigator.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/navigation/DrawerNavigator.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/navigation/TabNavigator.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/navigation/TabNavigator.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/screens/Home.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/screens/Home.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/screens/HomeWork.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/screens/HomeWork.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/screens/Notification.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/screens/Notification.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/screens/NotificationSettings.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/screens/NotificationSettings.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/screens/StudentProfile.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/screens/StudentProfile.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/services/NotificationService.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/services/NotificationService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/services/admissionService.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/services/admissionService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parent/services/studentService.js" beforeDir="false" afterPath="$PROJECT_DIR$/Parent/services/studentService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,5 +56,16 @@
       <updated>1733233246033</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
