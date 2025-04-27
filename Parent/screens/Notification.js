@@ -1,29 +1,32 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import NotificationList from '../components/NotificationList';
+import NotificationSettings from '../screens/NotificationSettings';
 
-export default function NotificationScreen({ route }) {
-  const { title, body, data } = route.params || {};
+const Tab = createMaterialTopTabNavigator();
 
+const NotificationScreen = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Notification Details</Text>
-      <Text>Title: {title}</Text>
-      <Text>Body: {body}</Text>
-      <Text>Data: {JSON.stringify(data)}</Text>
-    </View>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold' },
+        tabBarIndicatorStyle: { backgroundColor: '#03AC13' },
+        tabBarActiveTintColor: '#03AC13',
+        tabBarInactiveTintColor: '#888',
+      }}
+    >
+      <Tab.Screen 
+        name="Notifications" 
+        component={NotificationList}
+        options={{ tabBarLabel: 'Notifications' }}
+      />
+      <Tab.Screen 
+        name="Settings" 
+        component={NotificationSettings}
+        options={{ tabBarLabel: 'Settings' }}
+      />
+    </Tab.Navigator>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'aliceblue',
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-});
+export default NotificationScreen;

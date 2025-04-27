@@ -1,17 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { APIConfig } from '../config';
 
-// Helper function with debug logs
 const manageAuthToken = async (token) => {
   console.debug('[Auth] Managing token:', token ? 'Storing new token' : 'Clearing token');
   try {
     if (token) {
-      await AsyncStorage.setItem('authToken', token);
+      await SecureStore.setItemAsync('authToken', token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       console.debug('[Auth] Token stored and header set');
     } else {
-      await AsyncStorage.removeItem('authToken');
+      await SecureStore.deleteItemAsync('authToken');
       delete axios.defaults.headers.common['Authorization'];
       console.debug('[Auth] Token cleared');
     }
@@ -56,6 +55,11 @@ const processAuthResponse = (response) => {
 const AuthService = {
   async signup(userData) {
     console.group('[Auth] Signup Process');
+    console.debug('Attempting to call API:', {
+      url: `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`,
+      method: 'POST',
+      data: userData
+    });
     try {
       console.debug('Submitting:', { 
         email: userData.email, 
@@ -131,10 +135,11 @@ const AuthService = {
     console.group('[Auth] Logout Process');
     try {
       console.debug('Initiating logout');
+      const token = await SecureStore.getItemAsync('authToken');
       await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGOUT}`,
         null,
-        { headers: { 'Authorization': `Bearer ${await AsyncStorage.getItem('authToken')}` } }
+        { headers: { 'Authorization': `Bearer ${token}` } }
       );
       await manageAuthToken(null);
       
@@ -150,10 +155,34 @@ const AuthService = {
     }
   },
 
+  async forgotPassword(email) {
+    try {
+      const response = await axios.post(
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.FORGOT}`,
+        { email }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Password reset request failed');
+    }
+  },
+  
+  async resetPassword(token, newPassword) {
+    try {
+      const response = await axios.post(
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.RESET}`,
+        { token, newPassword }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Password reset failed');
+    }
+  },
+
   async verifyToken() {
     console.debug('[Auth] Verifying stored token');
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await SecureStore.getItemAsync('authToken');
       if (!token) {
         console.debug('No token found');
         return null;

@@ -103,7 +103,7 @@ const inspectFormData = async (formData) => {
   for (const [key, value] of formData._parts) {
     parts.push(`${key}: ${value instanceof Object ? `FILE (${value.name})` : value}`);
   }
-  logger.info('FormData Content:\n' + parts.join('\n'));
+  logger.info('User form:\n' + parts.join('\n'));
 };
 
 const getAuthHeaders = async () => {
@@ -124,75 +124,14 @@ const getAuthHeaders = async () => {
 };
 
 const admissionService = {
-  // async submitAdmissionForm(formData) {
-  //   try {
-  //     const validation = await this.validateForm(formData);
-  //     if (!validation.isValid) {
-  //       throw new Error('Form validation failed: ' + Object.values(validation.errors).join(', '));
-  //     }
-  
-  //     await Promise.all(Object.entries(formData.documents || {}).map(async ([key, fileInfo]) => {
-  //       await this.validateDocument(fileInfo);
-  //     }));
-  
-  //     const formSubmissionData = new FormData();
-  
-  //     formSubmissionData.append('data', JSON.stringify({ ...formData, documents: undefined }));
-  //     for (const [key, fileInfo] of Object.entries(formData.documents || {})) {
-  //       const resolvedUri = resolveFileUri(fileInfo);
-  //       if (!resolvedUri) throw new Error(`Invalid file information for ${key}`);
-  
-  //       const mimeType = getMimeType(fileInfo.name);
-  //       if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-  //         throw new Error(`Invalid file type for ${key}`);
-  //       }
-  
-  //       logger.info(`Appending file: ${fileInfo.name}, MIME type: ${mimeType}, URI: ${resolvedUri}`);
-  
-  //       formSubmissionData.append(key, {
-  //         uri: resolvedUri,
-  //         name: fileInfo.name,
-  //         type: mimeType,
-  //       });
-  //     }
-  
-  //     await inspectFormData(formSubmissionData);
-  
-  //     const headers = await getAuthHeaders();
-  //     logger.info(`Submitting to URL: ${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`);
-  
-  //     const response = await axios.post(
-  //       `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
-  //       formSubmissionData,
-  //       ...headers,
-  //     );
-  
-  //     await this.clearFormDraft();
-  //     return response.data;
-  //   } catch (error) {
-  //     logger.error('Admission Form Submission Failed:', error);
-  //     if (error.response) {
-  //       logger.error('Response data:', error.response.data);
-  //       logger.error('Response status:', error.response.status);
-  //       logger.error('Response headers:', error.response.headers);
-  //     } else if (error.request) {
-  //       logger.error('No response received:', error.request);
-  //     } else {
-  //       logger.error('Request setup error:', error.message);
-  //     }
-  //     throw new Error(sanitizeError(error));
-  //   }
-  // },
-
   async submitAdmissionForm(formData) {
     try {
       const validation = await this.validateForm(formData);
       if (!validation.isValid) {
         throw new Error('Form validation failed: ' + Object.values(validation.errors).join(', '));
       }
-
       const formSubmissionData = new FormData();
-  
+
       formSubmissionData.append('data', JSON.stringify({ 
         ...formData, 
         documents: undefined 
@@ -222,9 +161,6 @@ const admissionService = {
       }
   
       const headers = await getAuthHeaders();
-      logger.info(`Submitting to URL: ${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`);
-      logger.info('Headers:', headers);
-      logger.info('Form data:', formSubmissionData);
   
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
@@ -234,13 +170,12 @@ const admissionService = {
             ...headers,
             'Content-Type': 'multipart/form-data'
           },
-          transformRequest: (data) => data, // Prevent axios from transforming FormData
+          transformRequest: (data) => data,
         }
       );
       await this.clearFormDraft();
       return response.data;
     } catch (error) {
-      logger.error('Admission Form Submission Failed:', error);
       throw new Error(sanitizeError(error));
     }
   },

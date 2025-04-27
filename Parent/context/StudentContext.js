@@ -11,7 +11,10 @@ export const StudentProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const loadStudentInfo = async () => {
-    if (!parentInfo?.id) return;
+    if (!parentInfo?.id) {
+      setError('Parent information not available');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -28,14 +31,35 @@ export const StudentProvider = ({ children }) => {
   };
 
   const getStudentProfile = async (studentId) => {
+    if (!studentId) {
+      throw new Error('Student ID is required');
+    }
+    
     try {
       setLoading(true);
       setError(null);
-      const profile = await StudentService.getProfile(studentId);
+      const profile = await StudentService.getStudentProfile(studentId);
       return profile;
     } catch (error) {
       console.error("Error loading student profile:", error);
       setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStudentProfile = async (studentId, updates) => {
+    if (!studentId) {
+      throw new Error('Student ID is required');
+    }
+    
+    try {
+      setLoading(true);
+      const updatedProfile = await StudentService.updateStudentProfile(studentId, updates);
+      return updatedProfile;
+    } catch (error) {
+      console.error("Error updating student profile:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -48,6 +72,7 @@ export const StudentProvider = ({ children }) => {
     error,
     loadStudentInfo,
     getStudentProfile,
+    updateStudentProfile,
     refreshStudents: loadStudentInfo,
   };
 

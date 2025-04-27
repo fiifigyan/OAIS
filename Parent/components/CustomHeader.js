@@ -1,25 +1,63 @@
-import React,{useContext} from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { StudentContext } from '../context/StudentContext';
 
 const CustomHeader = ({ title = 'Dashboard', navigation }) => {
   const { studentInfo } = useContext(StudentContext);
-  const selectedStudent = studentInfo[0];
+  const selectedStudent = studentInfo?.[0] || {};
+
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, justifyContent: 'space-between', backgroundColor: 'aliceblue' }}>
+    <View style={styles.headerContainer}>
       <TouchableOpacity onPress={() => navigation.openDrawer()}>
-      <Icon name="menu-outline" size={24} color="#03AC13" />
+        <Icon name="menu-outline" size={24} color="#03AC13" />
       </TouchableOpacity>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#03AC13' }}>{title}</Text>
-      <TouchableOpacity onPress={() => navigation.navigate('Student')}>
+      
+      <Text style={styles.title}>{title}</Text>
+      
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('StudentProfile', { 
+          studentId: selectedStudent?.studentId 
+        })}
+      >
         <Image
-          source={{ uri: selectedStudent?.profileImage || require('../assets/images/fiifi1.jpg') }}
-          style={{ width: 30, height: 30, borderRadius: 50, borderWidth: 1, borderColor: 'grey' }}
+          source={
+            selectedStudent?.profileImagePath 
+              ? { uri: selectedStudent.profileImagePath }
+              : require('../assets/images/default-profile.png')
+          }
+          style={styles.profileImage}
         />
       </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    justifyContent: 'space-between',
+    backgroundColor: 'aliceblue',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#03AC13',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 10,
+  },
+  profileImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#03AC13',
+  },
+});
 
 export default CustomHeader;

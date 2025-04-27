@@ -176,7 +176,6 @@ export const AdmissionProvider = ({ children }) => {
       }
 
       const token = await AsyncStorage.getItem('authToken');
-      console.debug('Submitting form with token:', token);
       if (!token) {
         throw new Error('Your session has expired. Please login again.');
       }

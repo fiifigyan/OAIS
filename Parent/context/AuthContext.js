@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import AuthService from '../services/AuthService';
 
 export const AuthContext = createContext();
@@ -12,10 +12,8 @@ export const AuthProvider = ({ children }) => {
 
   const saveUserData = useCallback(async (data) => {
     try {
-      await AsyncStorage.multiSet([
-        ['userInfo', JSON.stringify(data)],
-        ['authToken', data.token]
-      ]);
+      await SecureStore.setItemAsync('authToken', data.token);
+      await SecureStore.setItemAsync('userInfo', JSON.stringify(data));
     } catch (error) {
       console.error('Failed to save user data:', error);
       throw error;
@@ -24,9 +22,10 @@ export const AuthProvider = ({ children }) => {
 
   const loadUserData = useCallback(async () => {
     try {
-      const [userInfoString, token] = await AsyncStorage.multiGet(['userInfo', 'authToken']);
-      if (userInfoString[1] && token[1]) {
-        return JSON.parse(userInfoString[1]);
+      const userInfoString = await SecureStore.getItemAsync('userInfo');
+      const token = await SecureStore.getItemAsync('authToken');
+      if (userInfoString && token) {
+        return JSON.parse(userInfoString);
       }
       return null;
     } catch (error) {
@@ -54,7 +53,12 @@ export const AuthProvider = ({ children }) => {
   }, [loadUserData]);
 
   const clearAuthData = useCallback(async () => {
-    await AsyncStorage.multiRemove(['userInfo', 'authToken']);
+    try {
+      await SecureStore.deleteItemAsync('userInfo');
+      await SecureStore.deleteItemAsync('authToken');
+    } catch (error) {
+      console.error('Failed to clear auth data:', error);
+    }
     setUserInfo(null);
     setIsNewUser(false);
   }, []);

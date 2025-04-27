@@ -1,14 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  Image, 
-  ScrollView, 
-  TouchableOpacity,
-  SafeAreaView,
-  ActivityIndicator
-} from 'react-native';
+import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity,SafeAreaView,ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { useParent } from '../context/ParentContext';
@@ -21,7 +12,7 @@ const ParentProfile = () => {
   const [activeTab, setActiveTab] = useState('Profile');
 
   useEffect(() => {
-    refreshProfile('123'); // Replace with actual parent ID from auth
+    refreshProfile(parentInfo?.id); // Replace with actual parent ID from auth
   }, []);
 
   const tabs = ['Profile', 'Students', 'Settings'];
@@ -46,7 +37,7 @@ const ParentProfile = () => {
   if (loading && !parentInfo) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#000080" />
+        <ActivityIndicator size="small" color="#03AC13" />
       </SafeAreaView>
     );
   }
@@ -55,7 +46,7 @@ const ParentProfile = () => {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity onPress={() => refreshProfile('123')}>
+        <TouchableOpacity onPress={() => refreshProfile(parentInfo?.id)}>
           <Text style={styles.retryText}>Retry</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -364,7 +355,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    color: '#000080',
+    color: '#03AC13',
     textAlign: 'center',
     marginTop: 10,
     fontWeight: 'bold',

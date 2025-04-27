@@ -1,76 +1,77 @@
 import React from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as Device from 'expo-device';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { AdmissionProvider } from './context/AdmissionContext';
 import AuthStack from './navigation/AuthStack';
+import { AdmissionProvider } from './context/AdmissionContext';
 import StackNavigator from './navigation/StackNavigator';
-import { registerForPushNotifications, useNotificationListener, sendPushTokenToBackend } from './services/NotificationService';
 import { StudentProvider } from './context/StudentContext';
 import { ParentProvider } from './context/ParentContext';
 import { PaymentProvider } from './context/PaymentContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { HomeProvider } from './context/HomeContext';
-import BiometricScreen from './screens/Biometric';
+import NotificationService, { initializeNotifications } from './services/NotificationService';
+import useNotificationListener from './hooks/useNotificationListener';
 
 function MainAppContent() {
   const { userInfo, isNewUser } = useAuth();
-  const [expoPushToken, setExpoPushToken] = React.useState('');
+  useNotificationListener();
 
   React.useEffect(() => {
-    registerForPushNotifications()
-      .then((token) => {
-        if (token) {
-          setExpoPushToken(token);
-          sendPushTokenToBackend(token);
+    const setupNotifications = async () => {
+      try {
+        await initializeNotifications();
+        
+        if (Device.isDevice) {
+          const token = await NotificationService.registerForPushNotifications();
+          if (token && userInfo) {
+            await NotificationService.sendPushTokenToBackend(token);
+          }
         }
-      })
-      .catch((error) => console.error('Push registration error:', error));
-  }, []);
+      } catch (error) {
+        console.error('Notification setup error:', error);
+      }
+    };
+
+    setupNotifications();
+  }, [userInfo]);
 
   return (
     <NavigationContainer>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#03AC13' }}>
-        <StatusBar barStyle="default"/>
+        <StatusBar barStyle="default" />
         {!userInfo ? (
-          <AuthStack initialRouteName="Onboard" />
+          <AuthStack/>
         ) : isNewUser ? (
           <StackNavigator initialRouteName="Welcome" />
         ) : (
           <StackNavigator initialRouteName="Drawer" />
         )}
-        <NotificationListener />
       </SafeAreaView>
     </NavigationContainer>
   );
 }
 
-function NotificationListener() {
-  const navigation = useNavigation();
-  useNotificationListener(navigation);
-  return null;
-}
-
 function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-        <NotificationProvider>
-          <AuthProvider>
-            <AdmissionProvider>
-              <ParentProvider>
-                <StudentProvider>
-                  <HomeProvider>                 
-                    <PaymentProvider>
-                      <MainAppContent />
-                    </PaymentProvider>                 
-                  </HomeProvider>
-                </StudentProvider>
-              </ParentProvider>
-            </AdmissionProvider>
-          </AuthProvider>
-        </NotificationProvider>
+      <NotificationProvider>
+        <AuthProvider>
+          <AdmissionProvider>
+            <ParentProvider>
+              <StudentProvider>
+                <HomeProvider>                 
+                  <PaymentProvider>
+                    <MainAppContent />
+                  </PaymentProvider>                 
+                </HomeProvider>
+              </StudentProvider>
+            </ParentProvider>
+          </AdmissionProvider>
+        </AuthProvider>
+      </NotificationProvider>
     </GestureHandlerRootView>
   );
 }

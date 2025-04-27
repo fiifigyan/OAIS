@@ -4,13 +4,16 @@ import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawe
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../context/AuthContext';
+import { StudentContext } from '../context/StudentContext';
 import { appConfig } from '../config';
 import * as Haptics from 'expo-haptics';
 
 const CustomDrawer = (props) => {
   const navigation = useNavigation();
   const { userInfo, logout } = useContext(AuthContext);
+  const { studentInfo } = useContext(StudentContext);
   const [scaleValue] = useState(new Animated.Value(1));
+  const selectedStudent = studentInfo?.[0] || {};
 
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
@@ -38,9 +41,9 @@ const CustomDrawer = (props) => {
     }
   };
 
-  const navigateWithHaptic = (screenName) => {
+  const navigateWithHaptic = (screenName, params = {}) => {
     Haptics.selectionAsync();
-    navigation.navigate(screenName);
+    navigation.navigate(screenName, params);
   };
 
   return (
@@ -59,23 +62,29 @@ const CustomDrawer = (props) => {
 
         <View style={styles.profileSection}>
           <Image
-            source={userInfo?.profileImageUrl || require('../assets/images/fiifi1.jpg')}
+            source={
+              selectedStudent?.profileImagePath 
+                ? { uri: selectedStudent.profileImagePath } 
+                : require('../assets/images/default-profile.png')
+            }
             style={styles.avatar}
           />
           <View style={styles.profileInfo}>
             <Text style={styles.userName} numberOfLines={1}>
-              {userInfo?.fname || 'John Doe'}
+              {selectedStudent?.fullName || userInfo?.fname || 'Student'}
             </Text>
             <Text style={styles.userEmail} numberOfLines={1}>
-              {userInfo?.email || 'user@example.com'}
+              {selectedStudent?.className ? `Class: ${selectedStudent.className}` : 'No class assigned'}
             </Text>
             <TouchableOpacity 
-              onPress={() => navigateWithHaptic('Student')}
+              onPress={() => navigateWithHaptic('StudentProfile', { 
+                studentId: selectedStudent?.studentId 
+              })}
               activeOpacity={0.7}
             >
               <View style={styles.profileButton}>
                 <Text style={styles.viewProfile}>View Profile</Text>
-                <Icon name="chevron-forward" size={16} color="#6366f1" />
+                <Icon name="chevron-forward" size={16} color="#234F1E" />
               </View>
             </TouchableOpacity>
           </View>
@@ -84,7 +93,6 @@ const CustomDrawer = (props) => {
         <View style={styles.divider} />
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
-
       <View style={styles.drawerFooter}>
         <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
           <TouchableOpacity
@@ -95,7 +103,7 @@ const CustomDrawer = (props) => {
             activeOpacity={0.7}
           >
             <View style={styles.iconContainer}>
-              <Icon name="settings-outline" size={20} color="#6366f1" />
+              <Icon name="settings-outline" size={20} color="#03AC13" />
             </View>
             <Text style={styles.footerItemText}>Settings</Text>
           </TouchableOpacity>
@@ -110,7 +118,7 @@ const CustomDrawer = (props) => {
             activeOpacity={0.7}
           >
             <View style={styles.iconContainer}>
-              <Icon name="help-circle-outline" size={20} color="#6366f1" />
+              <Icon name="help-circle-outline" size={20} color="#03AC13" />
             </View>
             <Text style={styles.footerItemText}>Help Center</Text>
           </TouchableOpacity>
@@ -138,7 +146,7 @@ const CustomDrawer = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#03AC13',
   },
   scrollContainer: {
     paddingBottom: 20,
@@ -160,7 +168,7 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: 'aliceblue',
   },
   profileSection: {
     padding: 20,
@@ -174,7 +182,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     marginRight: 16,
     borderWidth: 2,
-    borderColor: '#e0e7ff',
+    borderColor: 'aliceblue',
   },
   profileInfo: {
     flex: 1,
@@ -182,7 +190,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: 'aliceblue',
     marginBottom: 2,
   },
   userEmail: {
@@ -196,7 +204,7 @@ const styles = StyleSheet.create({
   },
   viewProfile: {
     fontSize: 14,
-    color: '#6366f1',
+    color: '#234f1e',
     fontWeight: '500',
     marginRight: 4,
   },
@@ -205,11 +213,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     marginVertical: 8,
     marginHorizontal: 20,
-  },
-  drawerLabel: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#374151',
   },
   drawerFooter: {
     padding: 20,
@@ -236,16 +239,18 @@ const styles = StyleSheet.create({
   footerItemText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#374151',
+    color: 'aliceblue',
   },
   logoutItem: {
     marginTop: 8,
+    backgroundColor: '#fee2e2',
   },
   logoutIcon: {
     backgroundColor: '#fee2e2',
   },
   logoutText: {
     color: '#ef4444',
+    fontWeight: '600',
   },
 });
 

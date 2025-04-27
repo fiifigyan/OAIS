@@ -3,12 +3,11 @@ import { APIConfig } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const StudentService = {
-  /**
-   * Get student profile data using the endpoint from config.js
-   * @param {string} studentId - The ID of the student
-   * @returns {Promise<Object>} - Student profile data matching StudentProfileDTO
-   */
   getStudentProfile: async (studentId) => {
+    if (!studentId) {
+      throw new Error('Student ID is required');
+    }
+
     try {
       const token = await AsyncStorage.getItem('authToken');
       if (!token) throw new Error('Authentication required');
@@ -23,7 +22,6 @@ const StudentService = {
         }
       );
 
-      // Map the response to match the StudentProfileDTO structure
       return {
         studentId: response.data.studentId,
         fullName: response.data.fullName,
@@ -39,11 +37,6 @@ const StudentService = {
     }
   },
 
-  /**
-   * Get academic information for a student
-   * @param {string} studentId - The ID of the student
-   * @returns {Promise<Object>} - Academic information
-   */
   getAcademicInfo: async (studentId) => {
     try {
       const token = await AsyncStorage.getItem('authToken');
@@ -66,11 +59,63 @@ const StudentService = {
     }
   },
 
-  /**
-   * Get students by parent ID
-   * @param {string} parentId - The ID of the parent
-   * @returns {Promise<Array>} - List of students
-   */
+  updateStudentProfile: async (studentId, updates) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) throw new Error('Authentication required');
+
+      const response = await axios.patch(
+        `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.PROFILE}/${studentId}`,
+        updates,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('StudentService.updateStudentProfile error:', error);
+      throw error;
+    }
+  },
+
+  uploadProfilePicture: async (studentId, imageUri) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) throw new Error('Authentication required');
+
+      // Extract filename and type from URI
+      const filename = imageUri.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      const formData = new FormData();
+      formData.append('image', {
+        uri: imageUri,
+        name: `profile_${studentId}.${type.split('/')[1] || 'jpg'}`,
+        type
+      });
+
+      const response = await axios.post(
+        `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.PROFILE}/${studentId}/picture`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('StudentService.uploadProfilePicture error:', error);
+      throw error;
+    }
+  },
+
   getStudentsByParent: async (parentId) => {
     try {
       const token = await AsyncStorage.getItem('authToken');
@@ -85,7 +130,6 @@ const StudentService = {
           }
         }
       );
-
       return response.data;
     } catch (error) {
       console.error('StudentService.getStudentsByParent error:', error);

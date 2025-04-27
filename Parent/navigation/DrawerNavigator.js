@@ -22,17 +22,15 @@ const DrawerNavigator = () => {
         overlayColor: 'transparent',
         drawerStyle: {
           width: '80%',
-          backgroundColor: 'transparent',
         },
         sceneContainerStyle: {
           backgroundColor: '#ffffff',
         },
-        drawerActiveTintColor: '#6366f1',
-        drawerInactiveTintColor: '#6b7280',
+        drawerActiveTintColor: '#03AC13',
+        drawerInactiveTintColor: 'aliceblue',
         drawerLabelStyle: {
           fontSize: 15,
           fontWeight: '500',
-
         },
         drawerItemStyle: {
           borderRadius: 12,

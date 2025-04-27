@@ -38,6 +38,7 @@ const HomeScreen = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.errorContainer}>
+        <Icon name="warning-outline" size={50} color="red" style={{ marginBottom: 20 }} />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity 
           style={styles.retryButton}
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    color: '#d32f2f',
+    color: 'red',
     fontSize: 16,
     marginBottom: 20,
     textAlign: 'center',
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   retryButtonText: {
-    color: 'white',
+    color: 'aliceblue',
     fontWeight: '600',
   },
   title: {

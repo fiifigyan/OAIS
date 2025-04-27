@@ -9,6 +9,10 @@ const HomeWorkScreen = () => {
   const [newHomeworkDetails, setNewHomeworkDetails] = useState('');
 
   const homeworkDataByDate = {
+    1: [
+      { id: '1', subject: 'Math', details: 'Chapter 2: 10 mark test' },
+      { id: '2', subject: 'English', details: 'Chapter 1: 8 mark test' },
+    ],
     2: [
       { id: '1', subject: 'Science', details: 'Chapter 1: 5 mark test' },
       { id: '2', subject: 'Math', details: 'Chapter 3: 10 mark test' },

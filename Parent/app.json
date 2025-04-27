@@ -11,7 +11,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.mcwesses.RIS",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Allow access to photo library to upload profile pictures",
+        "NSCameraUsageDescription": "Allow access to camera to take profile pictures",
+        "NSPhotoLibraryAddUsageDescription": "Allow saving images to photo library"
       },
       "icon": {
         "dark": "./assets/icons/ios-dark.png",
@@ -26,7 +29,13 @@
         "monochromeImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#03AC13"
       },
-      "package": "com.mcwesses.RIS"
+      "package": "com.mcwesses.RIS",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "favicon": "./assets/icons/OAIS-logo.png"
@@ -46,7 +55,15 @@
         }
       ],
       "expo-video",
-      "expo-router"
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you upload profile pictures.",
+          "cameraPermission": "The app accesses your camera to let you take profile pictures."
+        }
+      ]
     ],
     "extra": {
       "eas": {
