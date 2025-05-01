@@ -7,8 +7,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthStack from './navigation/AuthStack';
 import { AdmissionProvider } from './context/AdmissionContext';
 import StackNavigator from './navigation/StackNavigator';
-import { StudentProvider } from './context/StudentContext';
-import { ParentProvider } from './context/ParentContext';
+import { ProfileProvider } from './context/ProfileContext';
 import { PaymentProvider } from './context/PaymentContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { HomeProvider } from './context/HomeContext';
@@ -43,7 +42,7 @@ function MainAppContent() {
       <SafeAreaView style={{ flex: 1, backgroundColor: '#03AC13' }}>
         <StatusBar barStyle="default" />
         {!userInfo ? (
-          <AuthStack/>
+          <StackNavigator initialRouteName="Drawer" />
         ) : isNewUser ? (
           <StackNavigator initialRouteName="Welcome" />
         ) : (
@@ -60,15 +59,13 @@ function App() {
       <NotificationProvider>
         <AuthProvider>
           <AdmissionProvider>
-            <ParentProvider>
-              <StudentProvider>
-                <HomeProvider>                 
-                  <PaymentProvider>
-                    <MainAppContent />
-                  </PaymentProvider>                 
-                </HomeProvider>
-              </StudentProvider>
-            </ParentProvider>
+            <ProfileProvider>
+              <HomeProvider>
+                <PaymentProvider>
+                  <MainAppContent />
+                </PaymentProvider>  
+              </HomeProvider>
+            </ProfileProvider>
           </AdmissionProvider>
         </AuthProvider>
       </NotificationProvider>

@@ -1,16 +1,11 @@
 import axios from 'axios';
 import { APIConfig } from '../config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStorage from 'expo-secure-store';
 
 const HomeService = {
-  /**
-   * Fetch home screen data that matches HomePageDTO structure
-   * @param {string} studentId - ID of the student
-   * @returns {Promise<HomePageDTO>} - Home screen data
-   */
-  getHomeData: async (studentId) => {
+  getStudentHomeData: async (studentId) => {
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await SecureStorage.getItemAsync('authToken');
       if (!token) throw new Error('Authentication required');
 
       const response = await axios.get(
@@ -32,18 +27,14 @@ const HomeService = {
         upcomingEvents: response.data.upcomingEvents || []
       };
     } catch (error) {
-      console.error('HomeService.getHomeData error:', error);
+      console.error('HomeService.getStudentHomeData error:', error);
       throw error;
     }
   },
 
-  /**
-   * Fetch upcoming events for home screen
-   * @returns {Promise<Array>} - List of upcoming events
-   */
   getUpcomingEvents: async () => {
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await SecureStorage.getItemAsync('authToken');
       if (!token) throw new Error('Authentication required');
 
       const response = await axios.get(

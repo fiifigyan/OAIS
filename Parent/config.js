@@ -1,4 +1,4 @@
-import {BASE_URL,AUTH_SIGNUP,AUTH_LOGIN,AUTH_LOGOUT,AUTH_FORGOT,AUTH_RESET,ADMISSIONS_SUBMIT,ADMISSIONS_STATUS, NOTIFICATIONS_SAVE_PUSH_TOKEN,NOTIFICATIONS_SAVE,NOTIFICATIONS_GET_ALL,NOTIFICATIONS_DELETE,NOTIFICATIONS_MARK_AS_READ,STUDENT_INFO_PROFILE,STUDENT_INFO_HOME,STUDENT_INFO_FEES,STUDENT_INFO_ATTENDANCE,STUDENT_INFO_GRADE,STUDENT_INFO_PROGRESS,EVENTS_UPCOMING} from '@env';
+import { BASE_URL,AUTH_SIGNUP,AUTH_LOGIN,AUTH_LOGOUT,AUTH_FORGOT,AUTH_RESET,ADMISSIONS_SUBMIT,ADMISSIONS_STATUS, NOTIFICATIONS_SAVE_PUSH_TOKEN,NOTIFICATIONS_SAVE,NOTIFICATIONS_GET_ALL,NOTIFICATIONS_DELETE,NOTIFICATIONS_MARK_AS_READ,STUDENT_PROFILE,PARENT_PROFILE,STUDENT_INFO_HOME,STUDENT_INFO_FEES,STUDENT_INFO_ATTENDANCE,STUDENT_INFO_GRADE,STUDENT_INFO_PROGRESS,EVENTS_UPCOMING } from '@env';
 
 // Description: Application configuration.
 export const appConfig = {
@@ -23,13 +23,16 @@ export const APIConfig = {
   },
   NOTIFICATIONS: {
     SAVE_PUSH_TOKEN: NOTIFICATIONS_SAVE_PUSH_TOKEN,
-    NOTIFICATIONS_SAVE: NOTIFICATIONS_SAVE,
-    NOTIFICATIONS_GET_ALL: NOTIFICATIONS_GET_ALL,
-    NOTIFICATIONS_DELETE: NOTIFICATIONS_DELETE,
-    NOTIFICATIONS_MARK_AS_READ: NOTIFICATIONS_MARK_AS_READ,
+    SAVE_ALL: NOTIFICATIONS_SAVE,
+    GET_ALL: NOTIFICATIONS_GET_ALL,
+    DELETE: NOTIFICATIONS_DELETE,
+    MARK_AS_READ: NOTIFICATIONS_MARK_AS_READ,
   },
   STUDENT_INFO: {
-    PROFILE: STUDENT_INFO_PROFILE,
+    PROFILE:{
+      STUDENT:STUDENT_PROFILE,
+      PARENT:PARENT_PROFILE,
+    },
     HOME: STUDENT_INFO_HOME,
     FEES: STUDENT_INFO_FEES,
     ATTENDANCE: STUDENT_INFO_ATTENDANCE,
@@ -40,45 +43,6 @@ export const APIConfig = {
     UPCOMING: EVENTS_UPCOMING,
   },
 };
-
-// export const APIConfig = {
-  // BASE_URL: 'https://73xd35pq-2025.uks1.devtunnels.ms',
-  // AUTH: {
-  //   SIGNUP: '/api/parent/auth/signup',
-  //   LOGIN: '/api/parent/auth/login',
-  //   LOGOUT: '/api/parent/auth/logout',
-  //   FORGOT_PASSWORD: '/api/parent/auth/forgot',
-  //   RESET_PASSWORD: '/api/parent/auth/reset',
-  // },
-  // ADMISSIONS: {
-  //   SUBMIT: '/api/parent/admissions/submit',
-  //   STATUS: '/api/parent/admissions/status',
-  // },
-  // NOTIFICATIONS: {
-  //   SAVE_PUSH_TOKEN: '/api/parent/notificationToken/saveToken',
-  //   NOTIFICATIONS_SAVE: '/api/parent/notifications/save',
-  //   NOTIFICATIONS_GET_ALL: '/api/parent/notifications/retrieve',
-  //   NOTIFICATIONS_DELETE: '/api/parent/notifications/delete{id}',
-  //   NOTIFICATIONS_MARK_AS_READ: '/api/parent/notifications/{id}/read',
-  // },
-  // STUDENT_INFO: {
-  //   PROFILE: '/api/parent/studentsInformation/profile',
-  //   HOME: '/api/parent/studentsInformation/home',
-  //   FEES: '/api/parent/studentsInformation/fees',
-  //   ATTENDANCE: '/api/parent/studentsInformation/attendance',
-  //   GRADE: '/api/parent/studentsInformation/grade',
-  //   PROGRESS: '/api/parent/studentsInformation/progressReport',
-  // },
-  // EVENTS: {
-  //   UPCOMING: '/api/events/upcoming',
-  // },
-// };
-
-
-// Description: Google Maps configuration.
-// export const googleMapsConfig = {
-//   API_KEY: process.env.GOOGLE_MAPS_API_KEY
-// }
 
 // Description: Firebase configuration.
 

@@ -63,7 +63,8 @@
           "photosPermission": "The app accesses your photos to let you upload profile pictures.",
           "cameraPermission": "The app accesses your camera to let you take profile pictures."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {

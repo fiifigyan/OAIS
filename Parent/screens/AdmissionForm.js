@@ -375,7 +375,7 @@ const AdmissionForm = () => {
       <SuccessModal
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-        onAutoClose={() => navigation.navigate('Login')}
+        onAutoClose={() => navigation.navigate('AuthStack')}
         title="Application Submitted!"
         message="Your admission form was successfully processed."
       />

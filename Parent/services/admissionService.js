@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStorage from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import axios from 'axios';
@@ -108,7 +108,7 @@ const inspectFormData = async (formData) => {
 
 const getAuthHeaders = async () => {
   try {
-    const token = await AsyncStorage.getItem('authToken');
+    const token = await SecureStorage.getItemAsync('authToken');
     if (!token) {
       throw new Error('No authentication token found');
     }
@@ -248,7 +248,10 @@ const admissionService = {
 
   async saveFormDraft(formData) {
     try {
-      await AsyncStorage.setItem('admission_draft', JSON.stringify({ formData, timestamp: new Date().toISOString() }));
+      await SecureStorage.setItemAsync(
+        'admission_draft', 
+        JSON.stringify({ formData, timestamp: new Date().toISOString() })
+      );
       return true;
     } catch (error) {
       logger.error('Failed to save draft', error);
@@ -258,7 +261,7 @@ const admissionService = {
 
   async loadFormDraft() {
     try {
-      const draft = await AsyncStorage.getItem('admission_draft');
+      const draft = await SecureStorage.getItemAsync('admission_draft');
       return draft ? JSON.parse(draft).formData : null;
     } catch (error) {
       logger.error('Failed to load draft', error);
@@ -268,7 +271,7 @@ const admissionService = {
 
   async clearFormDraft() {
     try {
-      await AsyncStorage.removeItem('admission_draft');
+      await SecureStorage.deleteItemAsync('admission_draft');
       return true;
     } catch (error) {
       logger.error('Failed to clear draft', error);

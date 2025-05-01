@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStorage from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { APIConfig } from '../config';
 
@@ -64,7 +64,7 @@ const NotificationService = {
         token
       }, {
         headers: {
-          Authorization: `Bearer ${APIConfig.token}`,
+          Authorization: `Bearer ${token}`,
         }
       });
     } catch (error) {
@@ -103,13 +103,13 @@ const NotificationService = {
     try {
       const response = await axios.get(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.GET_ALL}`, {
         headers: {
-          Authorization: `Bearer ${APIConfig.token}`,
+          Authorization: `Bearer ${token}`,
         }
       });
-      await AsyncStorage.setItem('cachedNotifications', JSON.stringify(response.data));
+      await SecureStorage.setItemAsync('cachedNotifications', JSON.stringify(response.data));
       return response.data;
     } catch (error) {
-      const cached = await AsyncStorage.getItem('cachedNotifications');
+      const cached = await SecureStorage.getItemAsync('cachedNotifications');
       if (cached) return JSON.parse(cached);
       throw error;
     }
@@ -119,7 +119,7 @@ const NotificationService = {
     try {
       await axios.post(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.MARK_AS_READ}`, { id }, {
         headers: {
-          Authorization: `Bearer ${APIConfig.token}`,
+          Authorization: `Bearer ${token}`,
         }
       });
     } catch (error) {
@@ -130,9 +130,9 @@ const NotificationService = {
 
   async deleteNotification(id) {
     try {
-      await axios.delete(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.DELETE_NOTIFICATION}`, {
+      await axios.delete(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.DELETE}`, {
         headers: {
-          Authorization: `Bearer ${APIConfig.token}`,
+          Authorization: `Bearer ${token}`,
         },
         data: { id }
       });
@@ -153,7 +153,7 @@ const NotificationService = {
   // Settings Management
   async saveSettings(settings) {
     try {
-      await AsyncStorage.setItem('notificationSettings', JSON.stringify(settings));
+      await SecureStorage.setItemAsync('notificationSettings', JSON.stringify(settings));
     } catch (error) {
       console.error('Error saving settings:', error);
       throw error;
@@ -162,7 +162,7 @@ const NotificationService = {
 
   async loadSettings() {
     try {
-      const settings = await AsyncStorage.getItem('notificationSettings');
+      const settings = await SecureStorage.getItemAsync('notificationSettings');
       return settings ? JSON.parse(settings) : {
         pushEnabled: true,
         soundEnabled: true,
@@ -177,7 +177,7 @@ const NotificationService = {
 
   async getCachedNotifications() {
     try {
-      const cached = await AsyncStorage.getItem('cachedNotifications');
+      const cached = await SecureStorage.getItemAsync('cachedNotifications');
       return cached ? JSON.parse(cached) : [];
     } catch (error) {
       console.error('Error loading cached notifications:', error);

@@ -1,11 +1,10 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { StudentContext } from '../context/StudentContext';
+import { useProfile } from '../context/ProfileContext';
 
 const CustomHeader = ({ title = 'Dashboard', navigation }) => {
-  const { studentInfo } = useContext(StudentContext);
-  const selectedStudent = studentInfo?.[0] || {};
+  const { profileInfo, userType } = useProfile();
 
   return (
     <View style={styles.headerContainer}>
@@ -16,14 +15,15 @@ const CustomHeader = ({ title = 'Dashboard', navigation }) => {
       <Text style={styles.title}>{title}</Text>
       
       <TouchableOpacity 
-        onPress={() => navigation.navigate('StudentProfile', { 
-          studentId: selectedStudent?.studentId 
+        onPress={() => navigation.navigate('Profile', { 
+          userId: profileInfo?.id,
+          type: userType
         })}
       >
         <Image
           source={
-            selectedStudent?.profileImagePath 
-              ? { uri: selectedStudent.profileImagePath }
+            profileInfo?.profileImagePath 
+              ? { uri: profileInfo.profileImagePath }
               : require('../assets/images/default-profile.png')
           }
           style={styles.profileImage}

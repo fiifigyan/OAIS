@@ -1,22 +1,14 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, ImageBackground, ActivityIndicator } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { useHome } from '../context/HomeContext';
-import { useStudent } from '../context/StudentContext';
+import { useProfile } from '../context/ProfileContext';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { homeData, events, loading, error, refreshHomeData } = useHome();
-  const { studentInfo } = useStudent();
-
-  if (!studentInfo) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#03AC13" />
-      </SafeAreaView>
-    );
-  }
+  const { selectedStudent } = useProfile();
 
   const quickActions = [
     { title: 'Schedule', icon: 'time-outline', route: 'Schedule' },
@@ -38,7 +30,7 @@ const HomeScreen = () => {
   if (error) {
     return (
       <SafeAreaView style={styles.errorContainer}>
-        <Icon name="warning-outline" size={50} color="red" style={{ marginBottom: 20 }} />
+        <Icon name="warning-outline" size={50} color="red" />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity 
           style={styles.retryButton}
@@ -54,7 +46,7 @@ const HomeScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>
-          Welcome, {homeData?.fullName || 'Student'}
+          {selectedStudent?.fullName || 'Student Dashboard'}
         </Text>
 
         <View style={styles.profileCard}>
@@ -62,11 +54,11 @@ const HomeScreen = () => {
             <Image
               source={homeData?.passportPicture 
                 ? { uri: homeData.passportPicture } 
-                : require('../assets/images/fiifi1.jpg')}
+                : require('../assets/images/default-profile.png')}
               style={styles.profileImage}
             />
             <View style={styles.profileText}>
-              <Text style={styles.profileName}>{homeData?.fullName || 'Loading...'}</Text>
+              <Text style={styles.profileName}>{selectedStudent?.fullName || 'Loading...'}</Text>
               <Text style={styles.profileGrade}>Grade: {homeData?.grade || 'N/A'}</Text>
               <View style={styles.statusRow}>
                 <View style={styles.statusBadge}>
@@ -102,66 +94,17 @@ const HomeScreen = () => {
         {/* Upcoming Events Section */}
         {events.length > 0 && (
           <View style={styles.eventsContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Upcoming Events</Text>
-              <TouchableOpacity 
-                style={styles.viewAllButton}
-                onPress={() => navigation.navigate('Events')}
+            <Text style={styles.sectionTitle}>Upcoming Events</Text>
+            {events.slice(0, 3).map((event, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.eventCard}
+                onPress={() => navigation.navigate('EventDetail', { event })}
               >
-                <Text style={styles.viewAllText}>View All</Text>
-                <Icon name="chevron-forward" size={16} color="#4A6FA5" />
+                <Text style={styles.eventTitle}>{event.title}</Text>
+                <Text style={styles.eventDate}>{event.date}</Text>
               </TouchableOpacity>
-            </View>
-
-            {/* Featured Event */}
-            <TouchableOpacity 
-              style={styles.featuredEvent}
-              onPress={() => navigation.navigate('EventDetail', { event: events[0] })}
-            >
-              <ImageBackground
-                source={{ uri: events[0].image }}
-                style={styles.featuredImage}
-                imageStyle={styles.featuredImageStyle}
-              >
-                <View style={styles.featuredOverlay}>
-                  <Text style={styles.featuredCategory}>{events[0].category}</Text>
-                  <Text style={styles.featuredTitle}>{events[0].title}</Text>
-                  <View style={styles.featuredMeta}>
-                    <View style={styles.metaItem}>
-                      <Icon name="calendar" size={14} color="#FFF" />
-                      <Text style={styles.metaText}>{events[0].date}</Text>
-                    </View>
-                    <View style={styles.metaItem}>
-                      <Icon name="location" size={14} color="#FFF" />
-                      <Text style={styles.metaText}>{events[0].location}</Text>
-                    </View>
-                  </View>
-                </View>
-              </ImageBackground>
-            </TouchableOpacity>
-
-            {/* Events Grid */}
-            <View style={styles.eventsGrid}>
-              {events.slice(1, 3).map((event) => (
-                <TouchableOpacity
-                  key={event.id}
-                  style={styles.eventCard}
-                  onPress={() => navigation.navigate('EventDetail', { event })}
-                >
-                  <ImageBackground
-                    source={{ uri: event.image }}
-                    style={styles.eventImage}
-                    imageStyle={styles.eventImageStyle}
-                  >
-                    <View style={styles.eventOverlay}>
-                      <Text style={styles.eventCategory}>{event.category}</Text>
-                      <Text style={styles.eventTitle}>{event.title}</Text>
-                      <Text style={styles.eventDate}>{event.date}</Text>
-                    </View>
-                  </ImageBackground>
-                </TouchableOpacity>
-              ))}
-            </View>
+            ))}
           </View>
         )}
       </ScrollView>

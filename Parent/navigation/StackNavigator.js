@@ -5,7 +5,7 @@ import AdmissionForm from '../screens/AdmissionForm';
 import AddAccountScreen from '../screens/AddAccount';
 import SwitchAccountScreen from '../screens/SwitchAccount';
 import HistoryScreen from '../screens/History';
-import ParentProfile from '../screens/ParentProfile';
+import ProfileScreen from '../screens/ProfileScreen';
 import NotificationScreen from '../screens/Notification';
 import SettingScreen from '../screens/AppSetting';
 import EventScreen from '../screens/Events';
@@ -16,7 +16,6 @@ import TourScreen from '../screens/TourScreen';
 import NotificationSettings from '../screens/NotificationSettings';
 import HomeWorkScreen from '../screens/HomeWork';
 import AdmissionStatus from '../screens/AdmissionStatus';
-import StudentProfile from '../screens/StudentProfile';
 import FeeDetailScreen from '../screens/FeeDetail';
 import GradesScreen from '../screens/Grades';
 import OTPVerificationScreen from '../screens/OTPVerification';
@@ -35,13 +34,12 @@ const StackNavigator = ({ initialRouteName = 'Home' }) => {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Drawer" component={DrawerNavigator} />
-      <Stack.Screen name="Parent" component={ParentProfile} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
       <Stack.Screen name="Settings" component={SettingScreen} />
       <Stack.Screen name="Admission" component={AdmissionForm} />
       <Stack.Screen name="AdmissionStatus" component={AdmissionStatus} />
-      <Stack.Screen name="Student" component={StudentProfile} />
       <Stack.Screen name="AddAccount" component={AddAccountScreen} />
       <Stack.Screen name="SwitchAccount" component={SwitchAccountScreen} />
       <Stack.Screen name="FeeDetail" component={FeeDetailScreen} />

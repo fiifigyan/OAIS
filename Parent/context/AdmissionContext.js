@@ -1,6 +1,6 @@
 import React, { createContext, useState, useCallback, useEffect, useRef } from 'react';
 import admissionService from '../services/AdmissionService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStorage from 'expo-secure-store';
 import { useAuth } from '../context/AuthContext';
 
 export const AdmissionContext = createContext();
@@ -175,7 +175,7 @@ export const AdmissionProvider = ({ children }) => {
         return null;
       }
 
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await SecureStorage.getItemAsync('authToken');
       if (!token) {
         throw new Error('Your session has expired. Please login again.');
       }

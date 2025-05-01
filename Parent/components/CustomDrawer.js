@@ -4,16 +4,15 @@ import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawe
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../context/AuthContext';
-import { StudentContext } from '../context/StudentContext';
+import { useProfile } from '../context/ProfileContext';
 import { appConfig } from '../config';
 import * as Haptics from 'expo-haptics';
 
 const CustomDrawer = (props) => {
   const navigation = useNavigation();
   const { userInfo, logout } = useContext(AuthContext);
-  const { studentInfo } = useContext(StudentContext);
+  const { profileInfo, students, userType } = useProfile();
   const [scaleValue] = useState(new Animated.Value(1));
-  const selectedStudent = studentInfo?.[0] || {};
 
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
@@ -46,6 +45,20 @@ const CustomDrawer = (props) => {
     navigation.navigate(screenName, params);
   };
 
+  const getDisplayName = () => {
+    if (userType === 'student') {
+      return profileInfo?.fullName || 'Student';
+    }
+    return profileInfo?.fullName || `${profileInfo?.firstName} ${profileInfo?.lastName}` || 'Parent';
+  };
+
+  const getSubtitle = () => {
+    if (userType === 'student') {
+      return profileInfo?.className ? `Class: ${profileInfo.className}` : 'No class assigned';
+    }
+    return profileInfo?.relationship || 'Parent/Guardian';
+  };
+
   return (
     <View style={styles.container}>
       <DrawerContentScrollView 
@@ -63,22 +76,23 @@ const CustomDrawer = (props) => {
         <View style={styles.profileSection}>
           <Image
             source={
-              selectedStudent?.profileImagePath 
-                ? { uri: selectedStudent.profileImagePath } 
+              profileInfo?.profileImagePath 
+                ? { uri: profileInfo.profileImagePath } 
                 : require('../assets/images/default-profile.png')
             }
             style={styles.avatar}
           />
           <View style={styles.profileInfo}>
             <Text style={styles.userName} numberOfLines={1}>
-              {selectedStudent?.fullName || userInfo?.fname || 'Student'}
+              {getDisplayName()}
             </Text>
             <Text style={styles.userEmail} numberOfLines={1}>
-              {selectedStudent?.className ? `Class: ${selectedStudent.className}` : 'No class assigned'}
+              {getSubtitle()}
             </Text>
             <TouchableOpacity 
-              onPress={() => navigateWithHaptic('StudentProfile', { 
-                studentId: selectedStudent?.studentId 
+              onPress={() => navigateWithHaptic('Profile', { 
+                userId: profileInfo?.id,
+                type: userType
               })}
               activeOpacity={0.7}
             >

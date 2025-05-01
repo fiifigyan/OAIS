@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import HomeService from '../services/HomeService';
-import { useStudent } from '../context/StudentContext';
+import { useProfile } from '../context/ProfileContext';
 
 const HomeContext = createContext();
 
 export const HomeProvider = ({ children }) => {
-  const { studentInfo } = useStudent();
+  const { selectedStudent } = useProfile();
   const [homeData, setHomeData] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,12 +16,12 @@ export const HomeProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      if (!studentInfo?.[0]?.studentId) {
-        throw new Error('Student information not available');
+      if (!selectedStudent?.id) {
+        throw new Error('No student selected');
       }
       
       const [homeResponse, eventsResponse] = await Promise.all([
-        HomeService.getHomeData(studentInfo[0].studentId),
+        HomeService.getStudentHomeData(selectedStudent.id),
         HomeService.getUpcomingEvents()
       ]);
       
@@ -40,8 +40,10 @@ export const HomeProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadHomeData();
-  }, [studentInfo]);
+    if (selectedStudent) {
+      loadHomeData();
+    }
+  }, [selectedStudent]);
 
   return (
     <HomeContext.Provider value={{
