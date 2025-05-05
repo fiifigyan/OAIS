@@ -1,64 +1,21 @@
 {
   "cli": {
-    "version": ">= 15.0.13",
+    "version": ">= 16.4.0",
     "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug"
-      },
-      "ios": {
-        "buildConfiguration": "Debug"
-      },
-      "env": {
-        "APP_ENV": "development"
-      }
+      "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      },
-      "ios": {
-        "buildConfiguration": "Release"
-      },
-      "env": {
-        "APP_ENV": "staging"
-      },
-      "channel": "preview"
+      "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
-      "android": {
-        "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease"
-      },
-      "ios": {
-        "buildConfiguration": "Release",
-        "enterpriseProvisioning": "universal"
-      },
-      "env": {
-        "APP_ENV": "production"
-      },
-      "channel": "production"
-    },
-    "development-simulator": {
-      "extends": "development",
-      "ios": {
-        "simulator": true
-      }
+      "autoIncrement": true
     }
   },
   "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "../service-account.json",
-        "track": "production"
-      }
-    }
+    "production": {}
   }
 }

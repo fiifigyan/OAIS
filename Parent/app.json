@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "RIS",
-    "slug": "RIS",
+    "name": "Parent",
+    "slug": "Parent",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/OAIS-logo.png",
@@ -9,7 +9,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mcwesses.RIS",
+      "bundleIdentifier": "com.altera.parent",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "Allow access to photo library to upload profile pictures",
@@ -29,12 +29,13 @@
         "monochromeImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#03AC13"
       },
-      "package": "com.mcwesses.RIS",
+      "package": "com.altera.parent",
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -67,9 +68,11 @@
       "expo-asset"
     ],
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "1d59f370-695b-4d90-b367-d9547244a92c"
+        "projectId": "76c6a5da-2963-4dca-a13f-b2623e90d92c"
       }
-    }
+    },
+    "owner": "altera"
   }
 }
