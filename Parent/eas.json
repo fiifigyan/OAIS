@@ -23,7 +23,8 @@
       },
       "ios": {
         "buildConfiguration": "Release"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
