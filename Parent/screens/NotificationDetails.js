@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const NotificationDetails = ({ route }) => {
   const { title, body, data, timestamp } = route.params || {};
@@ -16,21 +17,48 @@ const NotificationDetails = ({ route }) => {
     });
   };
 
-  return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      {timestamp && (
-        <Text style={styles.timeText}>
-          {formatDateTime(timestamp)}
+  if (!title && !body) {
+    return (
+      <View style={[styles.container, styles.center, { backgroundColor: '#ffffff' }]}>
+        <Icon name="error-outline" size={48} color="#ff3b30" />
+        <Text style={[styles.errorText, { color: '#ff3b30' }]}>
+          Notification data not available
         </Text>
-      )}
-      <Text style={styles.body}>{body}</Text>
-      {data && (
-        <View style={styles.dataContainer}>
-          <Text style={styles.dataTitle}>Additional Data:</Text>
-          <Text style={styles.dataContent}>
-            {JSON.stringify(data, null, 2)}
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView 
+      style={[styles.container, { backgroundColor: '#ffffff' }]}
+      contentContainerStyle={styles.contentContainer}
+    >
+      <Text style={[styles.title, { color: '#03ac13' }]}>{title}</Text>
+      
+      {timestamp && (
+        <View style={styles.timeContainer}>
+          <Icon name="access-time" size={16} color="#757575" />
+          <Text style={[styles.timeText, { color: '#757575' }]}>
+            {formatDateTime(timestamp)}
           </Text>
+        </View>
+      )}
+
+      <Text style={[styles.body, { color: '#212121' }]}>{body}</Text>
+
+      {data && Object.keys(data).length > 0 && (
+        <View style={[styles.dataContainer, { backgroundColor: '#f5f5f5' }]}>
+          <Text style={[styles.dataTitle, { color: '#03ac13' }]}>
+            Additional Details
+          </Text>
+          {Object.entries(data).map(([key, value]) => (
+            <View key={key} style={styles.dataRow}>
+              <Text style={[styles.dataKey, { color: '#212121' }]}>{key}:</Text>
+              <Text style={[styles.dataValue, { color: '#212121' }]}>
+                {typeof value === 'string' ? value : JSON.stringify(value)}
+              </Text>
+            </View>
+          ))}
         </View>
       )}
     </ScrollView>
@@ -40,37 +68,60 @@ const NotificationDetails = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  contentContainer: {
     padding: 20,
-    backgroundColor: '#fff',
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#03AC13',
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   timeText: {
     fontSize: 14,
-    color: '#888',
-    marginBottom: 15,
+    marginLeft: 8,
   },
   body: {
     fontSize: 16,
     lineHeight: 24,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   dataContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
+    padding: 16,
   },
   dataTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  dataRow: {
+    flexDirection: 'row',
     marginBottom: 8,
   },
-  dataContent: {
-    fontFamily: 'monospace',
+  dataKey: {
+    fontWeight: 'bold',
+    marginRight: 8,
+    minWidth: 100,
+  },
+  dataValue: {
+    flex: 1,
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

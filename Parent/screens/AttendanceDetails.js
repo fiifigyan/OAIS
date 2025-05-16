@@ -3,184 +3,170 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  FlatList, 
-  TouchableOpacity,
-  ScrollView
+  SafeAreaView, 
+  TouchableOpacity, 
+  FlatList,
+  ActivityIndicator,
+  RefreshControl, ScrollView
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { Calendar } from 'react-native-calendars';
+import { LinearGradient } from 'expo-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
+import { CalendarService } from '../services/CalendarService';
 
-const AttendanceDetails = ({ attendanceRecords }) => {
-  const [dateRange, setDateRange] = useState('week');
-  const [filteredRecords, setFilteredRecords] = useState([]);
+const AttendanceScreen = () => {
   const [selectedDate, setSelectedDate] = useState(null);
-  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().split('T')[0]);
+  const [attendanceData, setAttendanceData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState({ present: 0, absent: 0, late: 0 });
 
-  useEffect(() => {
-    let filtered = [...attendanceRecords];
-
-    const now = new Date();
-    switch(dateRange) {
-      case 'week':
-        filtered = filtered.filter(record => {
-          const recordDate = new Date(record.date);
-          return recordDate >= new Date(now.setDate(now.getDate() - 7));
-        });
-        break;
-      case 'month':
-        filtered = filtered.filter(record => {
-          const recordDate = new Date(record.date);
-          return recordDate >= new Date(now.setMonth(now.getMonth() - 1));
-        });
-        break;
-      case 'term':
-        filtered = filtered.filter(record => {
-          const recordDate = new Date(record.date);
-          return recordDate >= new Date(now.setMonth(now.getMonth() - 3));
-        });
-        break;
-      case 'year':
-        filtered = filtered.filter(record => {
-          const recordDate = new Date(record.date);
-          return recordDate >= new Date(now.setFullYear(now.getFullYear() - 1));
-        });
-        break;
-      default:
-        break;
+  const loadData = async () => {
+    try {
+      const data = await CalendarService.fetchAttendanceData();
+      setAttendanceData(data.markedDates || {});
+      setStats(data.stats || { present: 0, absent: 0, late: 0 });
+    } catch (error) {
+      console.error('Error loading attendance:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-
-    if (selectedDate) {
-      filtered = filtered.filter(record => record.date === selectedDate);
-    }
-
-    setFilteredRecords(filtered);
-  }, [dateRange, selectedDate, attendanceRecords]);
-
-  const calculateStats = () => {
-    const total = filteredRecords.length;
-    if (total === 0) return null;
-
-    const present = filteredRecords.filter(r => r.status === 'present').length;
-    const absent = filteredRecords.filter(r => r.status === 'absent').length;
-    const late = filteredRecords.filter(r => r.status === 'late').length;
-
-    return {
-      present: Math.round((present / total) * 100),
-      absent: Math.round((absent / total) * 100),
-      late: Math.round((late / total) * 100),
-      totalDays: total
-    };
   };
 
-  const stats = calculateStats();
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+      return () => {};
+    }, [])
+  );
 
-  const renderStatusIndicator = (status) => {
-    const statusStyles = {
-      present: styles.presentStatus,
-      absent: styles.absentStatus,
-      late: styles.lateStatus
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadData();
+  };
+
+  const handleDayPress = (day) => {
+    setSelectedDate(day.dateString);
+  };
+
+  const renderStatusBadge = (status) => {
+    const colors = {
+      present: ['#4CAF50', '#81C784'],
+      absent: ['#F44336', '#E57373'],
+      late: ['#FFC107', '#FFD54F']
     };
-
+    
     return (
-      <View style={[styles.statusIndicator, statusStyles[status]]}>
+      <LinearGradient 
+        colors={colors[status]} 
+        style={styles.statusBadge}
+        start={{x: 0, y: 0}} 
+        end={{x: 1, y: 0}}
+      >
         <Text style={styles.statusText}>{status.toUpperCase()}</Text>
-      </View>
+      </LinearGradient>
     );
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.filterRow}>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={dateRange}
-            style={styles.picker}
-            onValueChange={(itemValue) => {
-              setDateRange(itemValue);
-              setSelectedDate(null);
-            }}
-          >
-            <Picker.Item label="This Week" value="week" />
-            <Picker.Item label="This Month" value="month" />
-            <Picker.Item label="This Term" value="term" />
-            <Picker.Item label="This Year" value="year" />
-          </Picker>
-        </View>
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#03AC13" />
+      </SafeAreaView>
+    );
+  }
 
-        <TouchableOpacity 
-          style={styles.calendarButton}
-          onPress={() => setCalendarVisible(!calendarVisible)}
-        >
-          <Text style={styles.calendarButtonText}>
-            {selectedDate ? 'Specific Date' : 'Pick Date'}
-          </Text>
-        </TouchableOpacity>
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Attendance Tracker</Text>
+        <Icon name="refresh" size={24} color="#03AC13" />
       </View>
 
-      {calendarVisible && (
+      <View style={styles.statsContainer}>
+        {Object.entries(stats).map(([key, value]) => (
+          <LinearGradient
+            key={key}
+            colors={['#ffffff', '#f5f5f5']}
+            style={styles.statCard}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+          >
+            <Text style={[styles.statValue, styles[`${key}Stat`]]}>{value}</Text>
+            <Text style={styles.statLabel}>{key.charAt(0).toUpperCase() + key.slice(1)}</Text>
+          </LinearGradient>
+        ))}
+      </View>
+      <ScrollView>
         <View style={styles.calendarContainer}>
           <Calendar
-            onDayPress={(day) => {
-              setSelectedDate(day.dateString);
-              setCalendarVisible(false);
-            }}
+            current={currentMonth}
+            onDayPress={handleDayPress}
+            onMonthChange={(month) => setCurrentMonth(month.dateString)}
             markedDates={{
-              ...(selectedDate && { [selectedDate]: { selected: true } })
+              ...attendanceData,
+              [selectedDate]: {
+                selected: true,
+                selectedColor: '#03AC13',
+                marked: attendanceData[selectedDate]?.marked,
+                dotColor: 'white'
+              }
+            }}
+            theme={{
+              calendarBackground: '#ffffff',
+              selectedDayBackgroundColor: '#03AC13',
+              selectedDayTextColor: '#ffffff',
+              todayTextColor: '#03AC13',
+              dayTextColor: '#2d4150',
+              textDisabledColor: '#d9e1e8',
+              dotColor: '#03AC13',
+              selectedDotColor: '#ffffff',
+              arrowColor: '#03AC13',
+              monthTextColor: '#03AC13',
+              textMonthFontWeight: 'bold',
+              textMonthFontSize: 16,
+              textDayHeaderFontWeight: 'bold'
             }}
           />
         </View>
-      )}
 
-      {selectedDate && (
-        <TouchableOpacity
-          style={styles.clearDateButton}
-          onPress={() => setSelectedDate(null)}
-        >
-          <Text style={styles.clearDateText}>Clear Date Filter</Text>
-        </TouchableOpacity>
-      )}
-
-      {stats && (
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.present}%</Text>
-            <Text style={styles.statLabel}>Present</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statValue, styles.absentStat]}>{stats.absent}%</Text>
-            <Text style={styles.statLabel}>Absent</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statValue, styles.lateStat]}>{stats.late}%</Text>
-            <Text style={styles.statLabel}>Late</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.totalDays}</Text>
-            <Text style={styles.statLabel}>Total Days</Text>
-          </View>
-        </View>
-      )}
-
-      <ScrollView style={styles.recordsContainer}>
-        {filteredRecords.length > 0 ? (
-          <FlatList
-            data={filteredRecords}
-            keyExtractor={(item, index) => `${item.date}-${index}`}
-            renderItem={({ item }) => (
-              <View style={styles.recordItem}>
-                <Text style={styles.recordDate}>{item.date}</Text>
-                {renderStatusIndicator(item.status)}
-                {item.notes && (
-                  <Text style={styles.recordNotes}>Notes: {item.notes}</Text>
+        <FlatList
+          data={selectedDate ? [selectedDate] : []}
+          keyExtractor={(item) => item}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={['#03AC13']}
+              tintColor="#03AC13"
+            />
+          }
+          renderItem={({ item }) => (
+            <View style={styles.dateDetails}>
+              <View style={styles.dateHeader}>
+                <Text style={styles.dateText}>{item}</Text>
+                {attendanceData[item] && renderStatusBadge(
+                  attendanceData[item].dotColor === '#4CAF50' ? 'present' : 
+                  attendanceData[item].dotColor === '#F44336' ? 'absent' : 'late'
                 )}
               </View>
-            )}
-          />
-        ) : (
-          <Text style={styles.noRecordsText}>No attendance records found for the selected filters</Text>
-        )}
+              <Text style={styles.detailText}>
+                {attendanceData[item]?.notes || 'No additional notes'}
+              </Text>
+            </View>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Icon name="event-note" size={48} color="#cccccc" />
+              <Text style={styles.emptyText}>Select a date to view details</Text>
+            </View>
+          }
+        />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -188,125 +174,120 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    padding: 16,
   },
-  filterRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  pickerContainer: {
+  loadingContainer: {
     flex: 1,
-    marginRight: 8,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
-  calendarButton: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    backgroundColor: '#4285f4',
-    borderRadius: 8,
   },
-  calendarButtonText: {
-    color: 'white',
-    fontWeight: '500',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
-  clearDateButton: {
-    alignSelf: 'flex-end',
-    padding: 8,
-    marginBottom: 8,
-  },
-  clearDateText: {
-    color: '#4285f4',
-    fontSize: 12,
-  },
-  calendarContainer: {
-    marginBottom: 16,
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: 'white',
-    elevation: 2,
+  headerText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#03AC13',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    elevation: 2,
+    padding: 15,
   },
   statCard: {
-    alignItems: 'center',
     flex: 1,
+    marginHorizontal: 5,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#34a853',
+  },
+  presentStat: {
+    color: '#4CAF50',
   },
   absentStat: {
-    color: '#ea4335',
+    color: '#F44336',
   },
   lateStat: {
-    color: '#fbbc05',
+    color: '#FFC107',
   },
   statLabel: {
-    fontSize: 12,
-    color: '#5f6368',
-    marginTop: 4,
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
   },
-  recordsContainer: {
-    flex: 1,
+  calendarContainer: {
+    margin: 15,
+    borderRadius: 15,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  recordItem: {
-    backgroundColor: 'white',
-    padding: 16,
-    marginBottom: 8,
-    borderRadius: 8,
-    elevation: 1,
+  dateDetails: {
+    backgroundColor: '#ffffff',
+    margin: 15,
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  recordDate: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
+  dateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  statusIndicator: {
-    alignSelf: 'flex-start',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
+  dateText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
   },
-  presentStatus: {
-    backgroundColor: '#e6f4ea',
-  },
-  absentStatus: {
-    backgroundColor: '#fce8e6',
-  },
-  lateStatus: {
-    backgroundColor: '#fef7e0',
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
-  recordNotes: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#5f6368',
-    fontStyle: 'italic',
+  detailText: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
   },
-  noRecordsText: {
-    textAlign: 'center',
-    marginTop: 24,
-    color: '#5f6368',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999',
+    marginTop: 10,
   },
 });
 
-export default AttendanceDetails;
+export default AttendanceScreen;

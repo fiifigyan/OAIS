@@ -14,12 +14,17 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "Allow access to photo library to upload profile pictures",
         "NSCameraUsageDescription": "Allow access to camera to take profile pictures",
-        "NSPhotoLibraryAddUsageDescription": "Allow saving images to photo library"
+        "NSPhotoLibraryAddUsageDescription": "Allow saving images to photo library",
+        "NSLocationWhenInUseUsageDescription": "Allow access to location to show event locations on map"
       },
       "icon": {
         "dark": "./assets/icons/ios-dark.png",
         "light": "./assets/icons/ios-light.png",
         "tinted": "./assets/icons/ios-tinted.png"
+      },
+      "config": {
+        "usesNonExemptEncryption": false,
+        "googleMapsApiKey": "GOOGLE_MAPS_API_KEY"
       }
     },
     "android": {
@@ -35,8 +40,15 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_IMAGES",
-        "android.permission.RECORD_AUDIO"
-      ]
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "GOOGLE_MAPS_API_KEY"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/icons/OAIS-logo.png"

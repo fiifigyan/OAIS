@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../context/AuthContext';
 import { useProfile } from '../context/ProfileContext';
-import { appConfig } from '../config';
+import { schoolInfo } from '../config';
 import * as Haptics from 'expo-haptics';
 
 const CustomDrawer = (props) => {
@@ -70,7 +70,7 @@ const CustomDrawer = (props) => {
             source={require('../assets/icons/OAIS-logo.png')}
             style={styles.logo}
           />
-          <Text style={styles.appName}>{appConfig.APP_NAME}</Text>
+          <Text style={styles.schoolName}>{schoolInfo.SCHOOL_NAME}</Text>
         </View>
 
         <View style={styles.profileSection}>
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 12,
   },
-  appName: {
+  schoolName: {
     fontSize: 18,
     fontWeight: '700',
     color: 'aliceblue',

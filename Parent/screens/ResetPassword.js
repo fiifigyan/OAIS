@@ -1,13 +1,56 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  ActivityIndicator, 
+  StyleSheet, 
+  TouchableOpacity, 
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform
+} from 'react-native';
 import CustomInput from '../components/CustomInput';
 import SuccessModal from '../components/SuccessModal';
 import AuthService from '../services/AuthService';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { validatePassword } from '../utils/helpers';
+
+const PasswordRequirements = ({ password }) => {
+  const requirements = [
+    { label: 'At least 8 characters', met: password.length >= 8 },
+    { label: 'One uppercase letter', met: /[A-Z]/.test(password) },
+    { label: 'One lowercase letter', met: /[a-z]/.test(password) },
+    { label: 'One number', met: /\d/.test(password) },
+    { label: 'One special character (@$!%*?&)', met: /[@$!%*?&]/.test(password) }
+  ];
+
+  return (
+    <View style={styles.requirementsContainer}>
+      <Text style={styles.requirementsTitle}>Password Requirements:</Text>
+      {requirements.map(({ label, met }, index) => (
+        <View key={index} style={styles.requirementRow}>
+          <Icon 
+            name={met ? 'checkmark-circle' : 'close-circle'} 
+            size={16} 
+            color={met ? '#4CAF50' : '#F44336'} 
+            style={styles.requirementIcon}
+          />
+          <Text style={[
+            styles.requirementText,
+            met ? styles.requirementMet : styles.requirementUnmet
+          ]}>
+            {label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+};
 
 const ResetPasswordScreen = ({ navigation, route }) => {
   const { token } = route.params || {};
-  const [userInfo, setUserInfo] = useState({
+  const [passwords, setPasswords] = useState({
     password: '',
     confirmPassword: '',
   });
@@ -20,56 +63,64 @@ const ResetPasswordScreen = ({ navigation, route }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const validateField = (name, value) => {
-    if (name === 'password') {
-      if (value.length < 8) return 'Password must be at least 8 characters';
-      if (!/[A-Z]/.test(value)) return 'Password must contain at least one uppercase letter';
-      if (!/[a-z]/.test(value)) return 'Password must contain at least one lowercase letter';
-      if (!/\d/.test(value)) return 'Password must contain at least one number';
-      if (!/[@$!%*?&]/.test(value)) return 'Password must contain at least one special character';
-    }
-    if (name === 'confirmPassword' && value !== userInfo.password) {
-      return 'Passwords do not match';
-    }
-    return '';
-  };
-
   const validateForm = () => {
     const newErrors = {};
-    Object.keys(userInfo).forEach((key) => {
-      const error = validateField(key, userInfo[key]);
-      if (error) {
-        newErrors[key] = error;
-      }
-    });
+    
+    // Validate password
+    if (!passwords.password) {
+      newErrors.password = 'Password is required';
+    } else if (!validatePassword(passwords.password)) {
+      newErrors.password = 'Password does not meet requirements';
+    }
+    
+    // Validate password confirmation
+    if (!passwords.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (passwords.password !== passwords.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleReset = async () => {
     setTouched({ password: true, confirmPassword: true });
-    if (validateForm()) {
+    
+    if (!validateForm()) return;
+    
+    try {
       setIsLoading(true);
-      try {
-        await AuthService.confirmPasswordReset(token, userInfo.password);
-        setIsModalVisible(true);
-      } catch (error) {
-        setErrors({ submit: error.message || 'Unable to reset password. Please try again later.' });
-      } finally {
-        setIsLoading(false);
-      }
+      await AuthService.resetPassword(token, passwords.password);
+      setIsModalVisible(true);
+    } catch (error) {
+      setErrors({ 
+        submit: error.message || 'Unable to reset password. Please try again.' 
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleInputChange = (name, text) => {
-    setUserInfo((prev) => ({ ...prev, [name]: text }));
-    if (touched[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
+  const handleInputChange = (name, value) => {
+    setPasswords(prev => ({ ...prev, [name]: value }));
+    if (touched[name] && errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  const handleInputBlur = (name) => {
+    setTouched(prev => ({ ...prev, [name]: true }));
+    validateForm();
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    navigation.navigate('Login');
   };
 
   return (
@@ -77,85 +128,88 @@ const ResetPasswordScreen = ({ navigation, route }) => {
       <View style={styles.header}>
         <Text style={styles.title}>Create New Password</Text>
         <Text style={styles.subtitle}>
-          Your new password must be different from previously used passwords.
+          Your new password must be different from previously used passwords
         </Text>
       </View>
 
-      <ScrollView style={styles.form}>
-        {errors.submit && (
-          <View style={styles.errorContainer}>
-            <Icon name="alert-circle" size={20} color="#d32f2f" />
-            <Text style={styles.errorText}>{errors.submit}</Text>
-          </View>
-        )}
-
-        <CustomInput
-          name="password"
-          label="New Password"
-          placeholder="Enter new password"
-          value={userInfo.password}
-          onChangeText={(text) => handleInputChange('password', text)}
-          error={touched.password ? errors.password : ''}
-          secureTextEntry={!showPassword}
-          onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
-          leftIcon={<Icon name="lock" size={24} color="#666666" />}
-          rightIcon={
-            <TouchableOpacity onPress={togglePasswordVisibility}>
-              <Icon name={showPassword ? "eye-off" : "eye"} size={24} color="#666666" />
-            </TouchableOpacity>
-          }
-        />
-
-        <CustomInput
-          name="confirmPassword"
-          label="Confirm New Password"
-          placeholder="Confirm new password"
-          value={userInfo.confirmPassword}
-          onChangeText={(text) => handleInputChange('confirmPassword', text)}
-          error={touched.confirmPassword ? errors.confirmPassword : ''}
-          secureTextEntry={!showPassword}
-          onBlur={() => setTouched(prev => ({ ...prev, confirmPassword: true }))}
-          leftIcon={<Icon name="lock" size={24} color="#666666" />}
-        />
-
-        <TouchableOpacity 
-          style={[styles.button, isLoading && styles.buttonDisabled]} 
-          onPress={handleReset}
-          disabled={isLoading}
-          accessibilityLabel="Reset password button"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          {isLoading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.buttonText}>Reset Password</Text>
+          {errors.submit && (
+            <View style={styles.errorContainer}>
+              <Icon name="alert-circle" size={20} color="#d32f2f" />
+              <Text style={styles.errorText}>{errors.submit}</Text>
+            </View>
           )}
-        </TouchableOpacity>
-      </ScrollView>
 
-      <View style={styles.requirementsContainer}>
-        <Text style={styles.requirementsTitle}>Password Requirements:</Text>
-        {[
-          'Minimum 8 characters',
-          'At least one uppercase letter',
-          'At least one lowercase letter',
-          'At least one number',
-          'At least one special character (@$!%*?&)'
-        ].map((requirement, index) => (
-          <Text key={index} style={styles.requirementItem}>
-            • {requirement}
-          </Text>
-        ))}
-      </View>
+          <CustomInput
+            label="New Password *"
+            placeholder="Enter new password"
+            value={passwords.password}
+            onChangeText={(text) => handleInputChange('password', text)}
+            onBlur={() => handleInputBlur('password')}
+            error={touched.password && errors.password}
+            secureTextEntry={!showPassword}
+            leftIcon={<Icon name="lock-closed" size={20} color="#666" />}
+            rightIcon={
+              <TouchableOpacity onPress={togglePasswordVisibility}>
+                <Icon 
+                  name={showPassword ? "eye-off" : "eye"} 
+                  size={20} 
+                  color="#666" 
+                />
+              </TouchableOpacity>
+            }
+            editable={!isLoading}
+          />
+
+          <CustomInput
+            label="Confirm Password *"
+            placeholder="Confirm new password"
+            value={passwords.confirmPassword}
+            onChangeText={(text) => handleInputChange('confirmPassword', text)}
+            onBlur={() => handleInputBlur('confirmPassword')}
+            error={touched.confirmPassword && errors.confirmPassword}
+            secureTextEntry={!showPassword}
+            leftIcon={<Icon name="lock-closed" size={20} color="#666" />}
+            editable={!isLoading}
+          />
+
+          {passwords.password.length > 0 && (
+            <PasswordRequirements password={passwords.password} />
+          )}
+
+          <TouchableOpacity 
+            style={[styles.button, isLoading && styles.buttonDisabled]} 
+            onPress={handleReset}
+            disabled={isLoading}
+            accessibilityLabel="Reset password button"
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <View style={styles.buttonContent}>
+                <Icon name="key" size={20} color="#fff" />
+                <Text style={styles.buttonText}>Reset Password</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <SuccessModal
         visible={isModalVisible}
-        onClose={() => {
-          setIsModalVisible(false);
-          navigation.navigate('Login');
-        }}
+        onClose={handleModalClose}
         title="Password Reset Successful"
         message="Your password has been reset successfully. You can now log in with your new password."
         buttonText="Go to Login"
+        iconName="checkmark-done"
+        iconColor="#4CAF50"
       />
     </SafeAreaView>
   );
@@ -166,65 +220,86 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'aliceblue',
   },
-  form: {
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContent: {
     padding: 20,
-    backgroundColor: '#ffffff',
+    paddingBottom: 40,
   },
   header: {
     padding: 20,
     backgroundColor: '#03AC13',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    borderBottomEndRadius: 80,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#fff',
     opacity: 0.9,
+    textAlign: 'center',
   },
   button: {
     backgroundColor: '#03AC13',
+    padding: 16,
     borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
     marginTop: 24,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
-    fontWeight: '600',
   },
   requirementsContainer: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#f5f5f5',
     borderRadius: 8,
     padding: 16,
-    margin: 20,
+    marginVertical: 16,
   },
   requirementsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 12,
-  },
-  requirementItem: {
-    fontSize: 14,
-    color: '#666666',
+    color: '#333',
     marginBottom: 8,
-    paddingLeft: 8,
+  },
+  requirementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  requirementIcon: {
+    marginRight: 8,
+  },
+  requirementText: {
+    fontSize: 14,
+  },
+  requirementMet: {
+    color: '#4CAF50',
+  },
+  requirementUnmet: {
+    color: '#F44336',
   },
   errorContainer: {
     flexDirection: 'row',
@@ -240,6 +315,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#d32f2f',
     fontSize: 14,
+    flex: 1,
   },
 });
 

@@ -3,13 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Ima
 import Card from '../components/Card';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import { AuthContext } from '../context/AuthContext';
+// import { AuthContext } from '../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const WelcomeScreen = () => {
     const navigation = useNavigation();
-    const { userInfo } = useContext(AuthContext);
-    const userName = userInfo?.name || 'User';
+    // const { userInfo } = useContext(AuthContext);
+    // const userName = userInfo?.name || 'User';
 
     const QuickActionCard = ({ iconName, title, description, onPress, color }) => (
         <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
@@ -39,8 +39,8 @@ const WelcomeScreen = () => {
                 style={styles.header}
             >
                 <View style={styles.headerContent}>
-                    <Text style={styles.welcomeText}>Welcome back,</Text>
-                    <Text style={styles.userName}>{userName}</Text>
+                    <Text style={styles.welcomeText}>Hey, happy to see you</Text>
+                    {/* <Text style={styles.userName}>{userName}</Text> */}
                     <Text style={styles.subtitle}>Let's continue your child's educational journey</Text>
                 </View>
                 <Image 

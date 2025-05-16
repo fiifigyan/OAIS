@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import ProfileService from '../services/ProfileService';
 
 export const ProfileContext = createContext();
@@ -16,9 +16,11 @@ export const ProfileProvider = ({ children }) => {
       setError(null);
       const data = await ProfileService.getParentProfile(parentId);
       setParentInfo(data);
+      return data;
     } catch (error) {
       console.error('Failed to load parent profile:', error.message);
       setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -27,11 +29,30 @@ export const ProfileProvider = ({ children }) => {
   const updateParentProfile = async (parentId, updates) => {
     try {
       setLoading(true);
+      setError(null);
+      
+      // Handle profile image upload if included
+      if (updates.profileImage) {
+        const imageResponse = await ProfileService.uploadParentProfileImage(
+          parentId, 
+          updates.profileImage
+        );
+        
+        // Remove the image from updates, it's been handled separately
+        delete updates.profileImage;
+        
+        // Add the returned image path to the updates
+        if (imageResponse && imageResponse.profileImagePath) {
+          updates.profileImagePath = imageResponse.profileImagePath;
+        }
+      }
+      
       const updatedProfile = await ProfileService.updateParentProfile(parentId, updates);
       setParentInfo(updatedProfile);
       return updatedProfile;
     } catch (error) {
       console.error('Failed to update profile:', error.message);
+      setError(error.message);
       throw error;
     } finally {
       setLoading(false);
@@ -42,22 +63,47 @@ export const ProfileProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const students = await ProfileService.getStudentsByParent(parentId);
-      setStudents(students);
-      if (students.length > 0) {
-        setSelectedStudent(students[0]); // Auto-select first student
-      }
+      const studentsData = await ProfileService.getStudentsByParent(parentId);
+      setStudents(studentsData);
+      return studentsData;
     } catch (error) {
       console.error('Failed to load students:', error.message);
       setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const selectStudent = (student) => {
-    setSelectedStudent(student);
+  const getStudentById = async (studentId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // First check if we already have the student data cached
+      const cachedStudent = students.find(student => student.studentId === studentId);
+      if (cachedStudent) {
+        setSelectedStudent(cachedStudent);
+        setLoading(false);
+        return cachedStudent;
+      }
+      
+      // If not cached, fetch from API
+      const studentData = await ProfileService.getStudentProfile(studentId);
+      setSelectedStudent(studentData);
+      return studentData;
+    } catch (error) {
+      console.error('Failed to get student profile:', error.message);
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
   const value = {
     parentInfo,
@@ -68,7 +114,9 @@ export const ProfileProvider = ({ children }) => {
     loadParentProfile,
     updateParentProfile,
     loadStudents,
-    selectStudent,
+    getStudentById,
+    setSelectedStudent,
+    clearError,
     refreshProfile: loadParentProfile,
     refreshStudents: loadStudents
   };

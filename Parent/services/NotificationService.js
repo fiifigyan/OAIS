@@ -4,6 +4,7 @@ import axios from 'axios';
 import * as SecureStorage from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { APIConfig } from '../config';
+import { getAuthToken } from '../utils/helpers';
 
 // Configure Android notification channel
 async function configureAndroidChannel() {
@@ -13,6 +14,7 @@ async function configureAndroidChannel() {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#03AC13',
+      sound: 'default',
     });
   }
 }
@@ -30,7 +32,21 @@ export async function initializeNotifications() {
   await configureAndroidChannel();
 }
 
+/**
+ * @typedef {Object} Notification
+ * @property {string} id - Notification ID
+ * @property {string} title - Notification title
+ * @property {string} body - Notification body
+ * @property {boolean} read - Read status
+ * @property {string} timestamp - ISO timestamp
+ * @property {Object} data - Additional data
+ */
+
 const NotificationService = {
+  /**
+   * Register device for push notifications
+   * @returns {Promise<string>} Expo push token
+   */
   async registerForPushNotifications() {
     try {
       if (!Device.isDevice) {
@@ -41,7 +57,13 @@ const NotificationService = {
       let finalStatus = existingStatus;
       
       if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+          },
+        });
         finalStatus = status;
       }
       
@@ -58,24 +80,38 @@ const NotificationService = {
     }
   },
 
+  /**
+   * Send push token to backend
+   * @param {string} token - Expo push token
+   * @returns {Promise<void>}
+   */
   async sendPushTokenToBackend(token) {
     try {
+      const authToken = await getAuthToken();
+      if (!authToken) return;
+
       await axios.post(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.SAVE_PUSH_TOKEN}`, {
         token
       }, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         }
       });
     } catch (error) {
       console.error('Error sending token to backend:', error);
+      throw error;
     }
   },
 
+  /**
+   * Setup notification handlers
+   * @param {Object} navigation - Navigation object
+   * @returns {Function} Cleanup function
+   */
   setupNotificationHandlers(navigation) {
     const foregroundSubscription = Notifications.addNotificationReceivedListener(notification => {
       console.log('Notification received in foreground:', notification);
-      navigation?.navigate('NotificationDetails', { ...notification.request.content.data });
+      this.handleNotification(notification, navigation);
     });
 
     const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
@@ -83,11 +119,16 @@ const NotificationService = {
     });
 
     return () => {
-      foregroundSubscription.remove();
-      responseSubscription.remove();
+      foregroundSubscription?.remove();
+      responseSubscription?.remove();
     };
   },
 
+  /**
+   * Handle notification navigation
+   * @param {Object} notification - Notification object
+   * @param {Object} navigation - Navigation object
+   */
   handleNotification(notification, navigation) {
     const data = notification.request.content.data || {};
     navigation?.navigate('NotificationDetails', { 
@@ -99,24 +140,48 @@ const NotificationService = {
   },
 
   // API Methods
+
+  /**
+   * Fetch notifications from server
+   * @returns {Promise<Array<Notification>>}
+   */
   async fetchNotifications() {
     try {
+      const token = await getAuthToken();
+      if (!token) throw new Error('Not authenticated');
+
       const response = await axios.get(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.GET_ALL}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         }
       });
-      await SecureStorage.setItemAsync('cachedNotifications', JSON.stringify(response.data));
+
+      // Cache with timestamp
+      const cacheData = {
+        data: response.data,
+        timestamp: Date.now()
+      };
+      await SecureStorage.setItemAsync('cachedNotifications', JSON.stringify(cacheData));
+      
       return response.data;
     } catch (error) {
-      const cached = await SecureStorage.getItemAsync('cachedNotifications');
-      if (cached) return JSON.parse(cached);
+      console.error('Error fetching notifications:', error);
+      const cached = await this.getCachedNotifications();
+      if (cached.length > 0) return cached;
       throw error;
     }
   },
 
+  /**
+   * Mark notification as read
+   * @param {string} id - Notification ID
+   * @returns {Promise<void>}
+   */
   async markAsRead(id) {
     try {
+      const token = await getAuthToken();
+      if (!token) throw new Error('Not authenticated');
+
       await axios.post(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.MARK_AS_READ}`, { id }, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -128,8 +193,16 @@ const NotificationService = {
     }
   },
 
+  /**
+   * Delete notification
+   * @param {string} id - Notification ID
+   * @returns {Promise<void>}
+   */
   async deleteNotification(id) {
     try {
+      const token = await getAuthToken();
+      if (!token) throw new Error('Not authenticated');
+
       await axios.delete(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.DELETE}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -142,6 +215,11 @@ const NotificationService = {
     }
   },
 
+  /**
+   * Set app badge count
+   * @param {number} count - Badge count
+   * @returns {Promise<void>}
+   */
   async setBadgeCount(count) {
     try {
       await Notifications.setBadgeCountAsync(count);
@@ -150,7 +228,34 @@ const NotificationService = {
     }
   },
 
+  /**
+   * Get cached notifications
+   * @returns {Promise<Array<Notification>>}
+   */
+  async getCachedNotifications() {
+    try {
+      const cached = await SecureStorage.getItemAsync('cachedNotifications');
+      if (!cached) return [];
+
+      const { data, timestamp } = JSON.parse(cached);
+      // Return cached data if less than 1 hour old
+      if (Date.now() - timestamp < 3600000) {
+        return data;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error loading cached notifications:', error);
+      return [];
+    }
+  },
+
   // Settings Management
+
+  /**
+   * Save notification settings
+   * @param {Object} settings - Notification settings
+   * @returns {Promise<void>}
+   */
   async saveSettings(settings) {
     try {
       await SecureStorage.setItemAsync('notificationSettings', JSON.stringify(settings));
@@ -160,6 +265,10 @@ const NotificationService = {
     }
   },
 
+  /**
+   * Load notification settings
+   * @returns {Promise<Object>} Notification settings
+   */
   async loadSettings() {
     try {
       const settings = await SecureStorage.getItemAsync('notificationSettings');
@@ -171,17 +280,12 @@ const NotificationService = {
       };
     } catch (error) {
       console.error('Error loading settings:', error);
-      throw error;
-    }
-  },
-
-  async getCachedNotifications() {
-    try {
-      const cached = await SecureStorage.getItemAsync('cachedNotifications');
-      return cached ? JSON.parse(cached) : [];
-    } catch (error) {
-      console.error('Error loading cached notifications:', error);
-      return [];
+      return {
+        pushEnabled: true,
+        soundEnabled: true,
+        vibrationEnabled: true,
+        badgeEnabled: true
+      };
     }
   }
 };

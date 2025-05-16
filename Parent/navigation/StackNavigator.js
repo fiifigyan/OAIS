@@ -14,7 +14,6 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import HelpCenterScreen from '../screens/HelpCenter';
 import TourScreen from '../screens/TourScreen';
 import NotificationSettings from '../screens/NotificationSettings';
-import HomeWorkScreen from '../screens/HomeWork';
 import AdmissionStatus from '../screens/AdmissionStatus';
 import FeeDetailScreen from '../screens/FeeDetail';
 import GradesScreen from '../screens/Grades';
@@ -24,6 +23,9 @@ import PaymentSuccess from '../components/PaymentSuccess';
 import FeeBreakdown from '../screens/AdmissionBreakdown';
 import AdmissionPurchase from '../screens/AdmissionPurchase';
 import PaymentMethod from '../screens/PaymentMethod';
+import AttendanceDetails from '../screens/AttendanceDetails';
+import Gradebook from '../screens/Gradebook';
+import ReportScreen from '../screens/Report';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +39,7 @@ const StackNavigator = ({ initialRouteName = 'Home' }) => {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="NotificationSettings" component={NotificationSettings} />
+      <Stack.Screen name="NotificationDetails" component={NotificationScreen} />
       <Stack.Screen name="Settings" component={SettingScreen} />
       <Stack.Screen name="Admission" component={AdmissionForm} />
       <Stack.Screen name="AdmissionStatus" component={AdmissionStatus} />
@@ -50,9 +53,11 @@ const StackNavigator = ({ initialRouteName = 'Home' }) => {
       <Stack.Screen name="EditProfile" component={EditProfile} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Tour" component={TourScreen} />
-      <Stack.Screen name="Homework" component={HomeWorkScreen} />
+      <Stack.Screen name="Attendance" component={AttendanceDetails} />
       <Stack.Screen name="Setting" component={SettingScreen} />
-      <Stack.Screen name="Grades" component={GradesScreen} />
+      {/* <Stack.Screen name="Grades" component={GradesScreen} /> */}
+      <Stack.Screen name="Grades" component={Gradebook} />
+      <Stack.Screen name="Reports" component={ReportScreen} />
       <Stack.Screen name="OTP" component={OTPVerificationScreen} />
       <Stack.Screen name="PaymentProcessing" component={PaymentProcessing} />
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />

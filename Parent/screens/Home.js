@@ -11,11 +11,11 @@ const HomeScreen = () => {
   const { selectedStudent } = useProfile();
 
   const quickActions = [
-    { title: 'Schedule', icon: 'time-outline', route: 'Schedule' },
-    { title: 'Attendance', icon: 'calendar-outline', route: 'Attendance' },
     { title: 'Fees', icon: 'cash-outline', route: 'FeeDetail' },
-    { title: 'Homework', icon: 'book-outline', route: 'Homework' },
+    { title: 'Attendance', icon: 'checkmark-circle-outline', route: 'Attendance' },
     { title: 'Grades', icon: 'bar-chart-outline', route: 'Grades' },
+    { title: 'Reports', icon: 'document-text-outline', route: 'Reports' },
+    { title: 'Messages', icon: 'chatbubble-ellipses-outline', route: 'Messages' },
     { title: 'Events', icon: 'calendar-outline', route: 'Events' },
   ];
 

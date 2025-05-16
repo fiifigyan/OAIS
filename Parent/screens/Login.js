@@ -1,12 +1,25 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, SafeAreaView, KeyboardAvoidingView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  ScrollView, 
+  StyleSheet, 
+  ActivityIndicator, 
+  SafeAreaView, 
+  KeyboardAvoidingView,
+  Platform
+} from 'react-native';
 import { CustomInput } from '../components/CustomInput';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { validateEmail, validateStudentId } from '../utils/helpers';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
+  const { login, isLoading } = useContext(AuthContext);
+  
   const [formData, setFormData] = useState({
     StudentID: '',
     email: '',
@@ -14,20 +27,24 @@ const LoginScreen = () => {
   });
   
   const [errors, setErrors] = useState({});
-  const { login, isLoading } = useContext(AuthContext);
+  const [touched, setTouched] = useState({
+    StudentID: false,
+    email: false,
+    password: false
+  });
 
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.StudentID.trim()) {
       newErrors.StudentID = 'Student ID is required';
-    } else if (!/^OAIS-\d{4}$/.test(formData.StudentID.trim())) {
+    } else if (!validateStudentId(formData.StudentID.trim())) {
       newErrors.StudentID = 'Format: OAIS-0001 (4 digits after hyphen)';
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+    } else if (!validateEmail(formData.email.trim())) {
       newErrors.email = 'Please enter a valid email address';
     }
     
@@ -48,7 +65,7 @@ const LoginScreen = () => {
       const credentials = {
         email: formData.email.trim().toLowerCase(),
         StudentID: formData.StudentID.trim().toUpperCase(),
-        Password: formData.password
+        password: formData.password
       };
       
       await login(credentials);
@@ -57,31 +74,13 @@ const LoginScreen = () => {
         routes: [{ name: 'Home' }],
       });
     } catch (error) {
-      let errorMessage = 'Login failed. Please try again.';
-      
-      if (error.response?.data) {
-        const backendErrors = error.response.data;
-        
-        if (backendErrors.StudentID) {
-          setErrors(prev => ({ ...prev, StudentID: backendErrors.StudentID }));
-        }
-        if (backendErrors.Password) {
-          setErrors(prev => ({ ...prev, password: backendErrors.Password }));
-        }
-        if (backendErrors.email) {
-          setErrors(prev => ({ ...prev, email: backendErrors.email }));
-        }
-        
-        errorMessage = Object.values(backendErrors)[0] || errorMessage;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setErrors(prev => ({ ...prev, submit: errorMessage }));
+      setErrors(prev => ({ 
+        ...prev, 
+        submit: error.message || 'Login failed. Please try again.' 
+      }));
     }
   };
 
-  // Auto-format student ID as user types
   const handleStudentIDChange = (text) => {
     let formattedText = text.toUpperCase();
     
@@ -99,22 +98,36 @@ const LoginScreen = () => {
     if (errors.StudentID) setErrors(prev => ({ ...prev, StudentID: '' }));
   };
 
+  const handleInputBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    validateForm();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Welcome!</Text>
         <Text style={styles.subtitle}>Login and get started</Text>
       </View>
-      <KeyboardAvoidingView style={styles.KeyboardAvoidingView}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+      
+      <KeyboardAvoidingView 
+        style={styles.KeyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
           <CustomInput
             label="Student ID *"
             value={formData.StudentID}
             onChangeText={handleStudentIDChange}
-            error={errors.StudentID}
+            onBlur={() => handleInputBlur('StudentID')}
+            error={touched.StudentID && errors.StudentID}
             placeholder="OAIS-0000"
             autoCapitalize="characters"
             leftIcon={<Icon name="id-card" size={20} color="#666" />}
+            editable={!isLoading}
           />
 
           <CustomInput
@@ -124,11 +137,13 @@ const LoginScreen = () => {
               setFormData(prev => ({ ...prev, email: text }));
               if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
             }}
-            error={errors.email}
+            onBlur={() => handleInputBlur('email')}
+            error={touched.email && errors.email}
             placeholder="Enter your email"
             keyboardType="email-address"
             autoCapitalize="none"
             leftIcon={<Icon name="mail" size={20} color="#666" />}
+            editable={!isLoading}
           />
           
           <CustomInput
@@ -138,43 +153,55 @@ const LoginScreen = () => {
               setFormData(prev => ({ ...prev, password: text }));
               if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
             }}
-            error={errors.password}
+            onBlur={() => handleInputBlur('password')}
+            error={touched.password && errors.password}
             placeholder="Enter your password"
             secureTextEntry
             leftIcon={<Icon name="lock-closed" size={20} color="#666" />}
+            editable={!isLoading}
           />
 
           <TouchableOpacity 
             style={styles.forgotPassword} 
             onPress={() => navigation.navigate('Forgot')}
+            disabled={isLoading}
           >
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
 
           {errors.submit && (
             <View style={styles.errorContainer}>
-              <Icon name='sad-outline' size={20} color='#d32f2f' />
+              <Icon name='alert-circle' size={20} color='#d32f2f' />
               <Text style={styles.errorText}>{errors.submit}</Text>
             </View>
           )}
 
           <TouchableOpacity
-            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+            style={[
+              styles.submitButton, 
+              (isLoading || Object.keys(errors).length > 0) && styles.submitButtonDisabled
+            ]}
             onPress={handleLogin}
-            disabled={isLoading}
+            disabled={isLoading || Object.keys(errors).length > 0}
           >
             <View style={styles.buttonContent}>
               {isLoading ? (
                 <ActivityIndicator color="aliceblue" />
               ) : (
-                <Text style={styles.submitButtonText}>Login</Text>
+                <>
+                  <Icon name="log-in" size={20} color="aliceblue" />
+                  <Text style={styles.submitButtonText}>Login</Text>
+                </>
               )}
             </View>
           </TouchableOpacity>
 
           <View style={styles.signupContainer}>
             <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('Signup')}
+              disabled={isLoading}
+            >
               <Text style={styles.signupLink}>Sign Up</Text>
             </TouchableOpacity>
           </View>
@@ -194,6 +221,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 32,
   },
   header: {
     padding: 20,
@@ -219,12 +247,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'aliceblue',
   },
-  form: {
-    flex: 1,
-    padding: 20,
-    gap: 10,
-    backgroundColor: '#f9f9f9',
-  },
   forgotPassword: {
     alignSelf: 'flex-end',
     marginTop: 8,
@@ -239,6 +261,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginTop: 24,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   submitButtonDisabled: {
     opacity: 0.6,
@@ -269,14 +294,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  errorInput: {
-    borderColor: '#d32f2f',
-  },
-  errorText: {
-    color: '#d32f2f',
-    fontSize: 12,
-    marginTop: 4,
-  },
   errorContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -286,6 +303,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderLeftWidth: 4,
     borderLeftColor: '#d32f2f',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 14,
+    flex: 1,
   },
 });
 

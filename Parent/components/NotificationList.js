@@ -1,36 +1,38 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
-import { ActivityIndicator, Text, Button } from 'react-native-paper';
-import NotificationItem from '../components/NotificationItem';
-import { fetchNotifications, markAsRead, deleteNotification, setBadgeCount, getCachedNotifications } from '../services/NotificationService';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
+import { Text, Button, useTheme } from 'react-native-paper';
+import NotificationItem from './NotificationItem';
+import { fetchNotifications, markAsRead, deleteNotification, setBadgeCount } from '../services/NotificationService';
 import { useNotificationContext } from '../context/NotificationContext';
 import { groupByDate } from '../utils/helpers';
+import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
 
 const NotificationList = () => {
+  const theme = useTheme();
   const [notifications, setNotifications] = useState([]);
-  const [groupedNotifications, setGroupedNotifications] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const { settings, updateUnreadCount } = useNotificationContext();
 
+  // Memoize grouped notifications
+  const groupedNotifications = useMemo(() => {
+    return groupByDate(notifications);
+  }, [notifications]);
+
+  // Calculate unread count
+  const unreadCount = useMemo(() => {
+    return notifications.filter(n => !n.read).length;
+  }, [notifications]);
+
   const loadData = useCallback(async () => {
     try {
-      if (!settings.pushEnabled) {
-        const cached = await getCachedNotifications();
-        setNotifications(cached);
-        groupNotifications(cached);
-        setError(new Error('Notifications are disabled in settings'));
-        return;
-      }
-
+      setError(null);
       const data = await fetchNotifications();
       setNotifications(data);
-      groupNotifications(data);
-      setError(null);
       
       if (settings.badgeEnabled) {
-        const unreadCount = data.filter(n => !n.read).length;
         updateUnreadCount(unreadCount);
         await setBadgeCount(unreadCount);
       }
@@ -40,12 +42,7 @@ const NotificationList = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [settings.pushEnabled, settings.badgeEnabled]);
-
-  const groupNotifications = (data) => {
-    const grouped = groupByDate(data);
-    setGroupedNotifications(grouped);
-  };
+  }, [settings.badgeEnabled, updateUnreadCount]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -64,9 +61,8 @@ const NotificationList = () => {
       );
       
       if (settings.badgeEnabled) {
-        const newUnreadCount = notifications.filter(n => !n.read).length - 1;
-        updateUnreadCount(Math.max(0, newUnreadCount));
-        await setBadgeCount(Math.max(0, newUnreadCount));
+        updateUnreadCount(unreadCount - 1);
+        await setBadgeCount(unreadCount - 1);
       }
     } catch (err) {
       console.error('Error marking as read:', err);
@@ -75,43 +71,49 @@ const NotificationList = () => {
 
   const handleDelete = async (id) => {
     try {
+      const wasUnread = notifications.find(n => n.id === id)?.read === false;
       await deleteNotification(id);
       setNotifications(prev => prev.filter(n => n.id !== id));
       
-      const wasUnread = notifications.find(n => n.id === id)?.read === false;
       if (wasUnread && settings.badgeEnabled) {
-        const newUnreadCount = notifications.filter(n => !n.read).length - 1;
-        updateUnreadCount(Math.max(0, newUnreadCount));
-        await setBadgeCount(Math.max(0, newUnreadCount));
+        updateUnreadCount(unreadCount - 1);
+        await setBadgeCount(unreadCount - 1);
       }
     } catch (err) {
       console.error('Error deleting notification:', err);
     }
   };
 
+  const renderDateSection = useCallback(({ item: date }) => (
+    <View style={styles.dateSection}>
+      <Text style={[styles.dateHeader, { color: theme.colors.primary }]}>
+        {date}
+      </Text>
+      {groupedNotifications[date].map(notification => (
+        <NotificationItem
+          key={notification.id}
+          item={notification}
+          onPress={handleMarkAsRead}
+          onDelete={handleDelete}
+        />
+      ))}
+    </View>
+  ), [groupedNotifications, handleMarkAsRead, handleDelete, theme]);
+
   if (loading && !notifications.length) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator animating={true} color="#03AC13" size="large" />
+        <ActivityIndicator animating={true} color={theme.colors.primary} size="large" />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>
-          {error.message || 'Failed to load notifications'}
-        </Text>
-        <Button 
-          mode="contained" 
-          onPress={loadData}
-          style={styles.retryButton}
-          labelStyle={styles.retryButtonLabel}
-        >
-          Try Again
-        </Button>
-      </View>
+      <ErrorState 
+        error={error} 
+        onRetry={loadData}
+      />
     );
   }
 
@@ -120,36 +122,28 @@ const NotificationList = () => {
       <FlatList
         data={Object.keys(groupedNotifications)}
         keyExtractor={(date) => date}
-        renderItem={({ item: date }) => (
-          <View style={styles.dateSection}>
-            <Text style={styles.dateHeader}>{date}</Text>
-            {groupedNotifications[date].map(notification => (
-              <NotificationItem
-                key={notification.id}
-                item={notification}
-                onPress={() => handleMarkAsRead(notification.id)}
-                onDelete={() => handleDelete(notification.id)}
-              />
-            ))}
-          </View>
-        )}
+        renderItem={renderDateSection}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#03AC13']}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <View style={styles.center}>
-            <Text style={styles.emptyText}>
-              {settings.pushEnabled 
-                ? 'No notifications available' 
-                : 'Notifications are disabled in settings'}
-            </Text>
-          </View>
+          <EmptyState 
+            title="No notifications"
+            description={settings.pushEnabled 
+              ? "You don't have any notifications yet" 
+              : "Notifications are disabled in settings"}
+            icon="bell-off"
+          />
         }
+        initialNumToRender={10}
+        maxToRenderPerBatch={5}
+        windowSize={10}
       />
     </View>
   );
@@ -169,28 +163,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  errorText: {
-    color: '#ff4444',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  retryButton: {
-    backgroundColor: '#03AC13',
-    borderRadius: 8,
-  },
-  retryButtonLabel: {
-    color: 'white',
-  },
-  emptyText: {
-    color: '#888',
-  },
   dateSection: {
     marginBottom: 16,
   },
   dateHeader: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#03AC13',
     marginBottom: 8,
     paddingHorizontal: 8,
   },

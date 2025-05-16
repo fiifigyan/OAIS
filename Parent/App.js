@@ -1,34 +1,97 @@
-import React from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { SafeAreaView, StatusBar, LogBox, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthStack from './navigation/AuthStack';
-import { AdmissionProvider } from './context/AdmissionContext';
 import StackNavigator from './navigation/StackNavigator';
+import { AdmissionProvider } from './context/AdmissionContext';
 import { ProfileProvider } from './context/ProfileContext';
 import { PaymentProvider } from './context/PaymentContext';
-import { NotificationProvider } from './context/NotificationContext';
 import { HomeProvider } from './context/HomeContext';
-import NotificationService, { initializeNotifications } from './services/NotificationService';
-import useNotificationListener from './hooks/useNotificationListener';
+import { NotificationProvider } from './context/NotificationContext';
+import NotificationService from './services/NotificationService';
+import { getAuthToken } from './utils/helpers';
 
+// Configure notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,    // Replaces shouldShowAlert
+    shouldShowList: true,      // New property
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+// Ignore specific warnings
+LogBox.ignoreLogs([
+  'AsyncStorage has been extracted',
+  'Setting a timer',
+  '`shouldShowAlert` is deprecated', // Ignore the specific deprecation warning
+]);
+
+/**
+ * Main application content with navigation and notifications
+ */
 function MainAppContent() {
+  const navigationRef = useRef();
+  const routeNameRef = useRef();
   const { userInfo, isNewUser } = useAuth();
-  useNotificationListener();
 
-  React.useEffect(() => {
+  // Initialize notifications
+  useEffect(() => {
     const setupNotifications = async () => {
       try {
-        await initializeNotifications();
-        
-        if (Device.isDevice) {
-          const token = await NotificationService.registerForPushNotifications();
-          if (token && userInfo) {
-            await NotificationService.sendPushTokenToBackend(token);
+        // Configure Android channel
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'default',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#03AC13',
+            sound: 'default',
+          });
+        }
+
+        if (Device.isDevice && userInfo) {
+          const { status } = await Notifications.getPermissionsAsync();
+          
+          if (status !== 'granted') {
+            const { status: newStatus } = await Notifications.requestPermissionsAsync();
+            if (newStatus !== 'granted') return;
+          }
+
+          const token = await Notifications.getExpoPushTokenAsync();
+          const authToken = await getAuthToken();
+          if (token.data && authToken) {
+            await NotificationService.sendPushTokenToBackend(token.data);
           }
         }
+
+        // Setup notification received listener
+        const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
+          navigationRef.current?.navigate('NotificationDetails', {
+            ...notification.request.content.data,
+            title: notification.request.content.title,
+            body: notification.request.content.body,
+          });
+        });
+
+        // Setup notification response listener
+        const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+          navigationRef.current?.navigate('NotificationDetails', {
+            ...response.notification.request.content.data,
+            title: response.notification.request.content.title,
+            body: response.notification.request.content.body,
+          });
+        });
+
+        return () => {
+          receivedSubscription.remove();
+          responseSubscription.remove();
+        };
       } catch (error) {
         console.error('Notification setup error:', error);
       }
@@ -38,11 +101,24 @@ function MainAppContent() {
   }, [userInfo]);
 
   return (
-    <NavigationContainer>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#03AC13' }}>
-        <StatusBar barStyle="default" />
+    <NavigationContainer 
+      ref={navigationRef}
+      onReady={() => {
+        routeNameRef.current = navigationRef.current.getCurrentRoute().name;
+      }}
+      onStateChange={async () => {
+        const previousRouteName = routeNameRef.current;
+        const currentRouteName = navigationRef.current.getCurrentRoute().name;
+        routeNameRef.current = currentRouteName;
+      }}
+    >
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#03ac13' }}>
+        <StatusBar 
+          barStyle="light-content" 
+          backgroundColor="#03ac13" 
+        />
         {!userInfo ? (
-          <StackNavigator initialRouteName="Drawer" />
+            <StackNavigator initialRouteName="Drawer" />
         ) : isNewUser ? (
           <StackNavigator initialRouteName="Welcome" />
         ) : (
@@ -53,6 +129,9 @@ function MainAppContent() {
   );
 }
 
+/**
+ * Root application component
+ */
 function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -63,7 +142,7 @@ function App() {
               <HomeProvider>
                 <PaymentProvider>
                   <MainAppContent />
-                </PaymentProvider>  
+                </PaymentProvider>
               </HomeProvider>
             </ProfileProvider>
           </AdmissionProvider>

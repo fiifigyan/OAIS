@@ -67,6 +67,27 @@ const ProfileService = {
     }
   },
 
+  getStudentProfile: async (studentId) => {
+    try {
+      const token = await SecureStorage.getItemAsync('authToken');
+      if (!token) throw new Error('Authentication required');
+
+      const response = await axios.get(
+        `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.PROFILE}/${studentId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('ProfileService.getStudentProfile error:', error);
+      throw error;
+    }
+  },
+
   uploadParentProfileImage: async (parentId, imageUri) => {
     try {
       const token = await SecureStorage.getItemAsync('authToken');
@@ -96,6 +117,27 @@ const ProfileService = {
       return response.data;
     } catch (error) {
       console.error('ProfileService.uploadParentProfileImage error:', error);
+      throw error;
+    }
+  },
+
+  getAcademicInfo: async (studentId) => {
+    try {
+      const token = await SecureStorage.getItemAsync('authToken');
+      if (!token) throw new Error('Authentication required');
+
+      const response = await axios.get(
+        `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.ACADEMIC}/${studentId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('ProfileService.getAcademicInfo error:', error);
       throw error;
     }
   }

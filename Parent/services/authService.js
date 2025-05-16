@@ -1,219 +1,224 @@
-import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
+import { 
+  manageAuthToken, 
+  processAuthResponse, 
+  getAuthToken,
+  verifyToken
+} from '../utils/helpers';
 import { APIConfig } from '../config';
 
-const manageAuthToken = async (token) => {
-  console.debug('[Auth] Managing token:', token ? 'Storing new token' : 'Clearing token');
-  try {
-    if (token) {
-      await SecureStore.setItemAsync('authToken', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.debug('[Auth] Token stored and header set');
-    } else {
-      await SecureStore.deleteItemAsync('authToken');
-      delete axios.defaults.headers.common['Authorization'];
-      console.debug('[Auth] Token cleared');
-    }
-  } catch (error) {
-    console.error('[Auth] Token management failed:', error);
-    throw new Error('Session maintenance failed');
-  }
-};
-
-const processAuthResponse = (response) => {
-  console.debug('[Auth] Processing response:', {
-    status: response.status,
-    dataType: typeof response.data,
-    dataPreview: typeof response.data === 'string' ? 
-      response.data.substring(0, 50) + '...' : 
-      JSON.stringify(response.data).substring(0, 100) + '...'
-  });
-
-  if (typeof response.data === 'string') {
-    console.debug('[Auth] Processing string response');
-    const message = response.data.split('%')[0].trim();
-    const tokenMatch = response.data.match(/eyJhbGciOiJIUzUxMiJ9\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+/);
-    
-    if (tokenMatch) {
-      console.debug('[Auth] Found embedded token');
-      return {
-        message: message || 'Operation successful',
-        token: tokenMatch[0]
-      };
-    }
-  }
-
-  if (response.data?.token) {
-    console.debug('[Auth] Processing JSON response with token');
-    return response.data;
-  }
-
-  console.error('[Auth] Unrecognized response format', response.data);
-  throw new Error('Unexpected server response');
-};
-
 const AuthService = {
+  /**
+   * Handles user registration
+   * @param {Object} userData - User registration data
+   * @returns {Promise<{token: string, email: string}>} Registration result
+   */
   async signup(userData) {
     console.group('[Auth] Signup Process');
-    console.debug('Attempting to call API:', {
-      url: `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`,
-      method: 'POST',
-      data: userData
-    });
     try {
-      console.debug('Submitting:', { 
-        email: userData.email, 
-        password: '•••••••'
-      });
+      console.debug('Submitting registration for:', userData.email);
 
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`, 
-        userData
+        userData,
+        { timeout: 10000 }
       );
 
       const result = processAuthResponse(response);
       await manageAuthToken(result.token);
       
-      console.debug('Signup successful:', result.message);
-      console.groupEnd();
-      return result;
-      
+      console.debug('Signup successful:', result.email);
+      return {
+        token: result.token,
+        email: userData.email,
+        ...(result.StudentID && { StudentID: result.StudentID })
+      };
     } catch (error) {
       let errorMessage = 'Registration failed. Please try again.';
       
       if (error.response) {
-        console.error('Server responded with:', {
-          status: error.response.status,
-          data: error.response.data
-        });
-        errorMessage = error.response.data?.message || errorMessage;
+        if (error.response.status === 409) {
+          errorMessage = 'Email already registered';
+        } else if (error.response.data?.errors) {
+          errorMessage = Object.values(error.response.data.errors).join('\n');
+        } else {
+          errorMessage = error.response.data?.message || errorMessage;
+        }
+        console.error('Server responded with:', error.response.data);
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timed out. Please check your connection.';
       } else {
         console.error('Network/request error:', error.message);
       }
       
-      console.groupEnd();
       throw new Error(errorMessage);
+    } finally {
+      console.groupEnd();
     }
   },
 
+  /**
+   * Handles user login
+   * @param {Object} credentials - Login credentials
+   * @returns {Promise<{token: string, email: string, StudentID?: string}>} Login result
+   */
   async login(credentials) {
     console.group('[Auth] Login Process');
     try {
-      console.debug('Attempting login for:', credentials.email + ' with student ID:', credentials.StudentID);
-
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`,
-        credentials
+        credentials,
+        { timeout: 10000 }
       );
 
       const result = processAuthResponse(response);
       await manageAuthToken(result.token);
       
-      console.debug('Login successful for:', result.email || result.userId);
-      console.groupEnd();
-      return result;
-      
+      console.debug('Login successful for:', result.email);
+      return {
+        token: result.token,
+        email: credentials.email,
+        ...(credentials.StudentID && { StudentID: credentials.StudentID })
+      };
     } catch (error) {
       let errorMessage = 'Login failed. Please check your credentials.';
       
       if (error.response) {
-        console.error('Login error response:', {
-          status: error.response.status,
-          data: error.response.data
-        });
-        errorMessage = error.response.data?.message || errorMessage;
+        if (error.response.status === 401) {
+          errorMessage = 'Invalid email or password';
+        } else if (error.response.status === 403) {
+          errorMessage = 'Account not verified';
+        } else if (error.response.data?.errors) {
+          errorMessage = Object.values(error.response.data.errors).join('\n');
+        } else {
+          errorMessage = error.response.data?.message || errorMessage;
+        }
+        console.error('Login error:', error.response.data);
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timed out. Please check your connection.';
       } else {
         console.error('Login failed:', error.message);
       }
       
-      console.groupEnd();
       throw new Error(errorMessage);
+    } finally {
+      console.groupEnd();
     }
   },
 
+  /**
+   * Handles user logout
+   * @returns {Promise<{success: boolean}>} Logout result
+   */
   async logout() {
     console.group('[Auth] Logout Process');
     try {
-      console.debug('Initiating logout');
-      const token = await SecureStore.getItemAsync('authToken');
-      await axios.post(
-        `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGOUT}`,
-        null,
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
+      const token = await getAuthToken();
+      if (token) {
+        await axios.post(
+          `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGOUT}`,
+          null,
+          { 
+            headers: { 'Authorization': `Bearer ${token}` },
+            timeout: 5000
+          }
+        );
+      }
       await manageAuthToken(null);
-      
-      console.debug('Logout completed');
-      console.groupEnd();
       return { success: true };
-      
     } catch (error) {
       console.error('Logout API failed, clearing token anyway:', error.message);
       await manageAuthToken(null);
+      return { success: true }; // Consider logout successful even if API fails
+    } finally {
       console.groupEnd();
-      throw new Error('Logged out (connection issue)');
     }
   },
 
+  /**
+   * Refresh authentication token
+   * @param {string} currentToken - Current JWT token
+   * @returns {Promise<string>} New token
+   */
+  async refreshToken(currentToken) {
+    try {
+      const response = await axios.post(
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.REFRESH}`,
+        { token: currentToken },
+        { timeout: 10000 }
+      );
+      
+      const newToken = response.data?.token;
+      if (newToken) {
+        await manageAuthToken(newToken);
+        return newToken;
+      }
+      throw new Error('No token in refresh response');
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      throw new Error('Session refresh failed');
+    }
+  },
+
+  /**
+   * Verify token validity
+   * @param {string} token - JWT token to verify
+   * @returns {Promise<{valid: boolean, payload?: object}>} Verification result
+   */
+  async verifyToken(token) {
+    try {
+      const payload = await verifyToken(token);
+      return { valid: !!payload, payload };
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      return { valid: false };
+    }
+  },
+
+  /**
+   * Initiates password reset process
+   * @param {string} email - User email
+   * @returns {Promise<{success: boolean, message?: string}>} Reset request result
+   */
   async forgotPassword(email) {
     try {
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.FORGOT}`,
-        { email }
+        { email },
+        { timeout: 10000 }
       );
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Password reset request failed');
+      let errorMessage = 'Password reset request failed';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      throw new Error(errorMessage);
     }
   },
   
+  /**
+   * Completes password reset process
+   * @param {string} token - Reset token
+   * @param {string} newPassword - New password
+   * @returns {Promise<{success: boolean, message?: string}>} Reset result
+   */
   async resetPassword(token, newPassword) {
     try {
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.RESET}`,
-        { token, newPassword }
+        { token, newPassword },
+        { timeout: 10000 }
       );
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Password reset failed');
+      let errorMessage = 'Password reset failed';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      throw new Error(errorMessage);
     }
   },
-
-  async verifyToken() {
-    console.debug('[Auth] Verifying stored token');
-    try {
-      const token = await SecureStore.getItemAsync('authToken');
-      if (!token) {
-        console.debug('No token found');
-        return null;
-      }
-
-      const parts = token.split('.');
-      if (parts.length !== 3) {
-        console.error('Invalid token structure');
-        await this.logout();
-        return null;
-      }
-
-      try {
-        const payload = JSON.parse(atob(parts[1]));
-        if (payload.exp && Date.now() >= payload.exp * 1000) {
-          console.error('Token expired');
-          await this.logout();
-          return null;
-        }
-        console.debug('Token is valid');
-        return { token, payload };
-      } catch (e) {
-        console.error('Token parsing failed:', e);
-        await this.logout();
-        return null;
-      }
-    } catch (error) {
-      console.error('Token verification failed:', error);
-      return null;
-    }
-  }
 };
 
 export default AuthService;
