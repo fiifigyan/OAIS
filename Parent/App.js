@@ -18,10 +18,10 @@ import { getAuthToken } from './utils/helpers';
 // Configure notification handler
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,    // Replaces shouldShowAlert
-    shouldShowList: true,      // New property
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -64,6 +64,8 @@ function MainAppContent() {
           }
 
           const token = await Notifications.getExpoPushTokenAsync();
+          // log token for debugging
+          console.log('Push token:', token.data);
           const authToken = await getAuthToken();
           if (token.data && authToken) {
             await NotificationService.sendPushTokenToBackend(token.data);
@@ -118,7 +120,7 @@ function MainAppContent() {
           backgroundColor="#03ac13" 
         />
         {!userInfo ? (
-            <StackNavigator initialRouteName="Drawer" />
+          <AuthStack />
         ) : isNewUser ? (
           <StackNavigator initialRouteName="Welcome" />
         ) : (

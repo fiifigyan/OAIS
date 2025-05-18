@@ -11,57 +11,50 @@ const logger = {
 
 const REQUIRED_FIELDS = {
   student: [
-    'fullName', 
-    'dateOfBirth', 
-    'gender', 
-    'nationality', 
-    'religion', 
-    'residentialAddress.streetName', 
-    'residentialAddress.houseNumber', 
-    'residentialAddress.city', 
-    'residentialAddress.region', 
-    'residentialAddress.country', 
-    'medicalInformation.bloodType', 
-    'medicalInformation.emergencyContactName', 
-    'medicalInformation.emergencyContactNumber', 
-    'medicalInformation.allergiesOrConditions'
+    'surName',
+    'firstName',
+    'gender',
+    'dateOfBirth',
+    'residentialAddress.city',
+    'residentialAddress.region',
+    'residentialAddress.country',
+    'nationality',
+    'livesWith',
+    'medicalInformation.bloodType',
+    'medicalInformation.allergiesOrConditions',
+    'medicalInformation.emergencyContactsName',
+    'medicalInformation.emergencyContactsNumber'
   ],
-
+  parentGuardian: [
+    'fatherSurName',
+    'fatherFirstName',
+    'fatherContactNumber',
+    'fatherOccupation',
+    'fatherEmailAddress',
+    'motherSurName',
+    'motherFirstName',
+    'motherContactNumber',
+    'motherOccupation',
+    'motherEmailAddress'
+  ],
   previousAcademicDetail: [
-    'lastSchoolAttended', 
+    'lastSchoolAttended',
     'lastClassCompleted'
   ],
-
   admissionDetail: [
-    'classForAdmission', 
-    'academicYear', 
+    'classForAdmission',
+    'academicYear',
     'preferredSecondLanguage'
   ],
-
-  parentGuardian: [
-    'firstName', 
-    'lastName', 
-    'contactNumber', 
-    'emailAddress', 
-    'occupation'
-  ],
-
   documents: [
-    'file1', 
-    'file2', 
+    'file1',
+    'file2',
     'file3'
   ],
 };
 
 const MAX_FILE_SIZE_MB = 10;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
-
-const sanitizeError = (error) => {
-  if (error.message) {
-    return error.message;
-  }
-  return 'An unexpected error occurred';
-};
 
 const resolveFileUri = (fileInfo) => {
   if (!fileInfo) {
@@ -130,22 +123,21 @@ const admissionService = {
       if (!validation.isValid) {
         throw new Error('Form validation failed: ' + Object.values(validation.errors).join(', '));
       }
+      
       const formSubmissionData = new FormData();
-
       formSubmissionData.append('data', JSON.stringify({ 
         ...formData, 
         documents: undefined 
       }));
-  
+
       await inspectFormData(formSubmissionData);
 
-  
       for (const [key, fileInfo] of Object.entries(formData.documents || {})) {
         if (!fileInfo) continue;
         
         const resolvedUri = resolveFileUri(fileInfo);
         if (!resolvedUri) throw new Error(`Invalid file information for ${key}`);
-  
+
         const mimeType = getMimeType(fileInfo.name);
         if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
           throw new Error(`Invalid file type for ${key}`);
@@ -159,9 +151,9 @@ const admissionService = {
           type: mimeType,
         });
       }
-  
+
       const headers = await getAuthHeaders();
-  
+
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
         formSubmissionData,
@@ -173,12 +165,14 @@ const admissionService = {
           transformRequest: (data) => data,
         }
       );
+      
       await this.clearFormDraft();
       return response.data;
     } catch (error) {
       throw new Error(sanitizeError(error));
     }
   },
+
   async validateDocument(fileInfo) {
     try {
       if (!fileInfo) throw new Error('Invalid file information');
@@ -216,8 +210,6 @@ const admissionService = {
     const checkField = (obj, path) => {
       return path.split('.').reduce((current, part) => (current ? current[part] : null), obj);
     };
-
-    const isEmptyValue = (value) => !value || (typeof value === 'string' && value.trim() === '') || (Array.isArray(value) && value.length === 0);
 
     Object.entries(REQUIRED_FIELDS).forEach(([section, fields]) => {
       fields.forEach((field) => {
@@ -278,40 +270,6 @@ const admissionService = {
       return false;
     }
   },
-
-  // async getAdmissionStatusByApplicationId(applicationId) {
-  //   try {
-  //     if (!id) throw new Error('Application ID is required');
-
-  //     const headers = await getAuthHeaders();
-  //     const response = await axios.get(
-  //       `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${applicationId}`,
-  //       { headers }
-  //     );
-
-  //     return response.data;
-  //   } catch (error) {
-  //     logger.error('Failed to fetch admission status by ID:', error);
-  //     throw new Error(sanitizeError(error));
-  //   }
-  // },
-
-  // async getAdmissionStatusByParentId(parentId) {
-  //   try {
-  //     if (!parentId) throw new Error('Parent ID is required');
-
-  //     const headers = await getAuthHeaders();
-  //     const response = await axios.get(
-  //       `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${parentId}`,
-  //       { headers }
-  //     );
-
-  //     return response.data;
-  //   } catch (error) {
-  //     logger.error('Failed to fetch admission status:', error);
-  //     throw new Error(sanitizeError(error));
-  //   }
-  // },
 };
 
 export default admissionService;

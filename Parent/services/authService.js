@@ -17,7 +17,6 @@ const AuthService = {
     console.group('[Auth] Signup Process');
     try {
       console.debug('Submitting registration for:', userData.email);
-
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`, 
         userData,

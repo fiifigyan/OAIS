@@ -73,7 +73,6 @@ export const processAuthResponse = (response) => {
     throw new Error('Empty response from server');
   }
 
-  // Handle JSON responses
   if (typeof response.data === 'object') {
     if (response.data.token) {
       return {
@@ -85,7 +84,6 @@ export const processAuthResponse = (response) => {
     throw new Error(response.data.message || 'Authentication failed');
   }
 
-  // Handle string responses (legacy format)
   if (typeof response.data === 'string') {
     const tokenMatch = response.data.match(/^Bearer\s+([\w-]+\.[\w-]+\.[\w-]+)$/);
     if (tokenMatch && tokenMatch[1]) {
@@ -167,4 +165,50 @@ export const validatePassword = (password) => {
  */
 export const validateStudentId = (studentId) => {
   return /^OAIS-\d{4}$/.test(studentId);
+};
+
+/**
+ * Deep merges two objects
+ */
+export const deepMerge = (target, source) => {
+  if (typeof target !== 'object' || typeof source !== 'object') {
+    return source;
+  }
+  
+  const output = { ...target };
+  for (const key in source) {
+    if (source[key] instanceof Object && key in target) {
+      output[key] = deepMerge(target[key], source[key]);
+    } else {
+      output[key] = source[key];
+    }
+  }
+  return output;
+};
+
+/**
+ * Checks if a value is empty
+ */
+export const isEmptyValue = (value) => 
+  !value || 
+  (typeof value === 'string' && value.trim() === '') || 
+  (Array.isArray(value) && value.length === 0);
+
+/**
+ * Gets a nested value from an object using dot notation path
+ */
+export const getValue = (obj, path) => {
+  return path.split('.').reduce((acc, part) => {
+    return acc && acc[part] !== undefined ? acc[part] : '';
+  }, obj);
+};
+
+/**
+ * Sanitizes error messages
+ */
+export const sanitizeError = (error) => {
+  if (error.message) {
+    return error.message;
+  }
+  return 'An unexpected error occurred';
 };

@@ -1,0 +1,104 @@
+{
+  "student": {
+    "surName": "Smith",
+    "firstName": "John",
+    "middleName": "Edward",
+    "gender": "MALE",
+    "dateOfBirth": "2010-03-15",
+    "residentialAddress": {
+      "street": "Main St",
+      "houseNumber": 123,
+      "city": "Springfield",
+      "region": "IL",
+      "country": "USA"
+      
+    },
+    "homeTown": "Springfield",
+    "nationality": "American",
+    "livesWith": "BOTH_PARENTS",
+    "numberOfSiblings": 2,
+    "olderSiblings": 1,
+    "youngerSiblings": 1,
+    "otherChildrenInHouse": 0,
+    "submittedOn": "2025-05-15T02:02:00",
+    "medicalInformation":{
+      "bloodType": "A+",
+      "allergiesOrConditions": "Lactose Intollerant",
+      "emergencyContactsName": "Robert James Smith",
+      "isChildImmunized": true,
+      "emergencyContactsNumber":"+1-555-111-2222"
+    }
+  },
+  "additionalContact": {
+    "fullName": "Jane Doe",
+    "address": {
+      "street": "Oak Ave",
+      "houseNumber": 456,
+      "city": "Springfield",
+      "region": "IL",
+      "country": "USA"
+      
+    },
+    "contactNumber": "+1-555-123-4567",
+    "relationshipToPupil": "AUNT"
+  },
+  "authorizedPickup": {
+    "fullName": "Michael Brown",
+    "address": {
+      "street": " Pine Rd",
+      "houseNumber": 789,
+      "city": "Springfield",
+      "region": "IL",
+      "country": "USA"
+    },
+    "contactNumber": "+1-555-987-6543",
+    "relationshipToPupil": "GRANDPARENT"
+  },
+  "parentGuardian": {
+    "fatherSurName": "Smith",
+    "fatherFirstName": "Robert",
+    "fatherMiddleName": "James",
+    "fatherAddress": {
+      "street": "Main St",
+      "houseNumber":123,
+      "city": "Springfield",
+      "region": "IL",
+      "country": "USA"
+    },
+    "fatherReligion": "Christian",
+    "fatherContactNumber": "+1-555-111-2222",
+    "fatherOccupation": "Engineer",
+    "fatherCompanyName": "Tech Corp",
+    "fatherBusinessAddress": "100 Tech Park",
+    "fatherEmailAddress": "honuvorrosemary@gmail.com",
+    "motherSurName": "Smith",
+    "motherFirstName": "Emily",
+    "motherMiddleName": "Anne",
+    "motherAddress": {
+      "street": "Main St",
+      "houseNumber":123,
+      "city": "Springfield",
+      "region": "IL",
+      "country": "USA"
+      
+    },
+    "motherReligion": "Christian",
+    "motherContactNumber": "+1-555-333-4444",
+    "motherOccupation": "Teacher",
+    "motherCompanyName": "Springfield High School",
+    "motherBusinessAddress": "200 School Lane",
+    "motherEmailAddress": "honuvorrosemary@gmail.com"
+  },
+  "previousAcademicDetail": {
+    "lastSchoolAttended": "Springfield Elementary",
+    "lastClassCompleted": "Grade 5"
+  },
+  "admissionDetail": {
+    "classForAdmission": "Grade 6",
+    "academicYear": 2025,
+    "preferredSecondLanguage": "Spanish",
+    "hasSiblingsInSchool": true,
+    "siblingName": "Sarah Smith",
+    "siblingClass": "Grade 8"
+  }
+}

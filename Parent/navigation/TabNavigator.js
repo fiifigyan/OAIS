@@ -6,7 +6,7 @@ import CustomTabBar from '../components/CustomTabBar';
 import HomeScreen from '../screens/Home';
 import CalendarScreen from '../screens/Calendar';
 import ProfileScreen from '../screens/ProfileScreen';
-import NotificationScreen from '../screens/Notification';
+import NotificationScreen from '../screens/Notification/Notification';
 
 const Tab = createBottomTabNavigator();
 

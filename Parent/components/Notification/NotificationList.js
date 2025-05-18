@@ -2,11 +2,11 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
 import { Text, Button, useTheme } from 'react-native-paper';
 import NotificationItem from './NotificationItem';
-import { fetchNotifications, markAsRead, deleteNotification, setBadgeCount } from '../services/NotificationService';
-import { useNotificationContext } from '../context/NotificationContext';
-import { groupByDate } from '../utils/helpers';
-import EmptyState from '../components/EmptyState';
-import ErrorState from '../components/ErrorState';
+import { fetchNotifications, markAsRead, deleteNotification, setBadgeCount } from '../../services/NotificationService';
+import { useNotificationContext } from '../../context/NotificationContext';
+import { groupByDate } from '../../utils/helpers';
+import EmptyState from './EmptyState';
+import ErrorState from './ErrorState';
 
 const NotificationList = () => {
   const theme = useTheme();

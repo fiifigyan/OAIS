@@ -5,7 +5,7 @@ import CustomDrawer from '../components/CustomDrawer';
 import TabNavigator from './TabNavigator';
 import { Easing } from 'react-native-reanimated';
 
-import AdmissionForm from '../screens/AdmissionForm';
+import AdmissionForm from '../screens/Admission/AdmissionForm';
 import PaymentHistoryScreen from '../screens/History';
 import AddAccountScreen from '../screens/AddAccount';
 import SwitchAccountScreen from '../screens/SwitchAccount';

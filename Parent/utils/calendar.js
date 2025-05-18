@@ -1,11 +1,10 @@
 import { Alert, Linking, Platform } from 'react-native';
 import * as Calendar from 'expo-calendar';
-import * as Permissions from 'expo-permissions';
 
 export const addEventToCalendar = async (event) => {
   try {
-    // Request calendar permissions
-    const { status } = await Permissions.askAsync(Permissions.CALENDAR);
+    // Request calendar permissions directly from expo-calendar
+    const { status } = await Calendar.requestCalendarPermissionsAsync();
     
     if (status !== 'granted') {
       Alert.alert('Permission required', 'Please enable calendar permissions in settings');

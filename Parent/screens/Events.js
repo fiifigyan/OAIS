@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, 
-ScrollView, Image, TouchableOpacity, Linking, Share,
-ActivityIndicator, Alert, SafeAreaView, Dimensions, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking, Share, ActivityIndicator, Alert, SafeAreaView, Dimensions, Platform, PermissionsAndroid } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';

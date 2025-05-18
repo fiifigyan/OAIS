@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
-import { AdmissionContext } from '../context/AdmissionContext';
-import { useAuth } from '../context/AuthContext';
+import { AdmissionContext } from '../../context/AdmissionContext';
+import { useAuth } from '../../context/AuthContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const AdmissionStatus = ({ route }) => {

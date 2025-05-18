@@ -6,7 +6,7 @@ import Toast from 'react-native-toast-message';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
-import PaymentMethod from '../screens/PaymentMethod';
+import PaymentMethod from '../PaymentMethod';
 
 const AdmissionPurchase = ({ route, navigation }) => {
   const { level, gender, amount, feeDetails } = route.params;

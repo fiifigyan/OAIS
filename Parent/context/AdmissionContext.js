@@ -1,37 +1,95 @@
 import React, { createContext, useState, useCallback, useEffect, useRef } from 'react';
-import admissionService from '../services/AdmissionService';
+import { admissionService } from '../services/AdmissionService';
 import * as SecureStorage from 'expo-secure-store';
-import { useAuth } from '../context/AuthContext';
-
-export const AdmissionContext = createContext();
+import { useAuth } from './AuthContext';
+import { deepMerge } from '../utils/helpers';
 
 const INITIAL_FORM_STATE = {
   student: {
-    fullName: '',
-    dateOfBirth: '',
+    surName: '',
+    firstName: '',
+    middleName: '',
     gender: '',
-    nationality: '',
-    religion: '',
+    dateOfBirth: '',
     residentialAddress: { 
-      streetName: '', 
+      street: '', 
       houseNumber: '', 
       city: '', 
       region: '', 
-      country: ''
+      country: '',
+      homeTown: ''
     },
+    nationality: '',
+    livesWith: '',
+    numberOfSiblings: 0,
+    olderSiblings: 0,
+    youngerSiblings: 0,
+    otherChildrenInHouse: 0,
     medicalInformation: {
       bloodType: '',
       allergiesOrConditions: '',
-      emergencyContactName: '',
-      emergencyContactNumber: '',
+      emergencyContactsName: '',
+      emergencyContactsNumber: '',
+      isChildImmunized: false
     },
   },
-  parentGuardian: {
-    firstName: '',
-    lastName: '',
+  additionalContact: {
+    fullName: '',
+    address: {
+      street: '',
+      houseNumber: '',
+      city: '',
+      region: '',
+      country: ''
+    },
     contactNumber: '',
-    emailAddress: '',
-    occupation: '',
+    relationshipToPupil: ''
+  },
+  authorizedPickup: {
+    fullName: '',
+    address: {
+      street: '',
+      houseNumber: '',
+      city: '',
+      region: '',
+      country: ''
+    },
+    contactNumber: '',
+    relationshipToPupil: ''
+  },
+  parentGuardian: {
+    fatherSurName: '',
+    fatherFirstName: '',
+    fatherMiddleName: '',
+    fatherAddress: {
+      street: '',
+      houseNumber: '',
+      city: '',
+      region: '',
+      country: ''
+    },
+    fatherReligion: '',
+    fatherContactNumber: '',
+    fatherOccupation: '',
+    fatherCompanyName: '',
+    fatherBusinessAddress: '',
+    fatherEmailAddress: '',
+    motherSurName: '',
+    motherFirstName: '',
+    motherMiddleName: '',
+    motherAddress: {
+      street: '',
+      houseNumber: '',
+      city: '',
+      region: '',
+      country: ''
+    },
+    motherReligion: '',
+    motherContactNumber: '',
+    motherOccupation: '',
+    motherCompanyName: '',
+    motherBusinessAddress: '',
+    motherEmailAddress: '',
   },
   previousAcademicDetail: {
     lastSchoolAttended: '',
@@ -51,6 +109,8 @@ const INITIAL_FORM_STATE = {
     file3: null,
   },
 };
+
+export const AdmissionContext = createContext();
 
 export const AdmissionProvider = ({ children }) => {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
@@ -125,26 +185,10 @@ export const AdmissionProvider = ({ children }) => {
     loadDraft();
   }, []);
 
-  const deepMerge = useCallback((target, source) => {
-    if (typeof target !== 'object' || typeof source !== 'object') {
-      return source;
-    }
-    
-    const output = { ...target };
-    for (const key in source) {
-      if (source[key] instanceof Object && key in target) {
-        output[key] = deepMerge(target[key], source[key]);
-      } else {
-        output[key] = source[key];
-      }
-    }
-    return output;
-  }, []);
-
   const updateFormData = useCallback((updates) => {
     setFormData(prev => deepMerge(prev || INITIAL_FORM_STATE, updates));
     setValidationErrors({});
-  }, [deepMerge]);
+  }, []);
 
   const validateForm = useCallback(async () => {
     try {
@@ -228,21 +272,6 @@ export const AdmissionProvider = ({ children }) => {
     }
   }, []);
 
-  // const getAdmissionStatus = useCallback(async () => {
-  //   if (!userInfo) return null;
-    
-  //   try {
-  //     setIsLoading(true);
-  //     const response = await admissionService.getAdmissionStatus(userInfo.parentId);
-  //     return response;
-  //   } catch (error) {
-  //     setError(error.message || 'Could not fetch admission status');
-  //     return null;
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, [userInfo]);
-
   return (
     <AdmissionContext.Provider value={{
       formData,
@@ -256,7 +285,6 @@ export const AdmissionProvider = ({ children }) => {
       resetForm,
       clearError,
       getAdmissionStatusById,
-      // getAdmissionStatus,
       setFormData,
       setIsLoading,
     }}>
