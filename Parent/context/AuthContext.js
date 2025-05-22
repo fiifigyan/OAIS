@@ -7,6 +7,7 @@ import AuthService from '../services/AuthService';
  * @property {string} token - JWT token
  * @property {string} email - User email
  * @property {string} [StudentID] - Optional student ID
+ * @property {boolean} isTemporary - Flag for temporary token
  */
 
 /**
@@ -19,6 +20,7 @@ import AuthService from '../services/AuthService';
  * @property {(userData: {email: string, password: string}) => Promise<UserInfo>} register - Registration function
  * @property {() => Promise<void>} logout - Logout function
  * @property {() => Promise<void>} refreshToken - Token refresh function
+ * @property {boolean} isTemporaryToken - Flag indicating if current token is temporary
  */
 
 export const AuthContext = createContext(/** @type {AuthContextType} */ (null));
@@ -56,7 +58,8 @@ export const AuthProvider = ({ children }) => {
       const userInfoString = await SecureStore.getItemAsync('userInfo');
       const token = await SecureStore.getItemAsync('authToken');
       if (userInfoString && token) {
-        return JSON.parse(userInfoString);
+        const parsedData = JSON.parse(userInfoString);
+        return { ...parsedData, token };
       }
       return null;
     } catch (error) {
@@ -84,7 +87,7 @@ export const AuthProvider = ({ children }) => {
    */
   const refreshToken = useCallback(async () => {
     if (!userInfo?.token) return;
-    
+
     try {
       const newToken = await AuthService.refreshToken(userInfo.token);
       if (newToken) {
@@ -104,12 +107,17 @@ export const AuthProvider = ({ children }) => {
     try {
       const storedUser = await loadUserData();
       if (storedUser) {
-        const tokenStatus = await AuthService.verifyToken(storedUser.token);
-        if (tokenStatus?.valid) {
+        // Check token validity
+        const tokenResponse = await AuthService.verifyToken(storedUser.token);
+        if (tokenResponse?.valid) {
           setUserInfo(storedUser);
-          // Set up token refresh
-          const refreshInterval = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL);
-          return () => clearInterval(refreshInterval);
+          setIsNewUser(storedUser.isTemporary || false);
+          
+          // Only set up refresh interval for permanent tokens
+          if (!storedUser.isTemporary) {
+            const refreshInterval = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL);
+            return () => clearInterval(refreshInterval);
+          }
         } else {
           await clearAuthData();
         }
@@ -134,9 +142,10 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const userData = await AuthService.login(credentials);
-      await saveUserData(userData);
+      const permanentUserData = { ...userData, isTemporary: false };
+      await saveUserData(permanentUserData);
       setIsNewUser(false);
-      return userData;
+      return permanentUserData;
     } finally {
       setIsLoading(false);
     }
@@ -151,9 +160,10 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await AuthService.signup(userData);
-      await saveUserData(response);
+      const tempUserData = { ...response, isTemporary: true };
+      await saveUserData(tempUserData);
       setIsNewUser(true);
-      return response;
+      return tempUserData;
     } finally {
       setIsLoading(false);
     }
@@ -165,7 +175,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
-      await AuthService.logout();
+      if (userInfo && !userInfo.isTemporary) {
+        await AuthService.logout();
+      }
     } catch (error) {
       console.error('Logout API error:', error);
     } finally {
@@ -181,6 +193,7 @@ export const AuthProvider = ({ children }) => {
         initialLoading,
         isLoading,
         isNewUser,
+        isTemporaryToken: userInfo?.isTemporary || false,
         login,
         register,
         logout,

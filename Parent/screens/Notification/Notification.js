@@ -27,10 +27,10 @@ const NotificationScreen = () => {
             textTransform: 'none',
           },
           tabBarIndicatorStyle: { 
-            backgroundColor: '#03ac13',
+            backgroundColor: '#0B6623',
             height: 3,
           },
-          tabBarActiveTintColor: '#03ac13',
+          tabBarActiveTintColor: '#0B6623',
           tabBarInactiveTintColor: '#757575',
           tabBarStyle: {
             backgroundColor: '#ffffff',

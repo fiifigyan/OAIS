@@ -6,7 +6,7 @@ import Toast from 'react-native-toast-message';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
-import PaymentMethod from '../PaymentMethod';
+import PaymentMethod from '../Payment/PaymentMethod';
 
 const AdmissionPurchase = ({ route, navigation }) => {
   const { level, gender, amount, feeDetails } = route.params;
@@ -72,7 +72,7 @@ const AdmissionPurchase = ({ route, navigation }) => {
             <style>
               body { font-family: Arial; padding: 20px; }
               .header { text-align: center; margin-bottom: 20px; }
-              h1 { color: #03AC13; margin-bottom: 5px; }
+              h1 { color: #0B6623; margin-bottom: 5px; }
               h2 { color: #333; margin-top: 0; }
               .info { margin-bottom: 20px; }
               .info-item { margin-bottom: 5px; }
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#03AC13',
+    color: '#0B6623',
     textAlign: 'center'
   },
   section: {
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#03AC13',
+    color: '#0B6623',
     fontSize: 16
   },
   inputContainer: {
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   tableHeader: {
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
   },
   tableHeaderTitle: {
     fontWeight: 'bold',
@@ -345,11 +345,11 @@ const styles = StyleSheet.create({
   },
   totalText: {
     fontWeight: 'bold',
-    color: '#03AC13'
+    color: '#0B6623'
   },
   totalAmount: {
     fontWeight: 'bold',
-    color: '#03AC13'
+    color: '#0B6623'
   },
   termsContainer: {
     padding: 10,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     right: 0
   },
   payButton: {
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

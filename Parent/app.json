@@ -32,7 +32,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "monochromeImage": "./assets/icons/adaptive-icon.png",
-        "backgroundColor": "#03AC13"
+        "backgroundColor": "#0B6623"
       },
       "package": "com.altera.parent",
       "permissions": [
@@ -60,10 +60,11 @@
           "image": "./assets/icons/splash-icon-dark.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#03AC13",
+          
+          "backgroundColor": "#0B6623",
           "dark": {
             "image": "./assets/icons/splash-icon-dark.png",
-            "backgroundColor": "#03AC13"
+            "backgroundColor": "#0B6623"
           }
         }
       ],
@@ -79,6 +80,12 @@
       ],
       "expo-asset"
     ],
+    "experiments": {
+      "typedRoutes": true,
+      "remoteBuildCache": {
+        "provider": "eas"
+      }
+    },
     "extra": {
       "router": {},
       "eas": {

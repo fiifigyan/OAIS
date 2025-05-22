@@ -1,21 +1,47 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-export const CustomInput = ({ label, value, onChangeText, onBlur, error, placeholder, secureTextEntry = false, keyboardType = 'default', autoCapitalize = 'sentences', validate, leftIcon, rightIcon, onRightIconPress, containerStyle, inputStyle, multiline = false, numberOfLines = 1, }) => {
-  const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
+const CustomInput = React.memo(({ 
+  label, 
+  value, 
+  onChangeText, 
+  onBlur, 
+  error, 
+  placeholder, 
+  secureTextEntry = false, 
+  keyboardType = 'default', 
+  autoCapitalize = 'none',
+  leftIcon,
+  rightIcon,
+  onRightIconPress,
+  containerStyle,
+  inputStyle,
+  editable = true,
+  multiline = false,
+  numberOfLines = 1,
+  touched = false
+}) => {
+  const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
 
   const handleBlur = () => {
-    if (validate) {
-      validate(value);
-    }
+    setIsFocused(false);
     onBlur && onBlur();
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
   };
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={styles.inputWrapper}>
+      <View style={[
+        styles.inputWrapper,
+        isFocused ? styles.focused : null,
+        error && touched ? styles.error : null
+      ]}>
         {leftIcon && (
           <View style={styles.leftIcon}>
             {leftIcon}
@@ -24,7 +50,6 @@ export const CustomInput = ({ label, value, onChangeText, onBlur, error, placeho
         <TextInput
           style={[
             styles.input, 
-            error ? styles.inputError : null,
             leftIcon ? styles.inputWithLeftIcon : null,
             rightIcon ? styles.inputWithRightIcon : null,
             inputStyle,
@@ -33,66 +58,83 @@ export const CustomInput = ({ label, value, onChangeText, onBlur, error, placeho
           value={value}
           onChangeText={onChangeText}
           onBlur={handleBlur}
+          onFocus={handleFocus}
           placeholder={placeholder}
           placeholderTextColor="#999"
-          secureTextEntry={!isPasswordVisible && secureTextEntry}
+          secureTextEntry={secureTextEntry && !isPasswordVisible}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          editable={editable}
           multiline={multiline}
           numberOfLines={numberOfLines}
         />
-        {secureTextEntry && (
+        {secureTextEntry ? (
           <TouchableOpacity
-            style={styles.iconWrapper}
+            style={styles.rightIcon}
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
           >
-            <Icon name={isPasswordVisible ? 'eye' : 'eye-off'} size={20} color="#03AC13" />
+            <Icon 
+              name={isPasswordVisible ? 'eye-off' : 'eye'} 
+              size={20} 
+              color={error && touched ? '#d32f2f' : '#666'} 
+            />
           </TouchableOpacity>
-        )}
-        {rightIcon && !secureTextEntry && (
+        ) : rightIcon ? (
           <TouchableOpacity
-            style={[styles.rightIcon,{padding:8}]}
+            style={styles.rightIcon}
             onPress={onRightIconPress}
-            activeOpacity={0.8}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             {rightIcon}
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error && touched && (
+        <View style={styles.errorContainer}>
+          <Icon name="alert-circle" size={14} color="#d32f2f" />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     marginBottom: 16,
   },
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#03AC13',
+    color: '#0B6623',
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: 'aliceblue',
     borderRadius: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowRadius: 4,
+    elevation: 2,
   },
-
+  focused: {
+    borderColor: '#0B6623',
+  },
+  error: {
+    borderColor: '#d32f2f',
+  },
   input: {
     flex: 1,
     height: 45,
     color: '#333',
-    paddingHorizontal: 10,
     fontSize: 16,
   },
   inputWithLeftIcon: {
@@ -101,32 +143,31 @@ const styles = StyleSheet.create({
   inputWithRightIcon: {
     paddingRight: 40,
   },
-  inputError: {
-    borderColor: '#FF3B30',
-  },
   leftIcon: {
     position: 'absolute',
-    left: 10,
+    left: 12,
     zIndex: 1,
   },
   rightIcon: {
     position: 'absolute',
-    right: 10,
-    zIndex: 1,
-  },
-  iconWrapper: {
-    position: 'absolute',
-    right: 10,
+    right: 12,
     zIndex: 1,
     padding: 8,
   },
-  errorText: {
-    color: '#FF3B30',
-    fontSize: 14,
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
+    gap: 4,
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 12,
   },
   multilineInput: {
     minHeight: 100,
     textAlignVertical: 'top',
   },
 });
+
+export default CustomInput;

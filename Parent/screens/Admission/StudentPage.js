@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginTop: 12,
     marginBottom: 8,
   },
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   nextButton: {
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
     borderRadius: 4,
     padding: 12,
     width: 120,
@@ -44,45 +44,55 @@ const styles = StyleSheet.create({
 });
 
 const StudentFormPage = ({ navigation }) => {
-  const { formData, updateFormData, validationErrors } = useContext(AdmissionContext);
+  const { validateForm } = useContext(AdmissionContext);
+
+  const handleNext = async () => {
+    // Validate only student section before proceeding
+    const errors = await validateForm();
+    const studentErrors = errors?.student || {};
+    
+    if (Object.keys(studentErrors).length === 0) {
+      navigation.navigate('Parent');
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.sectionTitle}>Student Information</Text>
       
-      {renderInput('Surname *', 'student.surName', formData, updateFormData, validationErrors)}
-      {renderInput('First Name *', 'student.firstName', formData, updateFormData, validationErrors)}
-      {renderInput('Middle Name', 'student.middleName', formData, updateFormData, validationErrors)}
-      {renderInput('Gender *', 'student.gender', formData, updateFormData, validationErrors)}
-      {renderDateInput('Date of Birth *', 'student.dateOfBirth', formData, updateFormData, validationErrors)}
+      {renderInput('Surname *', 'student.surName')}
+      {renderInput('First Name *', 'student.firstName')}
+      {renderInput('Middle Name', 'student.middleName')}
+      {renderInput('Gender *', 'student.gender')}
+      {renderDateInput('Date of Birth *', 'student.dateOfBirth')}
       
       <Text style={styles.sectionSubtitle}>Address</Text>
-      {renderInput('Street', 'student.residentialAddress.street', formData, updateFormData, validationErrors)}
-      {renderInput('House Number', 'student.residentialAddress.houseNumber', formData, updateFormData, validationErrors)}
-      {renderInput('City *', 'student.residentialAddress.city', formData, updateFormData, validationErrors)}
-      {renderInput('Region/State *', 'student.residentialAddress.region', formData, updateFormData, validationErrors)}
-      {renderInput('Country *', 'student.residentialAddress.country', formData, updateFormData, validationErrors)}
-      {renderInput('Hometown', 'student.residentialAddress.homeTown', formData, updateFormData, validationErrors)}
+      {renderInput('Street', 'student.residentialAddress.street')}
+      {renderInput('House Number', 'student.residentialAddress.houseNumber')}
+      {renderInput('City *', 'student.residentialAddress.city')}
+      {renderInput('Region/State *', 'student.residentialAddress.region')}
+      {renderInput('Country *', 'student.residentialAddress.country')}
+      {renderInput('Hometown', 'student.residentialAddress.homeTown')}
       
       <Text style={styles.sectionSubtitle}>Family Information</Text>
-      {renderInput('Nationality *', 'student.nationality', formData, updateFormData, validationErrors)}
-      {renderInput('Lives With *', 'student.livesWith', formData, updateFormData, validationErrors)}
-      {renderInput('Number of Siblings', 'student.numberOfSiblings', formData, updateFormData, validationErrors, 'numeric')}
-      {renderInput('Older Siblings', 'student.olderSiblings', formData, updateFormData, validationErrors, 'numeric')}
-      {renderInput('Younger Siblings', 'student.youngerSiblings', formData, updateFormData, validationErrors, 'numeric')}
-      {renderInput('Other Children in House', 'student.otherChildrenInHouse', formData, updateFormData, validationErrors, 'numeric')}
+      {renderInput('Nationality *', 'student.nationality')}
+      {renderInput('Lives With *', 'student.livesWith')}
+      {renderInput('Number of Siblings', 'student.numberOfSiblings', 'numeric')}
+      {renderInput('Older Siblings', 'student.olderSiblings', 'numeric')}
+      {renderInput('Younger Siblings', 'student.youngerSiblings', 'numeric')}
+      {renderInput('Other Children in House', 'student.otherChildrenInHouse', 'numeric')}
       
       <Text style={styles.sectionSubtitle}>Medical Information</Text>
-      {renderInput('Blood Type *', 'student.medicalInformation.bloodType', formData, updateFormData, validationErrors)}
-      {renderInput('Allergies/Conditions *', 'student.medicalInformation.allergiesOrConditions', formData, updateFormData, validationErrors)}
-      {renderInput('Emergency Contact Name *', 'student.medicalInformation.emergencyContactsName', formData, updateFormData, validationErrors)}
-      {renderInput('Emergency Contact Number *', 'student.medicalInformation.emergencyContactsNumber', formData, updateFormData, validationErrors, 'phone-pad')}
-      {renderSwitch('Child Immunized', 'student.medicalInformation.isChildImmunized', formData, updateFormData)}
+      {renderInput('Blood Type *', 'student.medicalInformation.bloodType')}
+      {renderInput('Allergies/Conditions *', 'student.medicalInformation.allergiesOrConditions')}
+      {renderInput('Emergency Contact Name *', 'student.medicalInformation.emergencyContactsName')}
+      {renderInput('Emergency Contact Number *', 'student.medicalInformation.emergencyContactsNumber', 'phone-pad')}
+      {renderSwitch('Child Immunized', 'student.medicalInformation.isChildImmunized')}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
           style={styles.nextButton}
-          onPress={() => navigation.navigate('ParentPage')}
+          onPress={handleNext}
         >
           <Text style={styles.nextButtonText}>Next</Text>
         </TouchableOpacity>

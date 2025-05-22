@@ -14,6 +14,7 @@ import { HomeProvider } from './context/HomeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import NotificationService from './services/NotificationService';
 import { getAuthToken } from './utils/helpers';
+import AdmissionNavigator from './navigation/AdmissionNavigator';
 
 // Configure notification handler
 Notifications.setNotificationHandler({
@@ -29,28 +30,26 @@ Notifications.setNotificationHandler({
 LogBox.ignoreLogs([
   'AsyncStorage has been extracted',
   'Setting a timer',
-  '`shouldShowAlert` is deprecated', // Ignore the specific deprecation warning
+  '`shouldShowAlert` is deprecated',
 ]);
 
-/**
- * Main application content with navigation and notifications
- */
 function MainAppContent() {
   const navigationRef = useRef();
   const routeNameRef = useRef();
-  const { userInfo, isNewUser } = useAuth();
+  const { userInfo, isTemporaryToken } = useAuth();
 
-  // Initialize notifications
+  // Initialize notifications (only for permanent tokens)
   useEffect(() => {
+    if (isTemporaryToken) return;
+
     const setupNotifications = async () => {
       try {
-        // Configure Android channel
         if (Platform.OS === 'android') {
           await Notifications.setNotificationChannelAsync('default', {
             name: 'default',
             importance: Notifications.AndroidImportance.MAX,
             vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#03AC13',
+            lightColor: '#0B6623',
             sound: 'default',
           });
         }
@@ -64,7 +63,6 @@ function MainAppContent() {
           }
 
           const token = await Notifications.getExpoPushTokenAsync();
-          // log token for debugging
           console.log('Push token:', token.data);
           const authToken = await getAuthToken();
           if (token.data && authToken) {
@@ -72,7 +70,6 @@ function MainAppContent() {
           }
         }
 
-        // Setup notification received listener
         const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
           navigationRef.current?.navigate('NotificationDetails', {
             ...notification.request.content.data,
@@ -81,7 +78,6 @@ function MainAppContent() {
           });
         });
 
-        // Setup notification response listener
         const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
           navigationRef.current?.navigate('NotificationDetails', {
             ...response.notification.request.content.data,
@@ -100,7 +96,7 @@ function MainAppContent() {
     };
 
     setupNotifications();
-  }, [userInfo]);
+  }, [userInfo, isTemporaryToken]);
 
   return (
     <NavigationContainer 
@@ -114,15 +110,15 @@ function MainAppContent() {
         routeNameRef.current = currentRouteName;
       }}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#03ac13' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0B6623' }}>
         <StatusBar 
           barStyle="light-content" 
-          backgroundColor="#03ac13" 
+          backgroundColor="#0B6623" 
         />
         {!userInfo ? (
           <AuthStack />
-        ) : isNewUser ? (
-          <StackNavigator initialRouteName="Welcome" />
+        ) : isTemporaryToken ? (
+          <AdmissionNavigator initialRouteName="Welcome" />
         ) : (
           <StackNavigator initialRouteName="Drawer" />
         )}
@@ -131,9 +127,6 @@ function MainAppContent() {
   );
 }
 
-/**
- * Root application component
- */
 function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

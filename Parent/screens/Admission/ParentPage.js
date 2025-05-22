@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginTop: 12,
     marginBottom: 8,
   },
@@ -37,14 +37,14 @@ const styles = StyleSheet.create({
     width: 120,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#03AC13',
+    borderColor: '#0B6623',
   },
   backButtonText: {
-    color: '#03AC13',
+    color: '#0B6623',
     fontWeight: '500',
   },
   nextButton: {
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
     borderRadius: 4,
     padding: 12,
     width: 120,
@@ -57,56 +57,66 @@ const styles = StyleSheet.create({
 });
 
 const ParentFormPage = ({ navigation }) => {
-  const { formData, updateFormData, validationErrors } = useContext(AdmissionContext);
+  const { validateForm } = useContext(AdmissionContext);
+
+  const handleNext = async () => {
+    // Validate only parent section before proceeding
+    const errors = await validateForm();
+    const parentErrors = errors?.parentGuardian || {};
+    
+    if (Object.keys(parentErrors).length === 0) {
+      navigation.navigate('Academic');
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.sectionTitle}>Father's Information</Text>
-      {renderInput('Surname *', 'parentGuardian.fatherSurName', formData, updateFormData, validationErrors)}
-      {renderInput('First Name *', 'parentGuardian.fatherFirstName', formData, updateFormData, validationErrors)}
-      {renderInput('Middle Name', 'parentGuardian.fatherMiddleName', formData, updateFormData, validationErrors)}
+      {renderInput('Surname *', 'parentGuardian.fatherSurName')}
+      {renderInput('First Name *', 'parentGuardian.fatherFirstName')}
+      {renderInput('Middle Name', 'parentGuardian.fatherMiddleName')}
       
       <Text style={styles.sectionSubtitle}>Father's Address</Text>
-      {renderInput('Street', 'parentGuardian.fatherAddress.street', formData, updateFormData, validationErrors)}
-      {renderInput('House Number', 'parentGuardian.fatherAddress.houseNumber', formData, updateFormData, validationErrors)}
-      {renderInput('City *', 'parentGuardian.fatherAddress.city', formData, updateFormData, validationErrors)}
-      {renderInput('Region/State *', 'parentGuardian.fatherAddress.region', formData, updateFormData, validationErrors)}
-      {renderInput('Country *', 'parentGuardian.fatherAddress.country', formData, updateFormData, validationErrors)}
+      {renderInput('Street', 'parentGuardian.fatherAddress.street')}
+      {renderInput('House Number', 'parentGuardian.fatherAddress.houseNumber')}
+      {renderInput('City *', 'parentGuardian.fatherAddress.city')}
+      {renderInput('Region/State *', 'parentGuardian.fatherAddress.region')}
+      {renderInput('Country *', 'parentGuardian.fatherAddress.country')}
       
-      {renderInput('Religion', 'parentGuardian.fatherReligion', formData, updateFormData, validationErrors)}
-      {renderInput('Contact Number *', 'parentGuardian.fatherContactNumber', formData, updateFormData, validationErrors, 'phone-pad')}
-      {renderInput('Occupation *', 'parentGuardian.fatherOccupation', formData, updateFormData, validationErrors)}
-      {renderInput('Company Name', 'parentGuardian.fatherCompanyName', formData, updateFormData, validationErrors)}
-      {renderInput('Business Address', 'parentGuardian.fatherBusinessAddress', formData, updateFormData, validationErrors)}
-      {renderInput('Email Address *', 'parentGuardian.fatherEmailAddress', formData, updateFormData, validationErrors, 'email-address')}
+      {renderInput('Religion', 'parentGuardian.fatherReligion')}
+      {renderInput('Contact Number *', 'parentGuardian.fatherContactNumber', 'phone-pad')}
+      {renderInput('Occupation *', 'parentGuardian.fatherOccupation')}
+      {renderInput('Company Name', 'parentGuardian.fatherCompanyName')}
+      {renderInput('Business Address', 'parentGuardian.fatherBusinessAddress')}
+      {renderInput('Email Address *', 'parentGuardian.fatherEmailAddress', 'email-address')}
 
       <Text style={styles.sectionTitle}>Mother's Information</Text>
-      {renderInput('Surname *', 'parentGuardian.motherSurName', formData, updateFormData, validationErrors)}
-      {renderInput('First Name *', 'parentGuardian.motherFirstName', formData, updateFormData, validationErrors)}
-      {renderInput('Middle Name', 'parentGuardian.motherMiddleName', formData, updateFormData, validationErrors)}
+      {renderInput('Surname *', 'parentGuardian.motherSurName')}
+      {renderInput('First Name *', 'parentGuardian.motherFirstName')}
+      {renderInput('Middle Name', 'parentGuardian.motherMiddleName')}
       
       <Text style={styles.sectionSubtitle}>Mother's Address</Text>
-      {renderInput('Street', 'parentGuardian.motherAddress.street', formData, updateFormData, validationErrors)}
-      {renderInput('House Number', 'parentGuardian.motherAddress.houseNumber', formData, updateFormData, validationErrors)}
-      {renderInput('City *', 'parentGuardian.motherAddress.city', formData, updateFormData, validationErrors)}
-      {renderInput('Region/State *', 'parentGuardian.motherAddress.region', formData, updateFormData, validationErrors)}
-      {renderInput('Country *', 'parentGuardian.motherAddress.country', formData, updateFormData, validationErrors)}
+      {renderInput('Street', 'parentGuardian.motherAddress.street')}
+      {renderInput('House Number', 'parentGuardian.motherAddress.houseNumber')}
+      {renderInput('City *', 'parentGuardian.motherAddress.city')}
+      {renderInput('Region/State *', 'parentGuardian.motherAddress.region')}
+      {renderInput('Country *', 'parentGuardian.motherAddress.country')}
       
-      {renderInput('Religion', 'parentGuardian.motherReligion', formData, updateFormData, validationErrors)}
-      {renderInput('Contact Number *', 'parentGuardian.motherContactNumber', formData, updateFormData, validationErrors, 'phone-pad')}
-      {renderInput('Occupation *', 'parentGuardian.motherOccupation', formData, updateFormData, validationErrors)}
-      {renderInput('Company Name', 'parentGuardian.motherCompanyName', formData, updateFormData, validationErrors)}
-      {renderInput('Business Address', 'parentGuardian.motherBusinessAddress', formData, updateFormData, validationErrors)}
-      {renderInput('Email Address *', 'parentGuardian.motherEmailAddress', formData, updateFormData, validationErrors, 'email-address')}
+      {renderInput('Religion', 'parentGuardian.motherReligion')}
+      {renderInput('Contact Number *', 'parentGuardian.motherContactNumber', 'phone-pad')}
+      {renderInput('Occupation *', 'parentGuardian.motherOccupation')}
+      {renderInput('Company Name', 'parentGuardian.motherCompanyName')}
+      {renderInput('Business Address', 'parentGuardian.motherBusinessAddress')}
+      {renderInput('Email Address *', 'parentGuardian.motherEmailAddress', 'email-address')}
 
       <Text style={styles.sectionTitle}>Additional Contacts</Text>
-      {renderInput('Additional Contact Name', 'additionalContact.fullName', formData, updateFormData, validationErrors)}
-      {renderInput('Contact Number', 'additionalContact.contactNumber', formData, updateFormData, validationErrors, 'phone-pad')}
-      {renderInput('Relationship', 'additionalContact.relationshipToPupil', formData, updateFormData, validationErrors)}
+      {renderInput('Additional Contact Name', 'additionalContact.fullName')}
+      {renderInput('Contact Number', 'additionalContact.contactNumber', 'phone-pad')}
+      {renderInput('Relationship', 'additionalContact.relationshipToPupil')}
       
-      {renderInput('Authorized Pickup Name', 'authorizedPickup.fullName', formData, updateFormData, validationErrors)}
-      {renderInput('Contact Number', 'authorizedPickup.contactNumber', formData, updateFormData, validationErrors, 'phone-pad')}
-      {renderInput('Relationship', 'authorizedPickup.relationshipToPupil', formData, updateFormData, validationErrors)}
+      {renderInput('Authorized Pickup Name', 'authorizedPickup.fullName')}
+      {renderInput('Contact Number', 'authorizedPickup.contactNumber', 'phone-pad')}
+      {renderInput('Relationship', 'authorizedPickup.relationshipToPupil')}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
@@ -117,7 +127,7 @@ const ParentFormPage = ({ navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.nextButton}
-          onPress={() => navigation.navigate('AcademicPage')}
+          onPress={handleNext}
         >
           <Text style={styles.nextButtonText}>Next</Text>
         </TouchableOpacity>

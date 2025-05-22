@@ -1,12 +1,12 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from '../screens/Login';
-import SignupScreen from '../screens/Signup';
-import ForgotPasswordScreen from '../screens/ForgotPassword';
-import ResetPasswordScreen from '../screens/ResetPassword';
-import OnboardingScreen from '../screens/Onboarding';
-import VerifyEmailScreen from '../screens/VerifyEmail';
-import BiometricScreen from '../screens/Biometric';
+import LoginScreen from '../screens/Auth/Login';
+import SignupScreen from '../screens/Auth/Signup';
+import ForgotPasswordScreen from '../screens/Auth/ForgotPassword';
+import ResetPasswordScreen from '../screens/Auth/ResetPassword';
+import OnboardingScreen from '../screens/Auth/Onboarding';
+import VerifyEmailScreen from '../screens/Auth/VerifyEmail';
+import BiometricScreen from '../screens/Auth/Biometric';
 
 const Stack = createNativeStackNavigator();
 

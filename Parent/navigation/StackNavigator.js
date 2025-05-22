@@ -2,30 +2,32 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DrawerNavigator from './DrawerNavigator';
 import AdmissionForm from '../screens/Admission/AdmissionForm';
-import AddAccountScreen from '../screens/AddAccount';
-import SwitchAccountScreen from '../screens/SwitchAccount';
-import HistoryScreen from '../screens/History';
-import ProfileScreen from '../screens/ProfileScreen';
+import AddAccountScreen from '../screens/Auth/AddAccount';
+import SwitchAccountScreen from '../screens/Auth/SwitchAccount';
+import HistoryScreen from '../screens/Payment/PaymentHistory';
+import ProfileScreen from '../screens/Main/ProfileScreen';
 import NotificationScreen from '../screens/Notification/Notification';
-import SettingScreen from '../screens/AppSetting';
-import EventScreen from '../screens/Events';
-import EditProfile from '../screens/EditProfile';
-import WelcomeScreen from '../screens/WelcomeScreen';
-import HelpCenterScreen from '../screens/HelpCenter';
-import TourScreen from '../screens/TourScreen';
+import SettingScreen from '../screens/Main/AppSetting';
+import EventScreen from '../screens/Main/Events';
+import EditProfile from '../screens/Auth/EditProfile';
+import WelcomeScreen from '../screens/Admission/WelcomeScreen';
+import HelpCenterScreen from '../screens/Main/HelpCenter';
+import TourScreen from '../screens/Admission/TourScreen';
 import NotificationSettings from '../screens/Notification/NotificationSettings';
 import AdmissionStatus from '../screens/Admission/AdmissionStatus';
-import FeeDetailScreen from '../screens/FeeDetail';
-import GradesScreen from '../screens/Grades';
-import OTPVerificationScreen from '../screens/OTPVerification';
-import PaymentProcessing from '../screens/PaymentProcessing';
+import FeeDetailScreen from '../screens/Payment/FeeDetail';
+import OTPVerificationScreen from '../screens/Auth/OTPVerification';
+import PaymentProcessing from '../screens/Payment/PaymentProcessing';
 import PaymentSuccess from '../components/PaymentSuccess';
 import FeeBreakdown from '../screens/Admission/AdmissionBreakdown';
 import AdmissionPurchase from '../screens/Admission/AdmissionPurchase';
-import PaymentMethod from '../screens/PaymentMethod';
-import AttendanceDetails from '../screens/AttendanceDetails';
-import Gradebook from '../screens/Gradebook';
-import ReportScreen from '../screens/Report';
+import PaymentMethod from '../screens/Payment/PaymentMethod';
+import AttendanceDetails from '../screens/Main/AttendanceDetails';
+import Gradebook from '../screens/Main/Gradebook';
+import ReportScreen from '../screens/Main/Report';
+import SuccessModal from '../components/SuccessModal';
+import CommunicationScreen from '../screens/Main/Communication';
+import UploadProgress from '../components/UploadProgress';
 
 const Stack = createNativeStackNavigator();
 
@@ -55,7 +57,6 @@ const StackNavigator = ({ initialRouteName = 'Home' }) => {
       <Stack.Screen name="Tour" component={TourScreen} />
       <Stack.Screen name="Attendance" component={AttendanceDetails} />
       <Stack.Screen name="Setting" component={SettingScreen} />
-      {/* <Stack.Screen name="Grades" component={GradesScreen} /> */}
       <Stack.Screen name="Grades" component={Gradebook} />
       <Stack.Screen name="Reports" component={ReportScreen} />
       <Stack.Screen name="OTP" component={OTPVerificationScreen} />
@@ -63,6 +64,9 @@ const StackNavigator = ({ initialRouteName = 'Home' }) => {
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
       <Stack.Screen name="FeeBreakdown" component={FeeBreakdown} />
       <Stack.Screen name="AdmissionPurchase" component={AdmissionPurchase} />
+      <Stack.Screen name="Communication" component={CommunicationScreen} />
+      <Stack.Screen name="Modal" component={SuccessModal} />
+      <Stack.Screen name="UploadProgress" component={UploadProgress} />
     </Stack.Navigator>
   );
 };

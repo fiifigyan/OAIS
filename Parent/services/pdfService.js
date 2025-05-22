@@ -4,7 +4,6 @@ import * as Sharing from 'expo-sharing';
 
 export const generatePDF = async (html, filename) => {
   try {
-    // Generate PDF file
     const { uri } = await Print.printToFileAsync({
       html,
       width: 612,
@@ -12,7 +11,6 @@ export const generatePDF = async (html, filename) => {
       base64: false
     });
 
-    // Create a permanent copy in Documents directory
     const newPath = `${FileSystem.documentDirectory}${filename}.pdf`;
     await FileSystem.copyAsync({ from: uri, to: newPath });
 
@@ -42,11 +40,4 @@ export const sharePDF = async (filePath) => {
 
 export const printPDF = async (filePath) => {
   await Print.printAsync({ uri: filePath });
-};
-
-export const generateBase64FromURI = async (uri) => {
-  const fileContent = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64
-  });
-  return `data:image/png;base64,${fileContent}`;
 };

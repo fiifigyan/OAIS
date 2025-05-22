@@ -3,54 +3,11 @@ import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import axios from 'axios';
 import { APIConfig } from '../config';
+import { sanitizeError } from '../utils/helpers';
 
 const logger = {
   error: (message, error) => console.error(`[AdmissionService] ${message}`, error),
   info: (message) => console.log(`[AdmissionService] ${message}`),
-};
-
-const REQUIRED_FIELDS = {
-  student: [
-    'surName',
-    'firstName',
-    'gender',
-    'dateOfBirth',
-    'residentialAddress.city',
-    'residentialAddress.region',
-    'residentialAddress.country',
-    'nationality',
-    'livesWith',
-    'medicalInformation.bloodType',
-    'medicalInformation.allergiesOrConditions',
-    'medicalInformation.emergencyContactsName',
-    'medicalInformation.emergencyContactsNumber'
-  ],
-  parentGuardian: [
-    'fatherSurName',
-    'fatherFirstName',
-    'fatherContactNumber',
-    'fatherOccupation',
-    'fatherEmailAddress',
-    'motherSurName',
-    'motherFirstName',
-    'motherContactNumber',
-    'motherOccupation',
-    'motherEmailAddress'
-  ],
-  previousAcademicDetail: [
-    'lastSchoolAttended',
-    'lastClassCompleted'
-  ],
-  admissionDetail: [
-    'classForAdmission',
-    'academicYear',
-    'preferredSecondLanguage'
-  ],
-  documents: [
-    'file1',
-    'file2',
-    'file3'
-  ],
 };
 
 const MAX_FILE_SIZE_MB = 10;
@@ -91,14 +48,6 @@ const getMimeType = (fileName) => {
   }
 };
 
-const inspectFormData = async (formData) => {
-  const parts = [];
-  for (const [key, value] of formData._parts) {
-    parts.push(`${key}: ${value instanceof Object ? `FILE (${value.name})` : value}`);
-  }
-  logger.info('User form:\n' + parts.join('\n'));
-};
-
 const getAuthHeaders = async () => {
   try {
     const token = await SecureStorage.getItemAsync('authToken');
@@ -117,33 +66,46 @@ const getAuthHeaders = async () => {
 };
 
 const admissionService = {
+  /**
+   * Submits the complete admission form with documents
+   * @param {Object} formData - The complete form data
+   * @returns {Promise<Object>} - The server response
+   */
   async submitAdmissionForm(formData) {
     try {
-      const validation = await this.validateForm(formData);
-      if (!validation.isValid) {
-        throw new Error('Form validation failed: ' + Object.values(validation.errors).join(', '));
-      }
+      logger.info('Starting form submission');
       
       const formSubmissionData = new FormData();
-      formSubmissionData.append('data', JSON.stringify({ 
-        ...formData, 
-        documents: undefined 
-      }));
+      
+      // Add all non-document fields as JSON
+      const { documents, ...formFields } = formData;
+      formSubmissionData.append('data', JSON.stringify(formFields));
 
-      await inspectFormData(formSubmissionData);
+      // Process and append documents
+      for (const [key, fileInfo] of Object.entries(documents)) {
+        if (!fileInfo) {
+          throw new Error(`Missing required document: ${key}`);
+        }
 
-      for (const [key, fileInfo] of Object.entries(formData.documents || {})) {
-        if (!fileInfo) continue;
-        
         const resolvedUri = resolveFileUri(fileInfo);
-        if (!resolvedUri) throw new Error(`Invalid file information for ${key}`);
+        if (!resolvedUri) {
+          throw new Error(`Invalid file information for ${key}`);
+        }
 
         const mimeType = getMimeType(fileInfo.name);
         if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-          throw new Error(`Invalid file type for ${key}`);
+          throw new Error(`Invalid file type for ${key}. Only PDF, JPEG, and PNG are allowed.`);
         }
 
-        logger.info(`Appending file: ${fileInfo.name}, MIME type: ${mimeType}, URI: ${resolvedUri}`);
+        const fileStats = await FileSystem.getInfoAsync(resolvedUri);
+        if (!fileStats.exists || !fileStats.size) {
+          throw new Error(`File for ${key} does not exist or is empty`);
+        }
+
+        const fileSizeMB = fileStats.size / (1024 * 1024);
+        if (fileSizeMB > MAX_FILE_SIZE_MB) {
+          throw new Error(`File for ${key} exceeds ${MAX_FILE_SIZE_MB}MB size limit`);
+        }
 
         formSubmissionData.append(key, {
           uri: resolvedUri,
@@ -153,26 +115,85 @@ const admissionService = {
       }
 
       const headers = await getAuthHeaders();
+      headers['Content-Type'] = 'multipart/form-data';
 
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
         formSubmissionData,
-        {
-          headers: {
-            ...headers,
-            'Content-Type': 'multipart/form-data'
-          },
-          transformRequest: (data) => data,
-        }
+        { headers }
       );
-      
-      await this.clearFormDraft();
+
+      logger.info('Form submitted successfully');
       return response.data;
     } catch (error) {
+      logger.error('Form submission failed:', error);
       throw new Error(sanitizeError(error));
     }
   },
 
+  /**
+   * Saves the current form data as a draft
+   * @param {Object} formData - The form data to save
+   * @returns {Promise<boolean>} - True if successful
+   */
+  async saveFormDraft(formData) {
+    try {
+      await SecureStorage.setItemAsync(
+        'admission_draft', 
+        JSON.stringify({ 
+          formData, 
+          timestamp: new Date().toISOString() 
+        })
+      );
+      logger.info('Draft saved successfully');
+      return true;
+    } catch (error) {
+      logger.error('Failed to save draft:', error);
+      throw new Error('Failed to save draft');
+    }
+  },
+
+  /**
+   * Loads the saved draft form data
+   * @returns {Promise<Object|null>} - The saved form data or null if none exists
+   */
+  async loadFormDraft() {
+    try {
+      const draftString = await SecureStorage.getItemAsync('admission_draft');
+      if (!draftString) {
+        logger.info('No draft found');
+        return null;
+      }
+
+      const draft = JSON.parse(draftString);
+      logger.info('Loaded draft from storage');
+      return draft.formData;
+    } catch (error) {
+      logger.error('Failed to load draft:', error);
+      throw new Error('Failed to load saved information');
+    }
+  },
+
+  /**
+   * Clears the saved draft form data
+   * @returns {Promise<boolean>} - True if successful
+   */
+  async clearFormDraft() {
+    try {
+      await SecureStorage.deleteItemAsync('admission_draft');
+      logger.info('Draft cleared successfully');
+      return true;
+    } catch (error) {
+      logger.error('Failed to clear draft:', error);
+      throw new Error('Failed to clear saved information');
+    }
+  },
+
+  /**
+   * Validates a document file
+   * @param {Object} fileInfo - The file information
+   * @returns {Promise<boolean>} - True if valid
+   */
   async validateDocument(fileInfo) {
     try {
       if (!fileInfo) throw new Error('Invalid file information');
@@ -203,73 +224,7 @@ const admissionService = {
       logger.error('Document validation failed', error);
       throw new Error(sanitizeError(error));
     }
-  },
-
-  async validateForm(formData) {
-    const errors = {};
-    const checkField = (obj, path) => {
-      return path.split('.').reduce((current, part) => (current ? current[part] : null), obj);
-    };
-
-    Object.entries(REQUIRED_FIELDS).forEach(([section, fields]) => {
-      fields.forEach((field) => {
-        const fullPath = `${section}.${field}`;
-        const value = checkField(formData, fullPath);
-        if (isEmptyValue(value)) {
-          const fieldName = field.split('.').pop();
-          const readableName = fieldName
-            .replace(/([A-Z])/g, ' $1')
-            .replace(/_/g, ' ')
-            .toLowerCase();
-          errors[fullPath] = `${readableName} is required`;
-        }
-      });
-    });
-
-    if (formData.admissionDetail?.hasSiblingsInSchool) {
-      if (isEmptyValue(formData.admissionDetail.siblingName)) {
-        errors['admissionDetail.siblingName'] = 'sibling name is required';
-      }
-      if (isEmptyValue(formData.admissionDetail.siblingClass)) {
-        errors['admissionDetail.siblingClass'] = 'sibling class is required';
-      }
-    }
-
-    return { isValid: Object.keys(errors).length === 0, errors };
-  },
-
-  async saveFormDraft(formData) {
-    try {
-      await SecureStorage.setItemAsync(
-        'admission_draft', 
-        JSON.stringify({ formData, timestamp: new Date().toISOString() })
-      );
-      return true;
-    } catch (error) {
-      logger.error('Failed to save draft', error);
-      throw new Error('Failed to save draft');
-    }
-  },
-
-  async loadFormDraft() {
-    try {
-      const draft = await SecureStorage.getItemAsync('admission_draft');
-      return draft ? JSON.parse(draft).formData : null;
-    } catch (error) {
-      logger.error('Failed to load draft', error);
-      return null;
-    }
-  },
-
-  async clearFormDraft() {
-    try {
-      await SecureStorage.deleteItemAsync('admission_draft');
-      return true;
-    } catch (error) {
-      logger.error('Failed to clear draft', error);
-      return false;
-    }
-  },
+  }
 };
 
 export default admissionService;

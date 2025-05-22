@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginTop: 12,
     marginBottom: 8,
   },
@@ -34,6 +34,15 @@ const styles = StyleSheet.create({
   reviewValue: {
     color: '#333',
   },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 10,
+  },
+  errorText: {
+    color: '#d32f2f',
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -46,14 +55,14 @@ const styles = StyleSheet.create({
     width: 120,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#03AC13',
+    borderColor: '#0B6623',
   },
   backButtonText: {
-    color: '#03AC13',
+    color: '#0B6623',
     fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
     borderRadius: 4,
     padding: 12,
     width: 120,
@@ -66,7 +75,12 @@ const styles = StyleSheet.create({
 });
 
 const ReviewFormPage = ({ navigation }) => {
-  const { formData, submitForm, isLoading } = useContext(AdmissionContext);
+  const { 
+    formData, 
+    formErrors,
+    submitForm, 
+    isSubmitting 
+  } = useContext(AdmissionContext);
 
   const handleSubmit = async () => {
     try {
@@ -95,6 +109,14 @@ const ReviewFormPage = ({ navigation }) => {
       <Text style={styles.sectionTitle}>Review Your Application</Text>
       <Text>Please review all information before submitting.</Text>
 
+      {Object.keys(formErrors).length > 0 && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            There are validation errors. Please go back and fix them before submitting.
+          </Text>
+        </View>
+      )}
+
       <Text style={styles.sectionSubtitle}>Student Information</Text>
       {renderReviewItem('Full Name', `${formData.student.surName} ${formData.student.firstName} ${formData.student.middleName}`)}
       {renderReviewItem('Date of Birth', formData.student.dateOfBirth)}
@@ -122,17 +144,17 @@ const ReviewFormPage = ({ navigation }) => {
         <TouchableOpacity 
           style={styles.backButton}
           onPress={() => navigation.goBack()}
-          disabled={isLoading}
+          disabled={isSubmitting}
         >
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.submitButton}
           onPress={handleSubmit}
-          disabled={isLoading}
+          disabled={isSubmitting || Object.keys(formErrors).length > 0}
         >
           <Text style={styles.submitButtonText}>
-            {isLoading ? 'Submitting...' : 'Submit'}
+            {isSubmitting ? 'Submitting...' : 'Submit'}
           </Text>
         </TouchableOpacity>
       </View>

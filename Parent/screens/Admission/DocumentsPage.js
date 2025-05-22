@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
@@ -37,14 +37,14 @@ const styles = StyleSheet.create({
     width: 120,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#03AC13',
+    borderColor: '#0B6623',
   },
   backButtonText: {
-    color: '#03AC13',
+    color: '#0B6623',
     fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
     borderRadius: 4,
     padding: 12,
     width: 120,
@@ -57,33 +57,15 @@ const styles = StyleSheet.create({
 });
 
 const DocumentsFormPage = ({ navigation }) => {
-  const { formData, updateFormData, validationErrors } = useContext(AdmissionContext);
+  const { validateForm } = useContext(AdmissionContext);
 
-  const handleDocumentPick = async (field) => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'],
-        copyToCacheDirectory: true,
-      });
-
-      if (result.canceled) return;
-
-      if (result.assets && result.assets.length > 0) {
-        const file = result.assets[0];
-        updateFormData({
-          documents: {
-            ...formData.documents,
-            [field]: {
-              name: file.name,
-              uri: file.uri,
-              size: file.size,
-              type: file.mimeType
-            }
-          }
-        });
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to select document. Please try again.');
+  const handleReview = async () => {
+    // Validate only documents before proceeding
+    const errors = await validateForm();
+    const documentErrors = errors?.documents || {};
+    
+    if (Object.keys(documentErrors).length === 0) {
+      navigation.navigate('ReviewPage');
     }
   };
 
@@ -92,11 +74,9 @@ const DocumentsFormPage = ({ navigation }) => {
       <Text style={styles.sectionTitle}>Required Documents</Text>
       <Text style={styles.documentNote}>Please upload PDF, JPEG or PNG files (max 10MB each)</Text>
 
-      {renderDocumentUpload('Passport Photo *', 'file1', formData, updateFormData, validationErrors, handleDocumentPick)}
-      {renderDocumentUpload('Birth Certificate *', 'file2', formData, updateFormData, validationErrors, handleDocumentPick)}
-      {renderDocumentUpload('Previous Results *', 'file3', formData, updateFormData, validationErrors, handleDocumentPick)}
-      {/* {renderDocumentUpload('Father\'s ID (Optional)', 'file4', formData, updateFormData, validationErrors, handleDocumentPick)}
-      {renderDocumentUpload('Mother\'s ID (Optional)', 'file5', formData, updateFormData, validationErrors, handleDocumentPick)} */}
+      {renderDocumentUpload('Passport Photo *', 'documents.file1')}
+      {renderDocumentUpload('Birth Certificate *', 'documents.file2')}
+      {renderDocumentUpload('Previous Results *', 'documents.file3')}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
@@ -107,7 +87,7 @@ const DocumentsFormPage = ({ navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.submitButton}
-          onPress={() => navigation.navigate('ReviewPage')}
+          onPress={handleReview}
         >
           <Text style={styles.submitButtonText}>Review</Text>
         </TouchableOpacity>

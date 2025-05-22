@@ -1,123 +1,88 @@
 import axios from 'axios';
-import { 
-  manageAuthToken, 
-  processAuthResponse, 
-  getAuthToken,
-  verifyToken
-} from '../utils/helpers';
+import { manageAuthToken, getAuthToken, sanitizeError } from '../utils/helpers';
 import { APIConfig } from '../config';
 
 const AuthService = {
   /**
-   * Handles user registration
+   * Handles user registration (returns temporary token)
    * @param {Object} userData - User registration data
-   * @returns {Promise<{token: string, email: string}>} Registration result
+   * @returns {Promise<{token: string, email: string, isTemporary: boolean, message?: string}>} Registration result
    */
   async signup(userData) {
-    console.group('[Auth] Signup Process');
     try {
-      console.debug('Submitting registration for:', userData.email);
+    console.log('Full API URL:', `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`);
+    console.log('Request payload:', userData);
       const response = await axios.post(
-        `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`, 
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`,
         userData,
         { timeout: 10000 }
       );
+      console.log('Response:', response.data);
 
-      const result = processAuthResponse(response);
-      await manageAuthToken(result.token);
-      
-      console.debug('Signup successful:', result.email);
+      if (!response.data?.token) {
+        throw new Error('Registration failed: No token received');
+      }
+
+      await manageAuthToken(response.data.token);
       return {
-        token: result.token,
-        email: userData.email,
-        ...(result.StudentID && { StudentID: result.StudentID })
+        message: response.data.message,
+        token: response.data.token,
       };
     } catch (error) {
-      let errorMessage = 'Registration failed. Please try again.';
-      
-      if (error.response) {
-        if (error.response.status === 409) {
-          errorMessage = 'Email already registered';
-        } else if (error.response.data?.errors) {
-          errorMessage = Object.values(error.response.data.errors).join('\n');
-        } else {
-          errorMessage = error.response.data?.message || errorMessage;
-        }
-        console.error('Server responded with:', error.response.data);
-      } else if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Request timed out. Please check your connection.';
-      } else {
-        console.error('Network/request error:', error.message);
-      }
-      
-      throw new Error(errorMessage);
-    } finally {
-      console.groupEnd();
+    console.error('Detailed registration error:', {
+      message: error.message,
+      response: error.response?.data,
+      config: error.config
+    });
+      throw new Error(sanitizeError(error));
     }
   },
 
   /**
-   * Handles user login
+   * Handles user login (returns permanent token)
    * @param {Object} credentials - Login credentials
-   * @returns {Promise<{token: string, email: string, StudentID?: string}>} Login result
+   * @returns {Promise<{token: string, email: string, StudentID: string, isTemporary: boolean, message?: string}>} Login result
    */
   async login(credentials) {
-    console.group('[Auth] Login Process');
     try {
+      console.log('API Endpoint:', `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`);
+      console.log('Credentials:', credentials);
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`,
         credentials,
         { timeout: 10000 }
       );
 
-      const result = processAuthResponse(response);
-      await manageAuthToken(result.token);
-      
-      console.debug('Login successful for:', result.email);
+      if (!response.data?.token) {
+        throw new Error('Login failed: No token received');
+      }
+
+      await manageAuthToken(response.data.token);
       return {
-        token: result.token,
+        token: response.data.token,
         email: credentials.email,
-        ...(credentials.StudentID && { StudentID: credentials.StudentID })
+        StudentID: response.data.StudentID,
+        isTemporary: false,
+        ...(response.data.message && { message: response.data.message })
       };
     } catch (error) {
-      let errorMessage = 'Login failed. Please check your credentials.';
-      
-      if (error.response) {
-        if (error.response.status === 401) {
-          errorMessage = 'Invalid email or password';
-        } else if (error.response.status === 403) {
-          errorMessage = 'Account not verified';
-        } else if (error.response.data?.errors) {
-          errorMessage = Object.values(error.response.data.errors).join('\n');
-        } else {
-          errorMessage = error.response.data?.message || errorMessage;
-        }
-        console.error('Login error:', error.response.data);
-      } else if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Request timed out. Please check your connection.';
-      } else {
-        console.error('Login failed:', error.message);
-      }
-      
-      throw new Error(errorMessage);
-    } finally {
-      console.groupEnd();
+      console.error('Login error:', error);
+      throw new Error(sanitizeError(error));
     }
   },
 
   /**
-   * Handles user logout
+   * Handles user logout (only for permanent tokens)
    * @returns {Promise<{success: boolean}>} Logout result
    */
   async logout() {
-    console.group('[Auth] Logout Process');
     try {
       const token = await getAuthToken();
       if (token) {
         await axios.post(
           `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGOUT}`,
           null,
-          { 
+          {
             headers: { 'Authorization': `Bearer ${token}` },
             timeout: 5000
           }
@@ -126,16 +91,14 @@ const AuthService = {
       await manageAuthToken(null);
       return { success: true };
     } catch (error) {
-      console.error('Logout API failed, clearing token anyway:', error.message);
+      // Consider logout successful even if API fails
       await manageAuthToken(null);
-      return { success: true }; // Consider logout successful even if API fails
-    } finally {
-      console.groupEnd();
+      return { success: true };
     }
   },
 
   /**
-   * Refresh authentication token
+   * Refresh authentication token (only for permanent tokens)
    * @param {string} currentToken - Current JWT token
    * @returns {Promise<string>} New token
    */
@@ -146,15 +109,16 @@ const AuthService = {
         { token: currentToken },
         { timeout: 10000 }
       );
-      
+
       const newToken = response.data?.token;
-      if (newToken) {
-        await manageAuthToken(newToken);
-        return newToken;
+      if (!newToken) {
+        throw new Error('No token in refresh response');
       }
-      throw new Error('No token in refresh response');
+
+      await manageAuthToken(newToken);
+      return newToken;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error('Token refresh error:', error);
       throw new Error('Session refresh failed');
     }
   },
@@ -188,14 +152,10 @@ const AuthService = {
       );
       return response.data;
     } catch (error) {
-      let errorMessage = 'Password reset request failed';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      throw new Error(errorMessage);
+      throw new Error(sanitizeError(error));
     }
   },
-  
+
   /**
    * Completes password reset process
    * @param {string} token - Reset token
@@ -211,13 +171,9 @@ const AuthService = {
       );
       return response.data;
     } catch (error) {
-      let errorMessage = 'Password reset failed';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      throw new Error(errorMessage);
+      throw new Error(sanitizeError(error));
     }
-  },
+  }
 };
 
 export default AuthService;

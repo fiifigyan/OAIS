@@ -6,9 +6,9 @@ import TabNavigator from './TabNavigator';
 import { Easing } from 'react-native-reanimated';
 
 import AdmissionForm from '../screens/Admission/AdmissionForm';
-import PaymentHistoryScreen from '../screens/History';
-import AddAccountScreen from '../screens/AddAccount';
-import SwitchAccountScreen from '../screens/SwitchAccount';
+import PaymentHistoryScreen from '../screens/Payment/PaymentHistory';
+import AddAccountScreen from '../screens/Auth/AddAccount';
+import SwitchAccountScreen from '../screens/Auth/SwitchAccount';
 
 const Drawer = createDrawerNavigator();
 
@@ -24,9 +24,9 @@ const DrawerNavigator = () => {
           width: '80%',
         },
         sceneContainerStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: 'aliceblue',
         },
-        drawerActiveTintColor: '#03AC13',
+        drawerActiveTintColor: '#0B6623',
         drawerInactiveTintColor: 'aliceblue',
         drawerLabelStyle: {
           fontSize: 15,

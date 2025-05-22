@@ -1,5 +1,245 @@
 import { schoolInfo } from '../config';
 
+const commonHeader = (schoolInfo, title, studentData) => {
+  const { SCHOOL_NAME, SCHOOL_LOGO, SCHOOL_PHONE, WATERMARK } = schoolInfo;
+  const watermarkHTML = WATERMARK ? 
+    `<div style="position: fixed; opacity: 0.1; font-size: 80px; color: #cccccc; 
+      transform: rotate(-45deg); top: 40%; left: 10%; z-index: -1;">
+      ${WATERMARK}
+    </div>` : '';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        @page { margin: 1cm; size: letter; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .school-name { font-size: 20px; font-weight: bold; }
+        .contact { margin-bottom: 15px; }
+        .student-info { margin-bottom: 20px; }
+        .student-name { font-size: 18px; font-weight: bold; }
+        .subject-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .subject-table th { background-color: #0B6623; color: white; padding: 8px; text-align: center; }
+        .subject-table td { border: 1px solid #ddd; padding: 8px; }
+        .subject-name { text-align: left; }
+        .score { text-align: center; }
+        .grade { text-align: center; font-weight: bold; }
+        .remarks { margin-top: 20px; }
+        .signatures { margin-top: 40px; }
+        .core-header { font-weight: bold; background-color: #e0e0e0; }
+        ${watermarkHTML}
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        ${SCHOOL_LOGO ? `<img src="${SCHOOL_LOGO}" style="height: 70px; margin-bottom: 10px;">` : ''}
+        <div class="school-name">${SCHOOL_NAME}</div>
+        <div class="contact">CONTACT: ${SCHOOL_PHONE}</div>
+      </div>
+  `;
+};
+
+const commonFooter = (schoolInfo) => {
+  return `
+      <div class="footer" style="margin-top: 30px; font-size: 10px; text-align: center;">
+        <div>${schoolInfo.SCHOOL_NAME} - ${schoolInfo.SCHOOL_ADDRESS}</div>
+        <div>Generated on ${new Date().toLocaleDateString()}</div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+export const generatePreSchoolHTML = (reportData, schoolInfo) => {
+  return `
+    ${commonHeader(schoolInfo, 'Pre-School Report Card', reportData)}
+      <div class="student-info">
+        <div class="student-name">${reportData.studentName}</div>
+        <div>Roll: ${reportData.rollNumber || ''}</div>
+        <div>Class: ${reportData.className}</div>
+        <div>Term: ${reportData.term}</div>
+        <div>Date: ${new Date().toLocaleDateString()}</div>
+        <div>Attendance: ${reportData.attendance}</div>
+      </div>
+
+      <h3 style="text-align: center; margin-bottom: 10px;">SUBJECT PERFORMANCE</h3>
+      <table class="subject-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Class Score (50%)</th>
+            <th>Exam Score (50%)</th>
+            <th>Total (100%)</th>
+            <th>Level of Proficiency</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${reportData.subjects.map(subject => `
+            <tr>
+              <td class="subject-name">${subject.name}</td>
+              <td class="score">${subject.classScore || '0'}</td>
+              <td class="score">${subject.examScore || '0'}</td>
+              <td class="score">${subject.total || '0'}</td>
+              <td class="grade">${subject.level || 'BRONZE'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="remarks">
+        <div><strong>INTEREST:</strong> ${reportData.interest || ''}</div>
+        <div><strong>CONDUCT:</strong> ${reportData.conduct || ''}</div>
+        <div><strong>Teacher's Remarks:</strong> ${reportData.teacherRemark || ''}</div>
+        <div><strong>Headmaster's Remarks:</strong> ${reportData.headmasterRemark || ''}</div>
+      </div>
+
+      <div class="signatures">
+        <div>Teacher's Signature: ___________________</div>
+        <div>Headmaster's Signature: ___________________</div>
+      </div>
+    ${commonFooter(schoolInfo)}
+  `;
+};
+
+export const generatePrimaryHTML = (reportData, schoolInfo) => {
+  return `
+    ${commonHeader(schoolInfo, 'Primary School Report Card', reportData)}
+      <div class="student-info">
+        <div class="student-name">${reportData.studentName}</div>
+        <div>Roll: ${reportData.rollNumber || ''} | Position: ${reportData.position || ''}</div>
+        <div>Class: ${reportData.className} | Term: ${reportData.term}</div>
+        <div>Vacation Resuming: ${reportData.vacationDate || ''}</div>
+        <div>Points: ${reportData.points || ''} | Attendance: ${reportData.attendance}</div>
+      </div>
+
+      <h3 style="text-align: center; margin-bottom: 10px;">SUBJECT PERFORMANCE</h3>
+      <table class="subject-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Class Score (50%)</th>
+            <th>Exam Score (50%)</th>
+            <th>Total</th>
+            <th>Grade</th>
+            <th>Position</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${reportData.subjects.map(subject => `
+            <tr>
+              <td class="subject-name">${subject.name}</td>
+              <td class="score">${subject.classScore || '0'}</td>
+              <td class="score">${subject.examScore || '0'}</td>
+              <td class="score">${subject.total || '0'}</td>
+              <td class="grade">${subject.grade || 'F'}</td>
+              <td class="score">${subject.position || ''}</td>
+              <td class="subject-name">${subject.remarks || ''}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="remarks">
+        <div><strong>INTEREST:</strong> ${reportData.interest || ''}</div>
+        <div><strong>CONDUCT:</strong> ${reportData.conduct || ''}</div>
+        <div><strong>Teacher's Remarks:</strong> ${reportData.teacherRemark || ''}</div>
+        <div><strong>Headmaster's Remarks:</strong> ${reportData.headmasterRemark || ''}</div>
+      </div>
+
+      <div class="signatures">
+        <div>Teacher's Signature: ___________________</div>
+        <div>Headmaster's Signature: ___________________</div>
+      </div>
+    ${commonFooter(schoolInfo)}
+  `;
+};
+
+export const generateJHSHTML = (reportData, schoolInfo) => {
+  return `
+    ${commonHeader(schoolInfo, 'JHS Report Card', reportData)}
+      <div class="student-info">
+        <div class="student-name">${reportData.studentName}</div>
+        <div>Roll: ${reportData.rollNumber || ''} | Position: ${reportData.position || ''}</div>
+        <div>Class: ${reportData.className} | Term: ${reportData.term}</div>
+        <div>Promoted To: ${reportData.promotedTo || ''}</div>
+        <div>Attendance: ${reportData.attendance}</div>
+      </div>
+
+      <h3 style="text-align: center; margin-bottom: 10px;">CORE SUBJECTS</h3>
+      <table class="subject-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Class Score (50%)</th>
+            <th>Exam Score (50%)</th>
+            <th>Total</th>
+            <th>Grade</th>
+            <th>Position</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${reportData.coreSubjects.map(subject => `
+            <tr>
+              <td class="subject-name">${subject.name}</td>
+              <td class="score">${subject.classScore || '0'}</td>
+              <td class="score">${subject.examScore || '0'}</td>
+              <td class="score">${subject.total || '0'}</td>
+              <td class="grade">${subject.grade || 'F'}</td>
+              <td class="score">${subject.position || ''}</td>
+              <td class="subject-name">${subject.remarks || 'Excellent'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <h3 style="text-align: center; margin-bottom: 10px; margin-top: 20px;">ELECTIVE SUBJECTS</h3>
+      <table class="subject-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Class Score (50%)</th>
+            <th>Exam Score (50%)</th>
+            <th>Total</th>
+            <th>Grade</th>
+            <th>Position</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${reportData.electiveSubjects.map(subject => `
+            <tr>
+              <td class="subject-name">${subject.name}</td>
+              <td class="score">${subject.classScore || '0'}</td>
+              <td class="score">${subject.examScore || '0'}</td>
+              <td class="score">${subject.total || '0'}</td>
+              <td class="grade">${subject.grade || 'F'}</td>
+              <td class="score">${subject.position || ''}</td>
+              <td class="subject-name">${subject.remarks || 'Very Good'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="remarks">
+        <div><strong>INTEREST:</strong> ${reportData.interest || ''}</div>
+        <div><strong>CONDUCT:</strong> ${reportData.conduct || ''}</div>
+        <div><strong>Teacher's Remarks:</strong> ${reportData.teacherRemark || ''}</div>
+        <div><strong>Headmaster's Remarks:</strong> ${reportData.headmasterRemark || ''}</div>
+      </div>
+
+      <div class="signatures">
+        <div>Teacher's Signature: ___________________</div>
+        <div>Headmaster's Signature: ___________________</div>
+      </div>
+    ${commonFooter(schoolInfo)}
+  `;
+};
+
 export const generateGradebookHTML = (studentData, schoolInfo) => {
   const { studentId, selectedTerm, overallGrade, attendance, assignments, subjects } = studentData;
   const { SCHOOL_NAME, WATERMARK, SCHOOL_LOGO } = schoolInfo;
@@ -27,13 +267,13 @@ export const generateGradebookHTML = (studentData, schoolInfo) => {
         .section-title { 
           font-size: 14pt; 
           font-weight: bold; 
-          border-bottom: 1px solid #03ac13; 
+          border-bottom: 1px solid #0B6623; 
           padding-bottom: 3px;
           margin-bottom: 10px;
-          color: #03ac13;
+          color: #0B6623;
         }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th { background: #03ac13; color: aliceblue; text-align: left; padding: 8px; }
+        th { background: #0B6623; color: aliceblue; text-align: left; padding: 8px; }
         td { padding: 8px; border-bottom: 1px solid #ddd; }
         .progress-bar { 
           height: 15px; 
@@ -43,7 +283,7 @@ export const generateGradebookHTML = (studentData, schoolInfo) => {
         }
         .progress-fill { 
           height: 100%; 
-          background: #03ac13; 
+          background: #0B6623; 
           border-radius: 3px;
         }
         .footer { 
@@ -158,13 +398,13 @@ export const generateReportHTML = (studentData, schoolInfo) => {
         .section-title { 
           font-size: 14pt; 
           font-weight: bold; 
-          border-bottom: 1px solid #03ac13; 
+          border-bottom: 1px solid #0B6623; 
           padding-bottom: 3px;
           margin-bottom: 10px;
-          color: #03ac13;
+          color: #0B6623;
         }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th { background: #03ac13; color: aliceblue; text-align: left; padding: 8px; }
+        th { background: #0B6623; color: aliceblue; text-align: left; padding: 8px; }
         td { padding: 8px; border-bottom: 1px solid #ddd; }
         .comment-box { 
           border: 1px solid #ddd; 
@@ -226,7 +466,7 @@ export const generateReportHTML = (studentData, schoolInfo) => {
                   <div style="display: flex; align-items: center;">
                     <div style="width: 60px; margin-right: 10px;">${subject.progress}%</div>
                     <div style="flex-grow: 1; height: 10px; background: #e0e0e0; border-radius: 5px;">
-                      <div style="height: 100%; width: ${subject.progress}%; background: #03ac13; border-radius: 5px;"></div>
+                      <div style="height: 100%; width: ${subject.progress}%; background: #0B6623; border-radius: 5px;"></div>
                     </div>
                   </div>
                 </td>

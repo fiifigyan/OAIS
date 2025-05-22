@@ -3,9 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CustomHeader from '../components/CustomHeader';
 import CustomTabBar from '../components/CustomTabBar';
 
-import HomeScreen from '../screens/Home';
-import CalendarScreen from '../screens/Calendar';
-import ProfileScreen from '../screens/ProfileScreen';
+import HomeScreen from '../screens/Main/Home';
+import CalendarScreen from '../screens/Main/Calendar';
+import ProfileScreen from '../screens/Main/ProfileScreen';
 import NotificationScreen from '../screens/Notification/Notification';
 
 const Tab = createBottomTabNavigator();

@@ -37,13 +37,13 @@ const SettingsScreen = () => {
         
         <View style={styles.settingItem}>
           <View style={styles.settingIcon}>
-            <MaterialIcons name="notifications" size={24} color="#03ac13" />
+            <MaterialIcons name="notifications" size={24} color="#0B6623" />
           </View>
           <Text style={styles.settingText}>Enable Notifications</Text>
           <Switch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
-            trackColor={{ false: '#E0E0E0', true: '#03ac13' }}
+            trackColor={{ false: '#E0E0E0', true: '#0B6623' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -52,39 +52,39 @@ const SettingsScreen = () => {
           <>
             <View style={styles.settingItem}>
               <View style={styles.settingIcon}>
-                <MaterialIcons name="volume-up" size={24} color="#03ac13" />
+                <MaterialIcons name="volume-up" size={24} color="#0B6623" />
               </View>
               <Text style={styles.settingText}>Notification Sound</Text>
               <Switch
                 value={notificationSettings.soundEnabled}
                 onValueChange={() => toggleNotificationSetting('soundEnabled')}
-                trackColor={{ false: '#E0E0E0', true: '#03ac13' }}
+                trackColor={{ false: '#E0E0E0', true: '#0B6623' }}
                 thumbColor="#FFFFFF"
               />
             </View>
 
             <View style={styles.settingItem}>
               <View style={styles.settingIcon}>
-                <MaterialIcons name="vibration" size={24} color="#03ac13" />
+                <MaterialIcons name="vibration" size={24} color="#0B6623" />
               </View>
               <Text style={styles.settingText}>Vibration</Text>
               <Switch
                 value={notificationSettings.vibrationEnabled}
                 onValueChange={() => toggleNotificationSetting('vibrationEnabled')}
-                trackColor={{ false: '#E0E0E0', true: '#03ac13' }}
+                trackColor={{ false: '#E0E0E0', true: '#0B6623' }}
                 thumbColor="#FFFFFF"
               />
             </View>
 
             <View style={styles.settingItem}>
               <View style={styles.settingIcon}>
-                <MaterialIcons name="circle" size={24} color="#03ac13" />
+                <MaterialIcons name="circle" size={24} color="#0B6623" />
               </View>
               <Text style={styles.settingText}>Badge Count</Text>
               <Switch
                 value={notificationSettings.badgeEnabled}
                 onValueChange={() => toggleNotificationSetting('badgeEnabled')}
-                trackColor={{ false: '#E0E0E0', true: '#03ac13' }}
+                trackColor={{ false: '#E0E0E0', true: '#0B6623' }}
                 thumbColor="#FFFFFF"
               />
             </View>
@@ -101,7 +101,7 @@ const SettingsScreen = () => {
           onPress={() => navigation.navigate('Profile')}
         >
           <View style={styles.menuIcon}>
-            <MaterialIcons name="person" size={24} color="#03ac13" />
+            <MaterialIcons name="person" size={24} color="#0B6623" />
           </View>
           <Text style={styles.menuText}>My Profile</Text>
           <MaterialIcons name="chevron-right" size={24} color="#9E9E9E" />
@@ -112,7 +112,7 @@ const SettingsScreen = () => {
           onPress={() => navigation.navigate('ResetPassword')}
         >
           <View style={styles.menuIcon}>
-            <MaterialIcons name="lock" size={24} color="#03ac13" />
+            <MaterialIcons name="lock" size={24} color="#0B6623" />
           </View>
           <Text style={styles.menuText}>Change Password</Text>
           <MaterialIcons name="chevron-right" size={24} color="#9E9E9E" />
@@ -130,7 +130,7 @@ const SettingsScreen = () => {
         
         <TouchableOpacity style={styles.menuItem}>
           <View style={styles.menuIcon}>
-            <MaterialIcons name="description" size={24} color="#03ac13" />
+            <MaterialIcons name="description" size={24} color="#0B6623" />
           </View>
           <Text style={styles.menuText}>Terms of Service</Text>
           <MaterialIcons name="chevron-right" size={24} color="#9E9E9E" />
@@ -138,7 +138,7 @@ const SettingsScreen = () => {
         
         <TouchableOpacity style={styles.menuItem}>
           <View style={styles.menuIcon}>
-            <MaterialIcons name="security" size={24} color="#03ac13" />
+            <MaterialIcons name="security" size={24} color="#0B6623" />
           </View>
           <Text style={styles.menuText}>Privacy Policy</Text>
           <MaterialIcons name="chevron-right" size={24} color="#9E9E9E" />

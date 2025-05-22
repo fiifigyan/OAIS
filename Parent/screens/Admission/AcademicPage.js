@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { AdmissionContext } from '../../context/AdmissionContext';
-import { renderInput, renderDateInput, renderSwitch } from '../../components/Admission/FormComponents';
+import { renderInput, renderSwitch } from '../../components/Admission/FormComponents';
 
 const styles = StyleSheet.create({
   container: {
@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#03AC13',
+    color: '#0B6623',
     marginTop: 12,
     marginBottom: 8,
   },
@@ -43,14 +43,14 @@ const styles = StyleSheet.create({
     width: 120,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#03AC13',
+    borderColor: '#0B6623',
   },
   backButtonText: {
-    color: '#03AC13',
+    color: '#0B6623',
     fontWeight: '500',
   },
   nextButton: {
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
     borderRadius: 4,
     padding: 12,
     width: 120,
@@ -63,33 +63,46 @@ const styles = StyleSheet.create({
 });
 
 const AcademicFormPage = ({ navigation }) => {
-  const { formData, updateFormData, validationErrors } = useContext(AdmissionContext);
+  const { formData, validateForm } = useContext(AdmissionContext);
 
   const renderSiblingFields = () => {
     if (formData.admissionDetail?.hasSiblingsInSchool) {
       return (
         <View style={styles.siblingDetailsContainer}>
           <Text style={styles.sectionSubtitle}>Sibling Details</Text>
-          {renderInput('Sibling Name *', 'admissionDetail.siblingName', formData, updateFormData, validationErrors)}
-          {renderInput('Sibling Class *', 'admissionDetail.siblingClass', formData, updateFormData, validationErrors)}
+          {renderInput('Sibling Name *', 'admissionDetail.siblingName')}
+          {renderInput('Sibling Class *', 'admissionDetail.siblingClass')}
         </View>
       );
     }
     return null;
   };
 
+  const handleNext = async () => {
+    // Validate only academic section before proceeding
+    const errors = await validateForm();
+    const academicErrors = {
+      ...errors?.previousAcademicDetail,
+      ...errors?.admissionDetail
+    } || {};
+    
+    if (Object.keys(academicErrors).length === 0) {
+      navigation.navigate('Documents');
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.sectionTitle}>Previous Academic Details</Text>
-      {renderInput('Last School Attended *', 'previousAcademicDetail.lastSchoolAttended', formData, updateFormData, validationErrors)}
-      {renderInput('Last Class Completed *', 'previousAcademicDetail.lastClassCompleted', formData, updateFormData, validationErrors)}
+      {renderInput('Last School Attended *', 'previousAcademicDetail.lastSchoolAttended')}
+      {renderInput('Last Class Completed *', 'previousAcademicDetail.lastClassCompleted')}
       
       <Text style={styles.sectionTitle}>Admission Details</Text>
-      {renderInput('Class for Admission *', 'admissionDetail.classForAdmission', formData, updateFormData, validationErrors)}
-      {renderInput('Academic Year *', 'admissionDetail.academicYear', formData, updateFormData, validationErrors)}
-      {renderInput('Preferred Second Language *', 'admissionDetail.preferredSecondLanguage', formData, updateFormData, validationErrors)}
+      {renderInput('Class for Admission *', 'admissionDetail.classForAdmission')}
+      {renderInput('Academic Year *', 'admissionDetail.academicYear')}
+      {renderInput('Preferred Second Language *', 'admissionDetail.preferredSecondLanguage')}
       
-      {renderSwitch('Has Siblings in School', 'admissionDetail.hasSiblingsInSchool', formData, updateFormData)}
+      {renderSwitch('Has Siblings in School', 'admissionDetail.hasSiblingsInSchool')}
       {renderSiblingFields()}
 
       <View style={styles.buttonContainer}>
@@ -101,7 +114,7 @@ const AcademicFormPage = ({ navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.nextButton}
-          onPress={() => navigation.navigate('DocumentsPage')}
+          onPress={handleNext}
         >
           <Text style={styles.nextButtonText}>Next</Text>
         </TouchableOpacity>

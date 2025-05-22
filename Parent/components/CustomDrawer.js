@@ -117,7 +117,7 @@ const CustomDrawer = (props) => {
             activeOpacity={0.7}
           >
             <View style={styles.iconContainer}>
-              <Icon name="settings-outline" size={20} color="#03AC13" />
+              <Icon name="settings-outline" size={20} color="#0B6623" />
             </View>
             <Text style={styles.footerItemText}>Settings</Text>
           </TouchableOpacity>
@@ -132,7 +132,7 @@ const CustomDrawer = (props) => {
             activeOpacity={0.7}
           >
             <View style={styles.iconContainer}>
-              <Icon name="help-circle-outline" size={20} color="#03AC13" />
+              <Icon name="help-circle-outline" size={20} color="#0B6623" />
             </View>
             <Text style={styles.footerItemText}>Help Center</Text>
           </TouchableOpacity>
@@ -160,7 +160,7 @@ const CustomDrawer = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
   },
   scrollContainer: {
     paddingBottom: 20,

@@ -29,7 +29,7 @@ const SuccessModal = ({
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <View style={styles.iconContainer}>
-            <Icon name="checkmark-circle" size={48} color="#03AC13" />
+            <Icon name="checkmark-circle" size={48} color="#0B6623" />
           </View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
@@ -44,11 +44,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
-    margin: 20,
-    backgroundColor: 'white',
+    width: '80%',
+    backgroundColor: 'aliceblue',
     borderRadius: 10,
     padding: 25,
     alignItems: 'center',
@@ -63,19 +63,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
     textAlign: 'center',
-    color: '#007AFF',
+    color: '#0B6623',
   },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 12,
-    borderRadius: 8,
-    minWidth: 120,
-  },
-  buttonText: {
-    color: 'aliceblue',
-    fontSize: 16,
-    textAlign: 'center',
-    fontWeight: 'bold',
+  iconContainer: {
+    marginBottom: 20,
+    backgroundColor: '#E0F7FA',
+    borderRadius: 50,
+    padding: 10,
   },
 });
 

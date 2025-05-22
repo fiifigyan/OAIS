@@ -8,7 +8,7 @@ const PaymentSuccess = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#03AC13', '#03C04A']} style={styles.header}>
+      <LinearGradient colors={['#0B6623', '#03C04A']} style={styles.header}>
         <Icon name="checkmark-circle" size={80} color="#fff" />
         <Text style={styles.successText}>Payment Successful!</Text>
       </LinearGradient>
@@ -33,7 +33,7 @@ const PaymentSuccess = ({ route, navigation }) => {
 const DetailRow = ({ icon, label, value }) => (
   <View style={styles.detailRow}>
     <View style={styles.containerRow}>
-      <Icon name={icon} size={18} color="#03AC13" style={styles.rowIcon} />
+      <Icon name={icon} size={18} color="#0B6623" style={styles.rowIcon} />
       <Text style={styles.detailLabel}>{label}:</Text>
     </View>
     <Text style={styles.detailValue}>{value}</Text>
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   button: {
-    backgroundColor: '#03AC13',
+    backgroundColor: '#0B6623',
     borderRadius: 25,
     padding: 18,
     marginHorizontal: 20,

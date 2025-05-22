@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TextInput, Switch, TouchableOpacity, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getValue } from '../../utils/helpers';
+import { AdmissionContext } from '../../context/AdmissionContext';
 
 const styles = StyleSheet.create({
   inputContainer: {
@@ -47,40 +47,92 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  requirementsContainer: {
+    marginVertical: 12,
+    padding: 12,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  requirementsTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
+  },
+  requirementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  requirementIcon: {
+    marginRight: 8,
+  },
+  requirementText: {
+    fontSize: 14,
+  },
+  requirementMet: {
+    color: '#4CAF50',
+  },
+  requirementUnmet: {
+    color: '#757575',
+  },
 });
 
-export const renderInput = (label, path, formData, updateFormData, validationErrors, keyboardType = 'default', placeholder = '') => {
-  const value = getValue(formData, path);
-  
+export const renderInput = (label, name, keyboardType = 'default') => {
+  const { 
+    formData, 
+    formErrors, 
+    formTouched,
+    handleFormChange, 
+    handleFormBlur 
+  } = useContext(AdmissionContext);
+
+  const getNestedValue = (obj, path) => 
+    path.split('.').reduce((acc, part) => acc && acc[part], obj);
+
+  const value = getNestedValue(formData, name) || '';
+  const error = getNestedValue(formErrors, name);
+  const touched = getNestedValue(formTouched, name);
+
   return (
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
         style={[
           styles.input, 
-          validationErrors[path] && styles.errorInput
+          error && touched && styles.errorInput
         ]}
         value={String(value)}
-        onChangeText={text => updateFormData({ [path]: text })}
+        onChangeText={handleFormChange(name)}
+        onBlur={handleFormBlur(name)}
         keyboardType={keyboardType}
-        placeholder={placeholder}
+        placeholder={label}
       />
-      {validationErrors[path] && (
-        <Text style={styles.errorText}>{validationErrors[path]}</Text>
+      {error && touched && (
+        <Text style={styles.errorText}>{error}</Text>
       )}
     </View>
   );
 };
 
-export const renderDateInput = (label, path, formData, updateFormData, validationErrors) => {
+export const renderDateInput = (label, name) => {
+  const { 
+    formData, 
+    formErrors, 
+    formTouched,
+    setFormFieldValue 
+  } = useContext(AdmissionContext);
   const [showDatePicker, setShowDatePicker] = React.useState(false);
-  const value = getValue(formData, path);
+
+  const value = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formData);
+  const error = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formErrors);
+  const touched = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formTouched);
 
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
       const formattedDate = selectedDate.toISOString().split('T')[0];
-      updateFormData({ [path]: formattedDate });
+      setFormFieldValue(name, formattedDate);
     }
   };
 
@@ -92,18 +144,18 @@ export const renderDateInput = (label, path, formData, updateFormData, validatio
           style={[
             styles.input,
             styles.dateInput,
-            validationErrors[path] && styles.errorInput
+            error && touched && styles.errorInput
           ]}
           value={value}
           placeholder="YYYY-MM-DD"
-          onChangeText={(text) => updateFormData({ [path]: text })}
+          onChangeText={(text) => setFormFieldValue(name, text)}
           keyboardType="numeric"
         />
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
           style={styles.calendarButton}
         >
-          <Icon name="calendar" size={24} color="#03AC13" />
+          <Icon name="calendar" size={24} color="#0B6623" />
         </TouchableOpacity>
       </View>
       {showDatePicker && (
@@ -115,22 +167,23 @@ export const renderDateInput = (label, path, formData, updateFormData, validatio
           maximumDate={new Date()}
         />
       )}
-      {validationErrors[path] && (
-        <Text style={styles.errorText}>{validationErrors[path]}</Text>
+      {error && touched && (
+        <Text style={styles.errorText}>{error}</Text>
       )}
     </View>
   );
 };
 
-export const renderSwitch = (label, path, formData, updateFormData) => {
-  const value = getValue(formData, path) || false;
-  
+export const renderSwitch = (label, name) => {
+  const { formData, setFormFieldValue } = useContext(AdmissionContext);
+  const value = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formData);
+
   return (
     <View style={[styles.inputContainer, styles.switchContainer]}>
       <Text style={styles.label}>{label}</Text>
       <Switch
-        value={value}
-        onValueChange={(val) => updateFormData({ [path]: val })}
+        value={value || false}
+        onValueChange={(val) => setFormFieldValue(name, val)}
         trackColor={{ false: "#767577", true: "#81b0ff" }}
         thumbColor={value ? "#f5dd4b" : "#f4f3f4"}
       />
@@ -138,9 +191,40 @@ export const renderSwitch = (label, path, formData, updateFormData) => {
   );
 };
 
-export const renderDocumentUpload = (label, field, formData, updateFormData, validationErrors, handleDocumentPick) => {
-  const document = getValue(formData, `documents.${field}`) || {};
-  const error = validationErrors[`documents.${field}`];
+export const renderDocumentUpload = (label, name) => {
+  const { 
+    formData, 
+    formErrors, 
+    formTouched,
+    setFormFieldValue 
+  } = useContext(AdmissionContext);
+
+  const handleDocumentPick = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/jpeg', 'image/png'],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      if (result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        setFormFieldValue(name, {
+          name: file.name,
+          uri: file.uri,
+          size: file.size,
+          type: file.mimeType
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to select document. Please try again.');
+    }
+  };
+
+  const document = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formData);
+  const error = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formErrors);
+  const touched = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formTouched);
 
   return (
     <View style={styles.inputContainer}>
@@ -148,16 +232,16 @@ export const renderDocumentUpload = (label, field, formData, updateFormData, val
       <TouchableOpacity
         style={[
           styles.input,
-          error && styles.errorInput,
-          document.uri && { backgroundColor: '#e6f7e6' }
+          error && touched && styles.errorInput,
+          document?.uri && { backgroundColor: '#e6f7e6' }
         ]}
-        onPress={() => handleDocumentPick(field)}
+        onPress={handleDocumentPick}
       >
-        <Text style={{ color: document.uri ? '#2e7d32' : '#555' }}>
-          {document.uri ? document.name : 'Select File'}
+        <Text style={{ color: document?.uri ? '#2e7d32' : '#555' }}>
+          {document?.uri ? document.name : 'Select File'}
         </Text>
       </TouchableOpacity>
-      {error && (
+      {error && touched && (
         <Text style={styles.errorText}>{error}</Text>
       )}
     </View>
