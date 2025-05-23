@@ -204,7 +204,7 @@ const LoginScreen = () => {
           setShowSuccessModal(false);
           navigation.reset({
             index: 0,
-            routes: [{ name: 'Home' }],
+            routes: [{ name: 'Drawer' }],
           });
         }}
         title="Login Successful"

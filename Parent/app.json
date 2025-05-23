@@ -80,12 +80,6 @@
       ],
       "expo-asset"
     ],
-    "experiments": {
-      "typedRoutes": true,
-      "remoteBuildCache": {
-        "provider": "eas"
-      }
-    },
     "extra": {
       "router": {},
       "eas": {

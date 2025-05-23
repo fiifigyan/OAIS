@@ -64,13 +64,13 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
               <Ionicons
                 name={isFocused ? icon : `${icon}-outline`}
                 size={26}
-                color={isFocused ? '#03AC13' : '#03c04A'}
+                color={isFocused ? '#0B6623' : '#0B6600'}
               />
               <Text 
                 style={[
                   styles.label,
                   { 
-                    color: isFocused ? '#03AC13' : '#03c04A',
+                    color: isFocused ? '#0B6623' : '#0B6600',
                     fontSize: isFocused ? 14 : 12,
                     fontWeight: isFocused ? '600' : '400',
                     fontFamily: isFocused ? 'Medium' : 'Regular' 
@@ -85,7 +85,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
               <View 
                 style={[
                   styles.activeIndicator,
-                  { backgroundColor: '#03AC13' }
+                  { backgroundColor: '#0B6623' }
                 ]} 
               />
             )}

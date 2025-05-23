@@ -172,7 +172,7 @@ export const getAuthToken = async () => {
 /**
  * Decodes and verifies a JWT token
  * @param {string} token - JWT token to verify
- * @returns {Promise<{valid: boolean, payload?: object, isTemporary?: boolean}>}
+ * @returns {Promise<{message: string, token: string}>}
  */
 export const verifyToken = async (token) => {
   if (!token) {

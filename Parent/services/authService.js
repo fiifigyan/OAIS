@@ -10,8 +10,8 @@ const AuthService = {
    */
   async signup(userData) {
     try {
-    console.log('Full API URL:', `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`);
-    console.log('Request payload:', userData);
+      console.log('Full API URL:', `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`);
+      console.log('Request payload:', userData);
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`,
         userData,
@@ -60,10 +60,7 @@ const AuthService = {
       await manageAuthToken(response.data.token);
       return {
         token: response.data.token,
-        email: credentials.email,
-        StudentID: response.data.StudentID,
-        isTemporary: false,
-        ...(response.data.message && { message: response.data.message })
+        message: response.data.message
       };
     } catch (error) {
       console.error('Login error:', error);
