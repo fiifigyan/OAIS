@@ -22,7 +22,7 @@ const HomeScreen = () => {
   if (loading && !homeData) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0B6623" />
+        <ActivityIndicator size="large" color="#00873E" />
       </SafeAreaView>
     );
   }
@@ -84,7 +84,7 @@ const HomeScreen = () => {
                 style={styles.quickActionItem}
                 onPress={() => navigation.navigate(item.route)}
               >
-                <Ionicons name={item.icon} size={24} color="#0B6623" />
+                <Ionicons name={item.icon} size={24} color="#00873E" />
                 <Text style={styles.quickActionText}>{item.title}</Text>
               </TouchableOpacity>
             ))}
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 6,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 16,
   },
   profileCard: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 2,
-    borderColor: '#0B6623',
+    borderColor: '#00873E',
   },
   profileText: {
     marginLeft: 16,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 12,
   },
   quickActionsGrid: {
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   quickActionText: {
     fontSize: 14,
-    color: '#0B6623',
+    color: '#00873E',
     marginTop: 8,
     textAlign: 'center',
   },

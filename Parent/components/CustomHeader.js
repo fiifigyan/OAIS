@@ -9,7 +9,7 @@ const CustomHeader = ({ title = 'Dashboard', navigation }) => {
   return (
     <View style={styles.headerContainer}>
       <TouchableOpacity onPress={() => navigation.openDrawer()}>
-        <Icon name="menu-outline" size={24} color="#0B6623" />
+        <Icon name="menu-outline" size={24} color="#00873E" />
       </TouchableOpacity>
       
       <Text style={styles.title}>{title}</Text>
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     flex: 1,
     textAlign: 'center',
     marginHorizontal: 10,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#0B6623',
+    borderColor: '#00873E',
   },
 });
 

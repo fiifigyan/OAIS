@@ -203,17 +203,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   subtitle: {
     fontSize: 18,
-    color: '#0B6623',
+    color: '#00873E',
   },
   formContainer: {
     padding: 20,
   },
   button: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 16,
     borderRadius: 8,
     marginTop: 24,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   loginLink: {
-    color: '#0B6623',
+    color: '#00873E',
     fontSize: 16,
     fontWeight: '600',
   },

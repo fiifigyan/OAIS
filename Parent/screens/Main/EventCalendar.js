@@ -60,7 +60,7 @@ const EventCalendarScreen = () => {
       onPress={() => handleEventPress(item)}
     >
       <LinearGradient
-        colors={['#0B6623', '#4CAF50']}
+        colors={['#00873E', '#4CAF50']}
         style={styles.eventTimeBadge}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
@@ -74,14 +74,14 @@ const EventCalendarScreen = () => {
           <Text style={styles.eventLocation}>{item.location}</Text>
         </View>
       </View>
-      <Icon name="chevron-right" size={24} color="#0B6623" />
+      <Icon name="chevron-right" size={24} color="#00873E" />
     </TouchableOpacity>
   );
 
   if (loading && !refreshing) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0B6623" />
+        <ActivityIndicator size="large" color="#00873E" />
       </SafeAreaView>
     );
   }
@@ -95,8 +95,8 @@ const EventCalendarScreen = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#0B6623']}
-            tintColor="#0B6623"
+            colors={['#00873E']}
+            tintColor="#00873E"
           />
         }
       >
@@ -112,15 +112,15 @@ const EventCalendarScreen = () => {
           }}
           theme={{
             calendarBackground: '#ffffff',
-            selectedDayBackgroundColor: '#0B6623',
+            selectedDayBackgroundColor: '#00873E',
             selectedDayTextColor: '#ffffff',
-            todayTextColor: '#0B6623',
+            todayTextColor: '#00873E',
             dayTextColor: '#2d4150',
             textDisabledColor: '#d9e1e8',
-            dotColor: '#0B6623',
+            dotColor: '#00873E',
             selectedDotColor: '#ffffff',
-            arrowColor: '#0B6623',
-            monthTextColor: '#0B6623',
+            arrowColor: '#00873E',
+            monthTextColor: '#00873E',
             textMonthFontWeight: 'bold',
           }}
         />
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   calendarContainer: {
     margin: 15,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 15,
   },
   eventItem: {

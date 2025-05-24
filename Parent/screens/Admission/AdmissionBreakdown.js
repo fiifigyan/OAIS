@@ -199,7 +199,7 @@ const FeeBreakdownPage = ({ navigation }) => {
             <style>
               body { font-family: Arial; padding: 20px; }
               .header { text-align: center; margin-bottom: 20px; }
-              h1 { color: #0B6623; margin-bottom: 5px; }
+              h1 { color: #00873E; margin-bottom: 5px; }
               h2 { color: #333; margin-top: 0; }
               table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
               th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
@@ -298,7 +298,7 @@ const FeeBreakdownPage = ({ navigation }) => {
               selectedValue={selectedLevel}
               style={styles.picker}
               onValueChange={setSelectedLevel}
-              dropdownIconColor="#0B6623"
+              dropdownIconColor="#00873E"
             >
               {feeStructure.levels.map(level => (
                 <Picker.Item key={level} label={level} value={level} />
@@ -313,7 +313,7 @@ const FeeBreakdownPage = ({ navigation }) => {
                 selectedValue={selectedGender}
                 style={styles.picker}
                 onValueChange={setSelectedGender}
-                dropdownIconColor="#0B6623"
+                dropdownIconColor="#00873E"
               >
                 {feeStructure.genders.filter(g => g !== 'Unisex').map(gender => (
                   <Picker.Item key={gender} label={gender} value={gender} />
@@ -342,7 +342,7 @@ const FeeBreakdownPage = ({ navigation }) => {
                     <Icon 
                       name={expandedSections[item.id] ? 'expand-less' : 'expand-more'} 
                       size={22} 
-                      color="#0B6623" 
+                      color="#00873E" 
                     />
                   </View>
                 </DataTable.Cell>
@@ -405,7 +405,7 @@ const FeeBreakdownPage = ({ navigation }) => {
           onPress={generatePDF}
           disabled={isProcessing}
         >
-          <Icon name="picture-as-pdf" size={20} color="#0B6623" />
+          <Icon name="picture-as-pdf" size={20} color="#00873E" />
           <Text style={styles.saveButtonText}>
             {isProcessing ? 'Processing...' : 'Save as PDF'}
           </Text>
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#0B6623',
+    color: '#00873E',
     textAlign: 'center'
   },
   controlsContainer: {
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'aliceblue',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#0B6623'
+    borderColor: '#00873E'
   },
   dataTable: {
     backgroundColor: 'aliceblue',
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   tableHeader: {
-    backgroundColor: '#0B6623'
+    backgroundColor: '#00873E'
   },
   tableHeaderTitle: {
     color: 'aliceblue',
@@ -532,11 +532,11 @@ const styles = StyleSheet.create({
   },
   totalText: {
     fontWeight: 'bold',
-    color: '#0B6623'
+    color: '#00873E'
   },
   totalAmount: {
     fontWeight: 'bold',
-    color: '#0B6623'
+    color: '#00873E'
   },
   itemsSection: {
     backgroundColor: 'aliceblue',
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#0B6623',
+    color: '#00873E',
     fontSize: 16
   },
   itemRow: {
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   },
   buyButton: {
     flex: 1,
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#0B6623',
+    borderColor: '#00873E',
   },
   disabledButton: {
     opacity: 0.6
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
    saveButtonText: {
-    color: '#0B6623',
+    color: '#00873E',
     marginLeft: 8,
     fontWeight: 'bold',
     fontSize: 16

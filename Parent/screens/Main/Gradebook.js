@@ -237,7 +237,7 @@ const GradebookScreen = ({ navigation, route }) => {
                   propsForDots: {
                     r: '6',
                     strokeWidth: '2',
-                    stroke: '#0B6623'
+                    stroke: '#00873E'
                   }
                 }}
                 style={{
@@ -312,7 +312,7 @@ dropdown: {
   borderRadius: 4,
   paddingHorizontal: 12,
   borderWidth: 1,
-  borderColor: '#0B6623',
+  borderColor: '#00873E',
 },
 placeholderStyle: {
   fontSize: 14,
@@ -320,7 +320,7 @@ placeholderStyle: {
 },
 selectedTextStyle: {
   fontSize: 14,
-  color: '#0B6623',
+  color: '#00873E',
 },
 iconStyle: {
   width: 20,
@@ -345,7 +345,7 @@ iconStyle: {
   summaryValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginTop: 4,
   },
   sectionHeader: {
@@ -373,7 +373,7 @@ iconStyle: {
   subjectText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   gradeChip: {
     backgroundColor: '#e8f5e9',
@@ -401,7 +401,7 @@ iconStyle: {
     fontWeight: '500',
   },
   totalScore: {
-    color: '#0B6623',
+    color: '#00873E',
     fontWeight: 'bold',
   },
   exportOptions: {
@@ -409,7 +409,7 @@ iconStyle: {
     alignItems: 'center',
   },
   exportButton: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 12,
     borderRadius: 4,
     width: '80%',

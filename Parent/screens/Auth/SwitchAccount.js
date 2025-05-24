@@ -19,7 +19,7 @@ const SwitchAccountScreen = ({ navigation }) => {
 
   const renderAccountItem = ({ item }) => (
     <TouchableOpacity style={styles.item}>
-      <Icon name="account-circle" size={40} color="#0B6623" style={styles.accountIcon} />
+      <Icon name="account-circle" size={40} color="#00873E" style={styles.accountIcon} />
       <View style={styles.accountInfo}>
         <Text style={styles.itemText}>{item.name}</Text>
         <Text style={styles.itemEmail}>{item.email}</Text>
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     borderRadius: 10,
     padding: 15,
     margin: 20,

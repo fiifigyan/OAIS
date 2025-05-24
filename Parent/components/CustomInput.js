@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 8,
   },
   inputWrapper: {
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   focused: {
-    borderColor: '#0B6623',
+    borderColor: '#00873E',
   },
   error: {
     borderColor: '#d32f2f',

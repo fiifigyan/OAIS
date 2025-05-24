@@ -141,7 +141,7 @@ const EventScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyContainer}>
-          <Icon name="alert-circle-outline" size={48} color="#0B6623" />
+          <Icon name="alert-circle-outline" size={48} color="#00873E" />
           <Text style={styles.emptyText}>No event data available</Text>
         </View>
       </SafeAreaView>
@@ -152,10 +152,10 @@ const EventScreen = () => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Icon name="arrow-left" size={24} color="#0B6623" />
+          <Icon name="arrow-left" size={24} color="#00873E" />
         </TouchableOpacity>
         <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-          <Icon name="share-variant" size={24} color="#0B6623" />
+          <Icon name="share-variant" size={24} color="#00873E" />
         </TouchableOpacity>
       </View>
 
@@ -171,7 +171,7 @@ const EventScreen = () => {
         <Animatable.View animation="fadeInUp" delay={200} style={styles.titleContainer}>
           <Text style={styles.title}>{event.title}</Text>
           <View style={styles.dateContainer}>
-            <Icon name="calendar" size={18} color="#0B6623" />
+            <Icon name="calendar" size={18} color="#00873E" />
             <Text style={styles.date}>
               {new Date(event.date).toLocaleDateString('en-US', { 
                 weekday: 'long', 
@@ -189,15 +189,15 @@ const EventScreen = () => {
             style={styles.locationContainer} 
             onPress={handleOpenMaps}
           >
-            <Icon name="map-marker" size={20} color="#0B6623" />
+            <Icon name="map-marker" size={20} color="#00873E" />
             <Text style={styles.location}>{event.location}</Text>
-            <Icon name="open-in-new" size={18} color="#0B6623" />
+            <Icon name="open-in-new" size={18} color="#00873E" />
           </TouchableOpacity>
         </Animatable.View>
 
         {loadingMap ? (
           <View style={[styles.mapContainer, styles.loadingMap]}>
-            <ActivityIndicator size="large" color="#0B6623" />
+            <ActivityIndicator size="large" color="#00873E" />
           </View>
         ) : mapRegion && (
           <Animatable.View animation="fadeInUp" delay={400} style={styles.mapContainer}>
@@ -208,7 +208,7 @@ const EventScreen = () => {
               scrollEnabled={false}
               zoomEnabled={false}
               loadingEnabled={true}
-              loadingIndicatorColor="#0B6623"
+              loadingIndicatorColor="#00873E"
               loadingBackgroundColor="#f5f5f5"
               showsUserLocation={locationPermission}
               showsMyLocationButton={false}
@@ -219,7 +219,7 @@ const EventScreen = () => {
                 description={event.location}
               >
                 <View style={styles.marker}>
-                  <Icon name="map-marker" size={40} color="#0B6623" />
+                  <Icon name="map-marker" size={40} color="#00873E" />
                 </View>
               </Marker>
             </MapView>
@@ -252,10 +252,10 @@ const EventScreen = () => {
             disabled={addingToCalendar}
           >
             {addingToCalendar ? (
-              <ActivityIndicator color="#0B6623" />
+              <ActivityIndicator color="#00873E" />
             ) : (
               <>
-                <Icon name="calendar-plus" size={20} color="#0B6623" style={styles.buttonIcon} />
+                <Icon name="calendar-plus" size={20} color="#00873E" style={styles.buttonIcon} />
                 <Text style={styles.secondaryButtonText}>Add to Calendar</Text>
               </>
             )}
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#0B6623',
+    color: '#00873E',
     marginTop: 16,
   },
   header: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 12,
   },
   description: {
@@ -378,11 +378,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: '#0B6623',
+    shadowColor: '#00873E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -400,12 +400,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#0B6623',
+    borderColor: '#00873E',
     padding: 16,
     borderRadius: 12,
   },
   secondaryButtonText: {
-    color: '#0B6623',
+    color: '#00873E',
     fontSize: 18,
     fontWeight: 'bold',
     marginLeft: 8,

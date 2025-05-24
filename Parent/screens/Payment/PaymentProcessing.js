@@ -211,7 +211,7 @@ const PaymentProcessing = ({ route, navigation }) => {
 
   const DetailRow = ({ icon, label, value }) => (
     <View style={styles.detailRow}>
-      <Icon name={icon} size={18} color="#0B6623" style={styles.rowIcon} />
+      <Icon name={icon} size={18} color="#00873E" style={styles.rowIcon} />
       <Text style={styles.detailLabel}>{label}:</Text>
       <Text style={styles.detailValue}>{value}</Text>
     </View>
@@ -223,7 +223,7 @@ const PaymentProcessing = ({ route, navigation }) => {
         <Icon 
           name="arrow-back" 
           size={24} 
-          color="#0B6623" 
+          color="#00873E" 
           onPress={() => navigation.goBack()}
         />
         <Text style={styles.headerTitle}>Complete Payment</Text>
@@ -243,7 +243,7 @@ const PaymentProcessing = ({ route, navigation }) => {
         disabled={isProcessing}
       >
         <LinearGradient
-          colors={isProcessing ? ['#03c04a', '#0B6623'] : ['#0B6623', '#03c04A']}
+          colors={isProcessing ? ['#03c04a', '#00873E'] : ['#00873E', '#03c04A']}
           style={styles.buttonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   card: {
     backgroundColor: 'white',
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   bankTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 15,
   },
   detailRow: {

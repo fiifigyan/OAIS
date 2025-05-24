@@ -33,7 +33,7 @@ const NotificationDetails = ({ route }) => {
       style={[styles.container, { backgroundColor: '#ffffff' }]}
       contentContainerStyle={styles.contentContainer}
     >
-      <Text style={[styles.title, { color: '#0B6623' }]}>{title}</Text>
+      <Text style={[styles.title, { color: '#00873E' }]}>{title}</Text>
       
       {timestamp && (
         <View style={styles.timeContainer}>
@@ -48,7 +48,7 @@ const NotificationDetails = ({ route }) => {
 
       {data && Object.keys(data).length > 0 && (
         <View style={[styles.dataContainer, { backgroundColor: '#f5f5f5' }]}>
-          <Text style={[styles.dataTitle, { color: '#0B6623' }]}>
+          <Text style={[styles.dataTitle, { color: '#00873E' }]}>
             Additional Details
           </Text>
           {Object.entries(data).map(([key, value]) => (

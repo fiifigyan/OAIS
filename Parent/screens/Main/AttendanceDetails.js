@@ -74,7 +74,7 @@ const AttendanceScreen = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0B6623" />
+        <ActivityIndicator size="large" color="#00873E" />
       </SafeAreaView>
     );
   }
@@ -83,7 +83,7 @@ const AttendanceScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Attendance Tracker</Text>
-        <Icon name="refresh" size={24} color="#0B6623" />
+        <Icon name="refresh" size={24} color="#00873E" />
       </View>
 
       <View style={styles.statsContainer}>
@@ -110,22 +110,22 @@ const AttendanceScreen = () => {
               ...attendanceData,
               [selectedDate]: {
                 selected: true,
-                selectedColor: '#0B6623',
+                selectedColor: '#00873E',
                 marked: attendanceData[selectedDate]?.marked,
                 dotColor: 'white'
               }
             }}
             theme={{
               calendarBackground: '#ffffff',
-              selectedDayBackgroundColor: '#0B6623',
+              selectedDayBackgroundColor: '#00873E',
               selectedDayTextColor: '#ffffff',
-              todayTextColor: '#0B6623',
+              todayTextColor: '#00873E',
               dayTextColor: '#2d4150',
               textDisabledColor: '#d9e1e8',
-              dotColor: '#0B6623',
+              dotColor: '#00873E',
               selectedDotColor: '#ffffff',
-              arrowColor: '#0B6623',
-              monthTextColor: '#0B6623',
+              arrowColor: '#00873E',
+              monthTextColor: '#00873E',
               textMonthFontWeight: 'bold',
               textMonthFontSize: 16,
               textDayHeaderFontWeight: 'bold'
@@ -140,8 +140,8 @@ const AttendanceScreen = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={['#0B6623']}
-              tintColor="#0B6623"
+              colors={['#00873E']}
+              tintColor="#00873E"
             />
           }
           renderItem={({ item }) => (
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   statsContainer: {
     flexDirection: 'row',

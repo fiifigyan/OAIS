@@ -32,7 +32,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "monochromeImage": "./assets/icons/adaptive-icon.png",
-        "backgroundColor": "#0B6623"
+        "backgroundColor": "#00873E"
       },
       "package": "com.altera.parent",
       "permissions": [
@@ -61,7 +61,7 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           
-          "backgroundColor": "#F0F8FF",
+          "backgroundColor": "#00873E",
           "dark": {
             "image": "./assets/icons/splash-icon-dark.png",
             "backgroundColor": "#1A2421"

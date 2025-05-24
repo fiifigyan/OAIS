@@ -13,8 +13,8 @@ const CalendarScreen = () => {
       <Tab.Navigator
         screenOptions={{
           tabBarLabelStyle: { fontSize: 14, fontWeight: 'bold' },
-          tabBarIndicatorStyle: { backgroundColor: '#0B6623' },
-          tabBarActiveTintColor: '#0B6623',
+          tabBarIndicatorStyle: { backgroundColor: '#00873E' },
+          tabBarActiveTintColor: '#00873E',
           tabBarInactiveTintColor: '#03c04a',
           tabBarStyle: { backgroundColor: '#ffffff' },
         }}

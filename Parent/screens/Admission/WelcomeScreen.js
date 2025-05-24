@@ -32,7 +32,7 @@ const WelcomeScreen = () => {
         <SafeAreaView style={styles.container}>
             {/* Header with greeting */}
             <LinearGradient
-                colors={['#03C043', '#0B6623']}
+                colors={['#0B6623', '#00873E']}
                 style={styles.header}
             >
                 <View style={styles.headerContent}>

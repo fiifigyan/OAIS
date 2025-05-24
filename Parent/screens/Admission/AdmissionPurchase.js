@@ -72,7 +72,7 @@ const AdmissionPurchase = ({ route, navigation }) => {
             <style>
               body { font-family: Arial; padding: 20px; }
               .header { text-align: center; margin-bottom: 20px; }
-              h1 { color: #0B6623; margin-bottom: 5px; }
+              h1 { color: #00873E; margin-bottom: 5px; }
               h2 { color: #333; margin-top: 0; }
               .info { margin-bottom: 20px; }
               .info-item { margin-bottom: 5px; }
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#0B6623',
+    color: '#00873E',
     textAlign: 'center'
   },
   section: {
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#0B6623',
+    color: '#00873E',
     fontSize: 16
   },
   inputContainer: {
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   tableHeader: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
   tableHeaderTitle: {
     fontWeight: 'bold',
@@ -345,11 +345,11 @@ const styles = StyleSheet.create({
   },
   totalText: {
     fontWeight: 'bold',
-    color: '#0B6623'
+    color: '#00873E'
   },
   totalAmount: {
     fontWeight: 'bold',
-    color: '#0B6623'
+    color: '#00873E'
   },
   termsContainer: {
     padding: 10,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     right: 0
   },
   payButton: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

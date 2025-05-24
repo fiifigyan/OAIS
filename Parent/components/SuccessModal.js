@@ -29,7 +29,7 @@ const SuccessModal = ({
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <View style={styles.iconContainer}>
-            <Icon name="checkmark-circle" size={48} color="#0B6623" />
+            <Icon name="checkmark-circle" size={48} color="#00873E" />
           </View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
     textAlign: 'center',
-    color: '#0B6623',
+    color: '#00873E',
   },
   iconContainer: {
     marginBottom: 20,

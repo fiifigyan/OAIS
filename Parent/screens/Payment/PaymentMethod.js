@@ -38,7 +38,7 @@ const PaymentMethod = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <LinearGradient 
-        colors={['#0B6623', '#03C04A']} 
+        colors={['#00873E', '#03C04A']} 
         style={styles.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
@@ -68,7 +68,7 @@ const PaymentMethod = ({ route, navigation }) => {
                   <Icon 
                     name={option.icon} 
                     size={24} 
-                    color={method === option.value ? 'aliceblue' : '#0B6623'} 
+                    color={method === option.value ? 'aliceblue' : '#00873E'} 
                   />
                 </View>
                 <View style={styles.methodTextContainer}>
@@ -96,7 +96,7 @@ const PaymentMethod = ({ route, navigation }) => {
           disabled={totalAmount <= 0}
         >
           <LinearGradient
-            colors={['#0B6623', '#03C04A']}
+            colors={['#00873E', '#03C04A']}
             style={styles.payButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   methodOptionActive: {
     backgroundColor: 'rgba(0, 0, 128, 0.1)',
     borderLeftWidth: 4,
-    borderLeftColor: '#0B6623',
+    borderLeftColor: '#00873E',
   },
   methodIconContainer: {
     width: 40,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   methodIconContainerActive: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
   methodTextContainer: {
     flex: 1,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   methodLabelActive: {
-    color: '#0B6623',
+    color: '#00873E',
   },
   methodDescription: {
     fontSize: 14,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   detailsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginLeft: 10,
   },
   detailsText: {

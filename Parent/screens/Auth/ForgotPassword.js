@@ -120,7 +120,7 @@ const ForgotPasswordScreen = () => {
                   disabled={isLoading}
                 >
                   <Text style={styles.backLinkText}>
-                    <Icon name="arrow-back" size={16} color="#0B6623" /> Back to Login
+                    <Icon name="arrow-back" size={16} color="#00873E" /> Back to Login
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -167,11 +167,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   subtitle: {
     fontSize: 18,
-    color: '#0B6623',
+    color: '#00873E',
   },
     logo: {
     width: 150,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   button: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 16,
     borderRadius: 8,
     marginTop: 24,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   backLinkText: {
-    color: '#0B6623',
+    color: '#00873E',
     fontWeight: '600',
   },
   submitErrorContainer: {

@@ -24,7 +24,7 @@ const FeeDetailScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#0B6623', '#03C04A']} style={styles.header}>
+      <LinearGradient colors={['#00873E', '#03C04A']} style={styles.header}>
         <Text style={styles.headerTitle}>Fee Details</Text>
         <Text style={styles.headerSubtitle}>Outstanding balance</Text>
         <Text style={styles.totalAmount}>GHS {totalAmount.toFixed(2)}</Text>
@@ -69,7 +69,7 @@ const FeeDetailScreen = ({ navigation }) => {
           disabled={totalAmount <= 0}
         >
           <LinearGradient
-            colors={['#03C04A', '#0B6623']}
+            colors={['#03C04A', '#00873E']}
             style={styles.payButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   feeAmount: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 5,
   },
   feeStatus: {

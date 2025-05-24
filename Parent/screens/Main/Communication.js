@@ -405,7 +405,7 @@ const CommunicationScreen = () => {
     }[status];
 
     const iconColor = {
-      read: '#0B6623',
+      read: '#00873E',
       delivered: '#3498db',
       sent: '#7f8c8d',
       pending: '#7f8c8d'
@@ -506,7 +506,7 @@ const CommunicationScreen = () => {
       <View style={styles.header}>
         <TouchableOpacity>
           {/* implement back arrow functionality */}
-          <Ionicons name="arrow-back" size={20} color="#0B6623" />
+          <Ionicons name="arrow-back" size={20} color="#00873E" />
         </TouchableOpacity>
         <Text style={styles.title}>Parent Communication</Text>
       </View>
@@ -566,7 +566,7 @@ const CommunicationScreen = () => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={['#0B6623']}
+                colors={['#00873E']}
               />
             }
           />
@@ -680,14 +680,14 @@ const CommunicationScreen = () => {
                 style={styles.actionButton}
                 onPress={() => setShowAttachmentOptions(true)}
               >
-                <Ionicons name="attach-outline" size={20} color="#0B6623" />
+                <Ionicons name="attach-outline" size={20} color="#00873E" />
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={styles.actionButton}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Ionicons name="calendar-outline" size={20} color="#0B6623" />
+                <Ionicons name="calendar-outline" size={20} color="#00873E" />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -786,7 +786,7 @@ const CommunicationScreen = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={['#0B6623']}
+              colors={['#00873E']}
             />
           }
         />
@@ -839,18 +839,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeTab: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     borderRadius: 10,
   },
   tabButtonText: {
     fontWeight: '600',
-    color: '#0B6623',
+    color: '#00873E',
   },
   activeTabText: {
     color: 'aliceblue',
   },
   unreadBadge: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     borderRadius: 10,
     width: 20,
     height: 20,
@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
   resultsContainer: {
     maxHeight: 150,
@@ -969,7 +969,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
   messagesList: {
     paddingBottom: 20,
@@ -1214,7 +1214,7 @@ const styles = StyleSheet.create({
   },
   uploadProgressFill: {
     height: '100%',
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
 });
 

@@ -42,12 +42,12 @@ const SettingsScreen = () => {
         <List.Section>
           <Text variant="subheader" marginBottom="small">NOTIFICATIONS</Text>
           <List.Item
-            leading={<Icon name="bell" size={20} color="#0B6623" />}
+            leading={<Icon name="bell" size={20} color="#00873E" />}
             trailing={
               <Switch
                 value={settings.notificationsEnabled}
                 onValueChange={() => toggleSetting('notificationsEnabled')}
-                color="#0B6623"
+                color="#00873E"
               />
             }
           >
@@ -57,12 +57,12 @@ const SettingsScreen = () => {
           {settings.notificationsEnabled && (
             <>
               <List.Item
-                leading={<Icon name="volume-high" size={20} color="#0B6623" />}
+                leading={<Icon name="volume-high" size={20} color="#00873E" />}
                 trailing={
                   <Switch
                     value={settings.soundEnabled}
                     onValueChange={() => toggleSetting('soundEnabled')}
-                    color="#0B6623"
+                    color="#00873E"
                   />
                 }
               >
@@ -70,12 +70,12 @@ const SettingsScreen = () => {
               </List.Item>
               
               <List.Item
-                leading={<Icon name="vibrate" size={20} color="#0B6623" />}
+                leading={<Icon name="vibrate" size={20} color="#00873E" />}
                 trailing={
                   <Switch
                     value={settings.vibrationEnabled}
                     onValueChange={() => toggleSetting('vibrationEnabled')}
-                    color="#0B6623"
+                    color="#00873E"
                   />
                 }
               >
@@ -83,12 +83,12 @@ const SettingsScreen = () => {
               </List.Item>
               
               <List.Item
-                leading={<Icon name="circle" size={20} color="#0B6623" />}
+                leading={<Icon name="circle" size={20} color="#00873E" />}
                 trailing={
                   <Switch
                     value={settings.badgeEnabled}
                     onValueChange={() => toggleSetting('badgeEnabled')}
-                    color="#0B6623"
+                    color="#00873E"
                   />
                 }
               >
@@ -104,7 +104,7 @@ const SettingsScreen = () => {
         <List.Section>
           <Text variant="subheader" marginBottom="small">ACCOUNT</Text>
           <List.Item
-            leading={<Icon name="person" size={20} color="#0B6623" />}
+            leading={<Icon name="person" size={20} color="#00873E" />}
             trailing={<Icon name="chevron-right" size={20} color="#9e9e9e" />}
             onPress={() => navigation.navigate('Profile')}
           >
@@ -112,7 +112,7 @@ const SettingsScreen = () => {
           </List.Item>
           
           <List.Item
-            leading={<Icon name="lock" size={20} color="#0B6623" />}
+            leading={<Icon name="lock" size={20} color="#00873E" />}
             trailing={<Icon name="chevron-right" size={20} color="#9e9e9e" />}
             onPress={() => navigation.navigate('ResetPassword')}
           >
@@ -131,7 +131,7 @@ const SettingsScreen = () => {
           </List.Item>
           
           <List.Item
-            leading={<Icon name="document-text" size={20} color="#0B6623" />}
+            leading={<Icon name="document-text" size={20} color="#00873E" />}
             trailing={<Icon name="chevron-right" size={20} color="#9e9e9e" />}
             onPress={() => navigation.navigate('Terms')}
           >
@@ -139,7 +139,7 @@ const SettingsScreen = () => {
           </List.Item>
           
           <List.Item
-            leading={<Icon name="shield-check" size={20} color="#0B6623" />}
+            leading={<Icon name="shield-check" size={20} color="#00873E" />}
             trailing={<Icon name="chevron-right" size={20} color="#9e9e9e" />}
             onPress={() => navigation.navigate('Privacy')}
           >

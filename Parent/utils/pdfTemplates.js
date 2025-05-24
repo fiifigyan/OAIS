@@ -22,7 +22,7 @@ const commonHeader = (schoolInfo, title, studentData) => {
         .student-info { margin-bottom: 20px; }
         .student-name { font-size: 18px; font-weight: bold; }
         .subject-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .subject-table th { background-color: #0B6623; color: white; padding: 8px; text-align: center; }
+        .subject-table th { background-color: #00873E; color: white; padding: 8px; text-align: center; }
         .subject-table td { border: 1px solid #ddd; padding: 8px; }
         .subject-name { text-align: left; }
         .score { text-align: center; }
@@ -267,13 +267,13 @@ export const generateGradebookHTML = (studentData, schoolInfo) => {
         .section-title { 
           font-size: 14pt; 
           font-weight: bold; 
-          border-bottom: 1px solid #0B6623; 
+          border-bottom: 1px solid #00873E; 
           padding-bottom: 3px;
           margin-bottom: 10px;
-          color: #0B6623;
+          color: #00873E;
         }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th { background: #0B6623; color: aliceblue; text-align: left; padding: 8px; }
+        th { background: #00873E; color: aliceblue; text-align: left; padding: 8px; }
         td { padding: 8px; border-bottom: 1px solid #ddd; }
         .progress-bar { 
           height: 15px; 
@@ -283,7 +283,7 @@ export const generateGradebookHTML = (studentData, schoolInfo) => {
         }
         .progress-fill { 
           height: 100%; 
-          background: #0B6623; 
+          background: #00873E; 
           border-radius: 3px;
         }
         .footer { 
@@ -398,13 +398,13 @@ export const generateReportHTML = (studentData, schoolInfo) => {
         .section-title { 
           font-size: 14pt; 
           font-weight: bold; 
-          border-bottom: 1px solid #0B6623; 
+          border-bottom: 1px solid #00873E; 
           padding-bottom: 3px;
           margin-bottom: 10px;
-          color: #0B6623;
+          color: #00873E;
         }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th { background: #0B6623; color: aliceblue; text-align: left; padding: 8px; }
+        th { background: #00873E; color: aliceblue; text-align: left; padding: 8px; }
         td { padding: 8px; border-bottom: 1px solid #ddd; }
         .comment-box { 
           border: 1px solid #ddd; 
@@ -466,7 +466,7 @@ export const generateReportHTML = (studentData, schoolInfo) => {
                   <div style="display: flex; align-items: center;">
                     <div style="width: 60px; margin-right: 10px;">${subject.progress}%</div>
                     <div style="flex-grow: 1; height: 10px; background: #e0e0e0; border-radius: 5px;">
-                      <div style="height: 100%; width: ${subject.progress}%; background: #0B6623; border-radius: 5px;"></div>
+                      <div style="height: 100%; width: ${subject.progress}%; background: #00873E; border-radius: 5px;"></div>
                     </div>
                   </div>
                 </td>

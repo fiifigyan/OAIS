@@ -45,9 +45,9 @@ const BiometricScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.iconContainer}>
         {biometricType === 'Face ID' ? (
-          <Icon name="face-recognition" size={80} color="#0B6623" />
+          <Icon name="face-recognition" size={80} color="#00873E" />
         ) : (
-          <Icon name="finger-print" size={80} color="#0B6623" />
+          <Icon name="finger-print" size={80} color="#00873E" />
         )}
       </View>
       
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   button: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 15,
     borderRadius: 10,
     width: '100%',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   passwordText: {
-    color: '#0B6623',
+    color: '#00873E',
     fontSize: 16,
     fontWeight: '600'
   },

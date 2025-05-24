@@ -49,7 +49,7 @@ function MainAppContent() {
             name: 'default',
             importance: Notifications.AndroidImportance.MAX,
             vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#0B6623',
+            lightColor: '#00873E',
             sound: 'default',
           });
         }
@@ -110,10 +110,10 @@ function MainAppContent() {
         routeNameRef.current = currentRouteName;
       }}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#0B6623' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#00873E' }}>
         <StatusBar 
           barStyle="light-content" 
-          backgroundColor="#0B6623" 
+          backgroundColor="#00873E" 
         />
         {!userInfo ? (
           <AuthStack />

@@ -13,7 +13,7 @@ async function configureAndroidChannel() {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#0B6623',
+      lightColor: '#007848',
       sound: 'default',
     });
   }

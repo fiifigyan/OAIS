@@ -52,7 +52,7 @@ const EditProfileScreen = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0B6623" />
+        <ActivityIndicator size="large" color="#00873E" />
       </View>
     );
   }
@@ -61,7 +61,7 @@ const EditProfileScreen = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={24} color="#0B6623" />
+          <Icon name="arrow-back" size={24} color="#00873E" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
       </View>
@@ -71,7 +71,7 @@ const EditProfileScreen = () => {
           {profileData.profileImage ? (
             <Image source={{ uri: profileData.profileImage }} style={styles.profileImage} />
           ) : (
-            <Icon name="add-a-photo" size={40} color="#0B6623" />
+            <Icon name="add-a-photo" size={40} color="#00873E" />
           )}
         </TouchableOpacity>
       </View>
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginLeft: 10,
-    color: '#0B6623',
+    color: '#00873E',
   },
   profileImageContainer: {
     alignItems: 'center',
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   submitButton: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',

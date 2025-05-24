@@ -324,7 +324,7 @@ const ReportCardGenerator = ({ navigation, route }) => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0B6623" />
+          <ActivityIndicator size="large" color="#00873E" />
         </View>
       ) : reportData ? (
         <>
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 8,
   },
   headerCell: {

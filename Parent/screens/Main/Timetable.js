@@ -57,7 +57,7 @@ const TimetableScreen = () => {
   if (loading && !refreshing) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0B6623" />
+        <ActivityIndicator size="large" color="#00873E" />
       </SafeAreaView>
     );
   }
@@ -69,7 +69,7 @@ const TimetableScreen = () => {
       {/* <View style={styles.header}>
         <Text style={styles.headerText}>Class Timetable</Text>
         <TouchableOpacity onPress={handleRefresh}>
-          <Icon name="refresh" size={24} color="#0B6623" />
+          <Icon name="refresh" size={24} color="#00873E" />
         </TouchableOpacity>
       </View> */}
 
@@ -81,8 +81,8 @@ const TimetableScreen = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#0B6623']}
-            tintColor="#0B6623"
+            colors={['#00873E']}
+            tintColor="#00873E"
           />
         }
       >
@@ -92,7 +92,7 @@ const TimetableScreen = () => {
             onPress={() => handleDayChange(day.id)}
           >
             <LinearGradient
-              colors={currentDay === day.id ? ['#0B6623', '#4CAF50'] : ['#ffffff', '#f5f5f5']}
+              colors={currentDay === day.id ? ['#00873E', '#4CAF50'] : ['#ffffff', '#f5f5f5']}
               style={[styles.dayTab, currentDay === day.id && styles.activeDayTab]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 0}}
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   daySelector: {
     padding: 5,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   activeDayTab: {
-    shadowColor: '#0B6623',
+    shadowColor: '#00873E',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   classTime: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   classDetails: {
     flex: 1,

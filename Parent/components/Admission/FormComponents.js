@@ -155,7 +155,7 @@ export const renderDateInput = (label, name) => {
           onPress={() => setShowDatePicker(true)}
           style={styles.calendarButton}
         >
-          <Icon name="calendar" size={24} color="#0B6623" />
+          <Icon name="calendar" size={24} color="#00873E" />
         </TouchableOpacity>
       </View>
       {showDatePicker && (

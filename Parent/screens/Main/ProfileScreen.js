@@ -15,7 +15,7 @@ const ProfileScreen = ({ route }) => {
   // if (!studentId) {
   //   return (
   //     <SafeAreaView style={styles.errorContainer}>
-  //         <Icon name="alert-circle-outline" size={48} color="#0B6623" />
+  //         <Icon name="alert-circle-outline" size={48} color="#00873E" />
   //       <Text style={styles.errorText}>Student ID not provided</Text>
   //       <TouchableOpacity 
   //         style={styles.retryButton}
@@ -87,7 +87,7 @@ const ProfileScreen = ({ route }) => {
   // if (error || !studentInfo) {
   //   return (
   //     <SafeAreaView style={styles.errorContainer}>
-  //       <Icon name="alert-circle-outline" size={48} color="#0B6623" />
+  //       <Icon name="alert-circle-outline" size={48} color="#00873E" />
   //       <Text style={styles.errorText}>
   //         {error || 'Failed to load student profile'}
   //       </Text>
@@ -175,13 +175,13 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    color: '#0B6623',
+    color: '#00873E',
     fontSize: 16,
     marginVertical: 20,
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 6,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 2,
-    borderColor: '#0B6623',
+    borderColor: '#00873E',
   },
   profileInfo: {
     flex: 1,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 4,
   },
   profileClass: {
@@ -240,12 +240,12 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 3,
-    borderBottomColor: '#0B6623',
+    borderBottomColor: '#00873E',
   },
   tabText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0B6623',
+    color: '#00873E',
   },
   section: {
     backgroundColor: 'aliceblue',
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,

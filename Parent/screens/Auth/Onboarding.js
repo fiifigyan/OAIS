@@ -11,28 +11,28 @@ const slides = [
     title: 'Welcome to OAIS',
     text: 'Simplify admissions and manage school life in one place.',
     animation: require('../../assets/animations/welcome.json'),
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
   {
     key: '2',
     title: 'Simplified Admissions',
     text: 'Apply for admissions and track your application with ease.',
     animation: require('../../assets/animations/admissions.json'),
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
   {
     key: '3',
     title: 'Stay Connected',
     text: 'Get real-time updates and never miss important announcements.',
     animation: require('../../assets/animations/notifications.json'),
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
   {
     key: '4',
     title: 'Secure Document Storage',
     text: 'Your important documents are safe and accessible anytime.',
     animation: require('../../assets/animations/security.json'),
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
   },
 ];
 
@@ -115,12 +115,12 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 18,
-    color: 'rgba(255,255,255,0.9)',
+    color: '#F0F8FF',
     textAlign: 'center',
     lineHeight: 24,
   },
   doneButton: {
-    backgroundColor: '#03C013',
+    backgroundColor: '#0B6623',
     padding: 10,
     borderRadius: 30,
     marginTop: 5,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeDot: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#F0F8FF',
     width: 30,
     height: 8,
     borderRadius: 4,

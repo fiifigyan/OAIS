@@ -51,7 +51,7 @@ const VerifyEmailScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Icon name="mail-open" size={60} color="#0B6623" />
+        <Icon name="mail-open" size={60} color="#00873E" />
       </View>
 
       <Text style={styles.title}>Verify Your Email</Text>
@@ -101,7 +101,7 @@ const VerifyEmailScreen = ({ navigation }) => {
         disabled={resendLoading}
       >
         {resendLoading ? (
-          <ActivityIndicator color="#0B6623" />
+          <ActivityIndicator color="#00873E" />
         ) : (
           <Text style={styles.resendText}>Resend Verification Email</Text>
         )}
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     color: '#666'
   },
   button: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
   resendText: {
-    color: '#0B6623',
+    color: '#00873E',
     fontSize: 16,
     fontWeight: '600'
   },

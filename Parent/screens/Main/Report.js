@@ -91,7 +91,7 @@ const ReportScreen = ({ navigation, route }) => {
   if (!reportData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator animating={true} size="large" color="#0B6623" />
+        <ActivityIndicator animating={true} size="large" color="#00873E" />
       </View>
     );
   }
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginTop: 4,
   },
   sectionHeader: {
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   subjectGrade: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
   },
   subjectPosition: {
     fontSize: 12,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     borderRadius: 4,
   },
   progressText: {
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   exportButton: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 12,
     borderRadius: 4,
     width: '80%',

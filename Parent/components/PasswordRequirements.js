@@ -18,7 +18,7 @@ const PasswordRequirements = ({ password }) => {
           <Icon 
             name={met ? 'checkmark-circle' : 'close-circle'} 
             size={16} 
-            color={met ? '#0B6623' : '#F44336'} 
+            color={met ? '#00873E' : '#F44336'} 
           />
           <Text style={[styles.text, met ? styles.met : styles.unmet]}>
             {label}
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   met: {
-    color: '#0B6623',
+    color: '#00873E',
   },
   unmet: {
     color: '#757575',

@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0B6623',
+    color: '#00873E',
     marginTop: 12,
     marginBottom: 8,
   },
@@ -43,14 +43,14 @@ const styles = StyleSheet.create({
     width: 120,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#0B6623',
+    borderColor: '#00873E',
   },
   backButtonText: {
-    color: '#0B6623',
+    color: '#00873E',
     fontWeight: '500',
   },
   nextButton: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     borderRadius: 4,
     padding: 12,
     width: 120,

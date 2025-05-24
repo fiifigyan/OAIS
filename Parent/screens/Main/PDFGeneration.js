@@ -87,7 +87,7 @@ const PDFGenerationScreen = ({ route, navigation }) => {
       {/* Main content */}
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator size="large" color="#0B6623" />
+          <ActivityIndicator size="large" color="#00873E" />
         ) : (
           <TouchableOpacity
             style={[styles.button, !chartsReady && styles.buttonDisabled]}
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    backgroundColor: '#0B6623',
+    backgroundColor: '#00873E',
     padding: 15,
     borderRadius: 5,
     width: '80%',
