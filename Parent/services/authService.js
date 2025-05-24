@@ -15,7 +15,7 @@ const AuthService = {
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`,
         userData,
-        { timeout: 10000 }
+        { timeout: 30000 }
       );
       console.log('Response:', response.data);
 
@@ -24,6 +24,7 @@ const AuthService = {
       }
 
       await manageAuthToken(response.data.token);
+      console.log('Registration successful:', response.data);
       return {
         message: response.data.message,
         token: response.data.token,
@@ -50,7 +51,7 @@ const AuthService = {
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`,
         credentials,
-        { timeout: 10000 }
+        { timeout: 30000 }
       );
 
       if (!response.data?.token) {
@@ -58,6 +59,10 @@ const AuthService = {
       }
 
       await manageAuthToken(response.data.token);
+      console.log('Login response:', response.data);
+      if (response.data.isTemporary) {
+        console.warn('Temporary token received. User may need to verify email.');
+      }
       return {
         token: response.data.token,
         message: response.data.message
@@ -104,7 +109,7 @@ const AuthService = {
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.REFRESH}`,
         { token: currentToken },
-        { timeout: 10000 }
+        { timeout: 30000 }
       );
 
       const newToken = response.data?.token;
@@ -145,7 +150,7 @@ const AuthService = {
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.FORGOT}`,
         { email },
-        { timeout: 10000 }
+        { timeout: 30000 }
       );
       return response.data;
     } catch (error) {
@@ -164,7 +169,7 @@ const AuthService = {
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.RESET}`,
         { token, newPassword },
-        { timeout: 10000 }
+        { timeout: 30000 }
       );
       return response.data;
     } catch (error) {
