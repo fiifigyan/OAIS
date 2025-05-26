@@ -10,6 +10,10 @@ const AuthService = {
    */
   async signup(userData) {
     try {
+      //Log the user data and API URL for debugging purposes
+      console.log('User registration data:', userData);
+      console.log('API URL:', `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`);
+      // Make the API call to register the user
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`,
         userData,
@@ -21,7 +25,9 @@ const AuthService = {
       }
 
       await manageAuthToken(response.data.token);
-      return response.data; // Backend should include isTemporary flag
+      // Log the response data for debugging purposes
+      console.log('Registration response:', response.data);
+      return response.data;
     } catch (error) {
       console.error('Registration error:', error);
       throw new Error(sanitizeError(error));
@@ -35,6 +41,9 @@ const AuthService = {
    */
   async login(credentials) {
     try {
+      // Log the credentials and API URL for debugging purposes
+      console.log('Login credentials:', credentials);
+      console.log('API URL:', `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`);
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`,
         credentials,
@@ -46,7 +55,9 @@ const AuthService = {
       }
 
       await manageAuthToken(response.data.token);
-      return response.data; // Backend should include isTemporary flag
+      // Log the response data for debugging purposes
+      console.log('Login response:', response.data);
+      return response.data;
     } catch (error) {
       console.error('Login error:', error);
       throw new Error(sanitizeError(error));
