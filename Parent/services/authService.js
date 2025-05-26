@@ -1,53 +1,40 @@
 import axios from 'axios';
-import { manageAuthToken, getAuthToken, sanitizeError } from '../utils/helpers';
+import { manageAuthToken, sanitizeError } from '../utils/helpers';
 import { APIConfig } from '../config';
 
 const AuthService = {
   /**
-   * Handles user registration (returns temporary token)
+   * Handles user registration
    * @param {Object} userData - User registration data
-   * @returns {Promise<{token: string, email: string, isTemporary: boolean, message?: string}>} Registration result
+   * @returns {Promise<{token: string, email: string, isTemporary: boolean}>} Registration result
    */
   async signup(userData) {
     try {
-      console.log('Full API URL:', `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`);
-      console.log('Request payload:', userData);
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`,
         userData,
         { timeout: 30000 }
       );
-      console.log('Response:', response.data);
 
       if (!response.data?.token) {
         throw new Error('Registration failed: No token received');
       }
 
       await manageAuthToken(response.data.token);
-      console.log('Registration successful:', response.data);
-      return {
-        message: response.data.message,
-        token: response.data.token,
-      };
+      return response.data; // Backend should include isTemporary flag
     } catch (error) {
-    console.error('Detailed registration error:', {
-      message: error.message,
-      response: error.response?.data,
-      config: error.config
-    });
+      console.error('Registration error:', error);
       throw new Error(sanitizeError(error));
     }
   },
 
   /**
-   * Handles user login (returns permanent token)
+   * Handles user login
    * @param {Object} credentials - Login credentials
-   * @returns {Promise<{token: string, email: string, StudentID: string, isTemporary: boolean, message?: string}>} Login result
+   * @returns {Promise<{token: string, email: string, StudentID: string, isTemporary: boolean}>} Login result
    */
   async login(credentials) {
     try {
-      console.log('API Endpoint:', `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`);
-      console.log('Credentials:', credentials);
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.AUTH.LOGIN}`,
         credentials,
@@ -59,14 +46,7 @@ const AuthService = {
       }
 
       await manageAuthToken(response.data.token);
-      console.log('Login response:', response.data);
-      if (response.data.isTemporary) {
-        console.warn('Temporary token received. User may need to verify email.');
-      }
-      return {
-        token: response.data.token,
-        message: response.data.message
-      };
+      return response.data; // Backend should include isTemporary flag
     } catch (error) {
       console.error('Login error:', error);
       throw new Error(sanitizeError(error));
@@ -74,7 +54,7 @@ const AuthService = {
   },
 
   /**
-   * Handles user logout (only for permanent tokens)
+   * Handles user logout
    * @returns {Promise<{success: boolean}>} Logout result
    */
   async logout() {
@@ -100,7 +80,7 @@ const AuthService = {
   },
 
   /**
-   * Refresh authentication token (only for permanent tokens)
+   * Refresh authentication token
    * @param {string} currentToken - Current JWT token
    * @returns {Promise<string>} New token
    */
@@ -128,12 +108,20 @@ const AuthService = {
   /**
    * Verify token validity
    * @param {string} token - JWT token to verify
-   * @returns {Promise<{valid: boolean, payload?: object}>} Verification result
+   * @returns {Promise<{valid: boolean, isTemporary?: boolean}>} Verification result
    */
   async verifyToken(token) {
     try {
-      const payload = await verifyToken(token);
-      return { valid: !!payload, payload };
+      const response = await axios.post(
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.VERIFY}`,
+        { token },
+        { timeout: 10000 }
+      );
+      
+      return {
+        valid: response.data?.valid || false,
+        isTemporary: response.data?.isTemporary || false
+      };
     } catch (error) {
       console.error('Token verification failed:', error);
       return { valid: false };

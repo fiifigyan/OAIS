@@ -7,7 +7,7 @@ import AuthService from '../services/AuthService';
  * @property {string} token - JWT token
  * @property {string} email - User email
  * @property {string} [StudentID] - Optional student ID
- * @property {boolean} isTemporary - Flag for temporary token
+ * @property {boolean} isTemporary - Flag for temporary token (should come from backend)
  */
 
 /**
@@ -15,12 +15,10 @@ import AuthService from '../services/AuthService';
  * @property {UserInfo|null} userInfo - Current user info
  * @property {boolean} initialLoading - Initial auth loading state
  * @property {boolean} isLoading - General loading state
- * @property {boolean} isNewUser - Flag for new user registration
  * @property {(credentials: {email: string, password: string, StudentID?: string}) => Promise<UserInfo>} login - Login function
  * @property {(userData: {email: string, password: string}) => Promise<UserInfo>} register - Registration function
  * @property {() => Promise<void>} logout - Logout function
  * @property {() => Promise<void>} refreshToken - Token refresh function
- * @property {boolean} isTemporaryToken - Flag indicating if current token is temporary
  */
 
 export const AuthContext = createContext(/** @type {AuthContextType} */ (null));
@@ -29,7 +27,6 @@ export const AuthProvider = ({ children }) => {
   const [userInfo, setUserInfo] = useState(/** @type {UserInfo|null} */ (null));
   const [initialLoading, setInitialLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false);
 
   // Token refresh interval (30 minutes)
   const TOKEN_REFRESH_INTERVAL = 30 * 60 * 1000;
@@ -58,8 +55,7 @@ export const AuthProvider = ({ children }) => {
       const userInfoString = await SecureStore.getItemAsync('userInfo');
       const token = await SecureStore.getItemAsync('authToken');
       if (userInfoString && token) {
-        const parsedData = JSON.parse(userInfoString);
-        return { ...parsedData, token };
+        return JSON.parse(userInfoString);
       }
       return null;
     } catch (error) {
@@ -79,7 +75,6 @@ export const AuthProvider = ({ children }) => {
       console.error('Failed to clear auth data:', error);
     }
     setUserInfo(null);
-    setIsNewUser(false);
   }, []);
 
   /**
@@ -107,13 +102,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const storedUser = await loadUserData();
       if (storedUser) {
-        // Check token validity
+        // Verify token with backend
         const tokenResponse = await AuthService.verifyToken(storedUser.token);
         if (tokenResponse?.valid) {
           setUserInfo(storedUser);
-          setIsNewUser(storedUser.isTemporary || false);
           
-          // Only set up refresh interval for permanent tokens
+          // Only set up refresh interval if token is not temporary
           if (!storedUser.isTemporary) {
             const refreshInterval = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL);
             return () => clearInterval(refreshInterval);
@@ -142,10 +136,8 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const userData = await AuthService.login(credentials);
-      const permanentUserData = { ...userData, isTemporary: false };
-      await saveUserData(permanentUserData);
-      setIsNewUser(false);
-      return permanentUserData;
+      await saveUserData(userData);
+      return userData;
     } finally {
       setIsLoading(false);
     }
@@ -160,10 +152,8 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await AuthService.signup(userData);
-      const tempUserData = { ...response, isTemporary: true };
-      await saveUserData(tempUserData);
-      setIsNewUser(true);
-      return tempUserData;
+      await saveUserData(response);
+      return response;
     } finally {
       setIsLoading(false);
     }
@@ -175,7 +165,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
-      if (userInfo && !userInfo.isTemporary) {
+      if (userInfo?.token) {
         await AuthService.logout();
       }
     } catch (error) {
@@ -192,8 +182,6 @@ export const AuthProvider = ({ children }) => {
         userInfo,
         initialLoading,
         isLoading,
-        isNewUser,
-        isTemporaryToken: userInfo?.isTemporary || false,
         login,
         register,
         logout,

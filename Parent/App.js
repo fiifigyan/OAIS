@@ -36,11 +36,11 @@ LogBox.ignoreLogs([
 function MainAppContent() {
   const navigationRef = useRef();
   const routeNameRef = useRef();
-  const { userInfo, isTemporaryToken } = useAuth();
+  const { userInfo } = useAuth();
 
   // Initialize notifications (only for permanent tokens)
   useEffect(() => {
-    if (isTemporaryToken) return;
+    if (userInfo?.isTemporary) return;
 
     const setupNotifications = async () => {
       try {
@@ -96,7 +96,7 @@ function MainAppContent() {
     };
 
     setupNotifications();
-  }, [userInfo, isTemporaryToken]);
+  }, [userInfo]);
 
   return (
     <NavigationContainer 
@@ -117,7 +117,7 @@ function MainAppContent() {
         />
         {!userInfo ? (
           <AuthStack />
-        ) : isTemporaryToken ? (
+        ) : userInfo.isTemporary ? (
           <AdmissionNavigator initialRouteName="Welcome" />
         ) : (
           <StackNavigator initialRouteName="Drawer" />

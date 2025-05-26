@@ -126,28 +126,15 @@ export const formatFileSize = (bytes) => {
 /**
  * Manages authentication token in secure storage and axios headers
  * @param {string|null} token - Token to store or null to clear
- * @param {boolean} [isTemporary=false] - Whether the token is temporary
  */
-export const manageAuthToken = async (token, isTemporary = false) => {
+export const manageAuthToken = async (token) => {
   try {
-    logger.debug('Managing auth token', { 
-      action: token ? 'Storing' : 'Clearing',
-      type: isTemporary ? 'Temporary' : 'Permanent'
-    });
-
     if (token) {
       await SecureStore.setItemAsync('authToken', token);
-      
-      // Only set axios header for permanent tokens
-      if (!isTemporary) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      }
-      
-      logger.info('Auth token stored', { type: isTemporary ? 'Temporary' : 'Permanent' });
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
       await SecureStore.deleteItemAsync('authToken');
       delete axios.defaults.headers.common['Authorization'];
-      logger.info('Auth token cleared');
     }
   } catch (error) {
     logger.error('Token management failed', error);
@@ -170,39 +157,19 @@ export const getAuthToken = async () => {
 };
 
 /**
- * Decodes and verifies a JWT token
+ * Decodes and verifies a JWT token (minimal implementation - backend does main validation)
  * @param {string} token - JWT token to verify
- * @returns {Promise<{message: string, token: string}>}
+ * @returns {Promise<{valid: boolean}>}
  */
 export const verifyToken = async (token) => {
-  if (!token) {
-    logger.debug('Token verification failed: No token provided');
-    return { valid: false };
-  }
-
+  if (!token) return { valid: false };
+  
   try {
-    const decoded = jwtDecode(token);
+    // Just check if it's a valid JWT format - actual validation happens on backend
+    const parts = token.split('.');
+    if (parts.length !== 3) return { valid: false };
     
-    // Basic token structure validation
-    if (typeof decoded !== 'object' || !decoded.exp) {
-      logger.error('Invalid token structure');
-      return { valid: false };
-    }
-
-    // Check expiration
-    if (Date.now() >= decoded.exp * 1000) {
-      logger.error('Token expired');
-      return { valid: false };
-    }
-
-    // Check if token is temporary (lacks certain claims)
-    const isTemporary = !decoded.StudentID && !decoded.scope;
-
-    return { 
-      valid: true, 
-      payload: decoded,
-      isTemporary 
-    };
+    return { valid: true };
   } catch (error) {
     logger.error('Token verification failed:', error);
     return { valid: false };
