@@ -32,7 +32,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "monochromeImage": "./assets/icons/adaptive-icon.png",
-        "backgroundColor": "#00873E"
+        "backgroundColor": "#F0F8FF"
       },
       "package": "com.altera.parent",
       "permissions": [
