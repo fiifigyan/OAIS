@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { AdmissionContext } from '../../context/AdmissionContext';
-import { renderInput } from '../../components/Admission/FormComponents';
+import { renderInput, renderSectionHeader } from '../../components/Admission/FormComponents';
 
 const styles = StyleSheet.create({
   container: {
@@ -9,21 +9,14 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f5f5f5',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00873E',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 8,
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 10,
   },
-  sectionSubtitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00873E',
-    marginTop: 12,
-    marginBottom: 8,
+  errorText: {
+    color: '#d32f2f',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -57,65 +50,80 @@ const styles = StyleSheet.create({
 });
 
 const ParentFormPage = ({ navigation }) => {
-  const { validateForm } = useContext(AdmissionContext);
+  const { 
+    formData, 
+    formErrors,
+    validateSection,
+    setFormFieldValue 
+  } = useContext(AdmissionContext);
+  const [sectionErrors, setSectionErrors] = useState({});
 
   const handleNext = async () => {
-    // Validate only parent section before proceeding
-    const errors = await validateForm();
-    const parentErrors = errors?.parentGuardian || {};
+    const errors = await validateSection('parent', formData.parentGuardian);
+    setSectionErrors(errors);
     
-    if (Object.keys(parentErrors).length === 0) {
+    if (Object.keys(errors).length === 0) {
       navigation.navigate('Academic');
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.sectionTitle}>Father's Information</Text>
-      {renderInput('Surname *', 'parentGuardian.fatherSurName')}
-      {renderInput('First Name *', 'parentGuardian.fatherFirstName')}
+      {renderSectionHeader('Parent Information', 'Please provide details for at least one parent')}
+
+      {Object.keys(sectionErrors).length > 0 && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Please fix all errors before proceeding
+          </Text>
+        </View>
+      )}
+
+      {renderSectionHeader('Father\'s Information')}
+      {renderInput('Surname *', 'parentGuardian.fatherSurName', formErrors.parentGuardian?.fatherSurName)}
+      {renderInput('First Name *', 'parentGuardian.fatherFirstName', formErrors.parentGuardian?.fatherFirstName)}
       {renderInput('Middle Name', 'parentGuardian.fatherMiddleName')}
       
-      <Text style={styles.sectionSubtitle}>Father's Address</Text>
+      {renderSectionHeader('Father\'s Address')}
       {renderInput('Street', 'parentGuardian.fatherAddress.street')}
       {renderInput('House Number', 'parentGuardian.fatherAddress.houseNumber')}
-      {renderInput('City *', 'parentGuardian.fatherAddress.city')}
-      {renderInput('Region/State *', 'parentGuardian.fatherAddress.region')}
-      {renderInput('Country *', 'parentGuardian.fatherAddress.country')}
+      {renderInput('City *', 'parentGuardian.fatherAddress.city', formErrors.parentGuardian?.fatherAddress?.city)}
+      {renderInput('Region/State *', 'parentGuardian.fatherAddress.region', formErrors.parentGuardian?.fatherAddress?.region)}
+      {renderInput('Country *', 'parentGuardian.fatherAddress.country', formErrors.parentGuardian?.fatherAddress?.country)}
       
       {renderInput('Religion', 'parentGuardian.fatherReligion')}
-      {renderInput('Contact Number *', 'parentGuardian.fatherContactNumber', 'phone-pad')}
-      {renderInput('Occupation *', 'parentGuardian.fatherOccupation')}
+      {renderInput('Contact Number *', 'parentGuardian.fatherContactNumber', formErrors.parentGuardian?.fatherContactNumber, 'phone-pad')}
+      {renderInput('Occupation *', 'parentGuardian.fatherOccupation', formErrors.parentGuardian?.fatherOccupation)}
       {renderInput('Company Name', 'parentGuardian.fatherCompanyName')}
       {renderInput('Business Address', 'parentGuardian.fatherBusinessAddress')}
-      {renderInput('Email Address *', 'parentGuardian.fatherEmailAddress', 'email-address')}
+      {renderInput('Email Address *', 'parentGuardian.fatherEmailAddress', formErrors.parentGuardian?.fatherEmailAddress, 'email-address')}
 
-      <Text style={styles.sectionTitle}>Mother's Information</Text>
-      {renderInput('Surname *', 'parentGuardian.motherSurName')}
-      {renderInput('First Name *', 'parentGuardian.motherFirstName')}
+      {renderSectionHeader('Mother\'s Information')}
+      {renderInput('Surname *', 'parentGuardian.motherSurName', formErrors.parentGuardian?.motherSurName)}
+      {renderInput('First Name *', 'parentGuardian.motherFirstName', formErrors.parentGuardian?.motherFirstName)}
       {renderInput('Middle Name', 'parentGuardian.motherMiddleName')}
       
-      <Text style={styles.sectionSubtitle}>Mother's Address</Text>
+      {renderSectionHeader('Mother\'s Address')}
       {renderInput('Street', 'parentGuardian.motherAddress.street')}
       {renderInput('House Number', 'parentGuardian.motherAddress.houseNumber')}
-      {renderInput('City *', 'parentGuardian.motherAddress.city')}
-      {renderInput('Region/State *', 'parentGuardian.motherAddress.region')}
-      {renderInput('Country *', 'parentGuardian.motherAddress.country')}
+      {renderInput('City *', 'parentGuardian.motherAddress.city', formErrors.parentGuardian?.motherAddress?.city)}
+      {renderInput('Region/State *', 'parentGuardian.motherAddress.region', formErrors.parentGuardian?.motherAddress?.region)}
+      {renderInput('Country *', 'parentGuardian.motherAddress.country', formErrors.parentGuardian?.motherAddress?.country)}
       
       {renderInput('Religion', 'parentGuardian.motherReligion')}
-      {renderInput('Contact Number *', 'parentGuardian.motherContactNumber', 'phone-pad')}
-      {renderInput('Occupation *', 'parentGuardian.motherOccupation')}
+      {renderInput('Contact Number *', 'parentGuardian.motherContactNumber', formErrors.parentGuardian?.motherContactNumber, 'phone-pad')}
+      {renderInput('Occupation *', 'parentGuardian.motherOccupation', formErrors.parentGuardian?.motherOccupation)}
       {renderInput('Company Name', 'parentGuardian.motherCompanyName')}
       {renderInput('Business Address', 'parentGuardian.motherBusinessAddress')}
-      {renderInput('Email Address *', 'parentGuardian.motherEmailAddress', 'email-address')}
+      {renderInput('Email Address *', 'parentGuardian.motherEmailAddress', formErrors.parentGuardian?.motherEmailAddress, 'email-address')}
 
-      <Text style={styles.sectionTitle}>Additional Contacts</Text>
+      {renderSectionHeader('Additional Contacts')}
       {renderInput('Additional Contact Name', 'additionalContact.fullName')}
-      {renderInput('Contact Number', 'additionalContact.contactNumber', 'phone-pad')}
+      {renderInput('Contact Number', 'additionalContact.contactNumber', null, 'phone-pad')}
       {renderInput('Relationship', 'additionalContact.relationshipToPupil')}
       
       {renderInput('Authorized Pickup Name', 'authorizedPickup.fullName')}
-      {renderInput('Contact Number', 'authorizedPickup.contactNumber', 'phone-pad')}
+      {renderInput('Contact Number', 'authorizedPickup.contactNumber', null, 'phone-pad')}
       {renderInput('Relationship', 'authorizedPickup.relationshipToPupil')}
 
       <View style={styles.buttonContainer}>

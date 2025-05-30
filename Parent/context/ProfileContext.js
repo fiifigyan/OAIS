@@ -4,121 +4,123 @@ import ProfileService from '../services/ProfileService';
 export const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
-  const [parentInfo, setParentInfo] = useState(null);
-  const [students, setStudents] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [profileData, setProfileData] = useState({
+    parent: null,
+    students: [],
+    activeStudent: null,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const loadParentProfile = async (parentId) => {
+  const loadProfileData = async (parentId) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await ProfileService.getParentProfile(parentId);
-      setParentInfo(data);
-      return data;
-    } catch (error) {
-      console.error('Failed to load parent profile:', error.message);
-      setError(error.message);
-      throw error;
+      
+      const [parentData, studentsData] = await Promise.all([
+        ProfileService.getParentProfile(parentId),
+        ProfileService.getStudentsByParent(parentId)
+      ]);
+
+      setProfileData({
+        parent: parentData,
+        students: studentsData,
+        activeStudent: studentsData[0] || null
+      });
+      
+      return { parent: parentData, students: studentsData };
+    } catch (err) {
+      setError(err.message);
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateParentProfile = async (parentId, updates) => {
+  const setActiveStudent = (studentId) => {
+    const student = profileData.students.find(s => s.studentId === studentId);
+    if (student) {
+      setProfileData(prev => ({
+        ...prev,
+        activeStudent: student
+      }));
+    }
+  };
+
+  const updateProfile = async (type, id, updates) => {
     try {
       setLoading(true);
-      setError(null);
       
-      // Handle profile image upload if included
-      if (updates.profileImage) {
-        const imageResponse = await ProfileService.uploadParentProfileImage(
-          parentId, 
-          updates.profileImage
-        );
-        
-        // Remove the image from updates, it's been handled separately
-        delete updates.profileImage;
-        
-        // Add the returned image path to the updates
-        if (imageResponse && imageResponse.profileImagePath) {
-          updates.profileImagePath = imageResponse.profileImagePath;
-        }
+      // Optimistic update
+      const prevData = {...profileData};
+      if (type === 'parent') {
+        setProfileData(prev => ({
+          ...prev,
+          parent: { ...prev.parent, ...updates }
+        }));
+      } else {
+        setProfileData(prev => ({
+          ...prev,
+          activeStudent: { ...prev.activeStudent, ...updates }
+        }));
       }
+
+      // API call
+      const updatedData = type === 'parent' 
+        ? await ProfileService.updateParentProfile(id, updates)
+        : await ProfileService.updateStudentProfile(id, updates);
+
+      // Confirm update
+      setProfileData(prev => ({
+        ...prev,
+        [type === 'parent' ? 'parent' : 'activeStudent']: updatedData
+      }));
       
-      const updatedProfile = await ProfileService.updateParentProfile(parentId, updates);
-      setParentInfo(updatedProfile);
-      return updatedProfile;
-    } catch (error) {
-      console.error('Failed to update profile:', error.message);
-      setError(error.message);
-      throw error;
+      return updatedData;
+    } catch (err) {
+      // Revert on error
+      setProfileData(prevData);
+      setError(err.message);
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const loadStudents = async (parentId) => {
+  const uploadProfileImage = async (type, id, imageUri) => {
     try {
-      setLoading(true);
-      setError(null);
-      const studentsData = await ProfileService.getStudentsByParent(parentId);
-      setStudents(studentsData);
-      return studentsData;
-    } catch (error) {
-      console.error('Failed to load students:', error.message);
-      setError(error.message);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStudentById = async (studentId) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // First check if we already have the student data cached
-      const cachedStudent = students.find(student => student.studentId === studentId);
-      if (cachedStudent) {
-        setSelectedStudent(cachedStudent);
-        setLoading(false);
-        return cachedStudent;
+      // Prevent uploading for student type
+      if (type !== 'parent') {
+        throw new Error('Student profile images cannot be edited');
       }
+
+      setLoading(true);
       
-      // If not cached, fetch from API
-      const studentData = await ProfileService.getStudentProfile(studentId);
-      setSelectedStudent(studentData);
-      return studentData;
-    } catch (error) {
-      console.error('Failed to get student profile:', error.message);
-      setError(error.message);
-      throw error;
+      const result = await ProfileService.uploadParentProfileImage(id, imageUri);
+      
+      // Update profile with new image
+      await updateProfile(type, id, {
+        profileImagePath: result.profileImagePath
+      });
+      
+      return result;
+    } catch (err) {
+      setError(err.message);
+      throw err;
     } finally {
       setLoading(false);
     }
   };
-
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
 
   const value = {
-    parentInfo,
-    students,
-    selectedStudent,
+    ...profileData,
     loading,
     error,
-    loadParentProfile,
-    updateParentProfile,
-    loadStudents,
-    getStudentById,
-    setSelectedStudent,
-    clearError,
-    refreshProfile: loadParentProfile,
-    refreshStudents: loadStudents
+    loadProfileData,
+    setActiveStudent,
+    updateProfile,
+    uploadProfileImage,
+    clearError: useCallback(() => setError(null), [])
   };
 
   return (

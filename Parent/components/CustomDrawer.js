@@ -61,34 +61,26 @@ const CustomDrawer = (props) => {
 
   return (
     <View style={styles.container}>
-      <DrawerContentScrollView 
-        {...props} 
-        contentContainerStyle={styles.scrollContainer}
-      >
-        <View style={styles.drawerHeader}>
-          <Image
-            source={require('../assets/icons/OAIS-logo.png')}
-            style={styles.logo}
-          />
-          <Text style={styles.schoolName}>{schoolInfo.SCHOOL_NAME}</Text>
-        </View>
+      <View style={styles.drawerHeader}>
+        <Image
+          source={require('../assets/icons/OAIS-logo.png')}
+          style={styles.logo}
+        />
+        <Text style={styles.schoolName}>{schoolInfo.SCHOOL_NAME}</Text>
+      </View>
 
-        <View style={styles.profileSection}>
-          <Image
-            source={
-              profileInfo?.profileImagePath 
-                ? { uri: profileInfo.profileImagePath } 
-                : require('../assets/images/default-profile.png')
-            }
-            style={styles.avatar}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.userName} numberOfLines={1}>
-              {getDisplayName()}
-            </Text>
-            <Text style={styles.userEmail} numberOfLines={1}>
-              {getSubtitle()}
-            </Text>
+      <View style={styles.profileSection}>
+        <Image
+          source={ profileInfo?.profileImagePath ? { uri: profileInfo.profileImagePath } : require('../assets/images/default-profile.png')}
+          style={styles.avatar}
+        />
+        <View style={styles.profileInfo}>
+          <Text style={styles.userName} numberOfLines={1}>
+            {getDisplayName()}
+          </Text>
+          <Text style={styles.userEmail} numberOfLines={1}>
+            {getSubtitle()}
+          </Text>
             <TouchableOpacity 
               onPress={() => navigateWithHaptic('Profile', { 
                 userId: profileInfo?.id,
@@ -103,8 +95,11 @@ const CustomDrawer = (props) => {
             </TouchableOpacity>
           </View>
         </View>
-
         <View style={styles.divider} />
+      <DrawerContentScrollView 
+        {...props} 
+        contentContainerStyle={styles.scrollContainer}
+      >
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
       <View style={styles.drawerFooter}>

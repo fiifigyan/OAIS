@@ -1,16 +1,5 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  Image,
-  TouchableOpacity, 
-  StyleSheet, 
-  ActivityIndicator, 
-  SafeAreaView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  ScrollView
-} from 'react-native';
+import { View, Text, Image,TouchableOpacity, StyleSheet, ActivityIndicator, SafeAreaView, KeyboardAvoidingView, Platform,  ScrollView } from 'react-native';
 import { Formik } from 'formik';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';

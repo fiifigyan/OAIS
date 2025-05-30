@@ -4,7 +4,6 @@ import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
-import jwtDecode from 'jwt-decode';
 
 // Logging utility with different levels
 const logger = {
@@ -44,8 +43,9 @@ export const pickDocument = async () => {
 export const pickImage = async () => {
   try {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
+      mediaTypes: ['images', 'videos'],
+      allowsEditing: true,
+      aspect: [4, 3],
       quality: 1,
     });
 
@@ -69,7 +69,7 @@ export const takePhoto = async () => {
   try {
     await ImagePicker.requestCameraPermissionsAsync();
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType.Images,
       allowsEditing: false,
       quality: 1,
     });
@@ -197,7 +197,7 @@ export const validateStudentId = (studentId) => {
   return /^OAIS-\d{4}$/.test(studentId);
 };
 
-// Yup Validation Schemas
+// Yup Validation Schemas - Authentication
 export const loginSchema = yup.object().shape({
   StudentID: yup.string()
     .required('Student ID is required')
@@ -238,6 +238,70 @@ export const resetPasswordSchema = yup.object().shape({
   confirmPassword: yup.string()
     .required('Please confirm your password')
     .oneOf([yup.ref('password'), null], 'Passwords must match'),
+});
+
+//Yup Validation Schemas - Admission Form
+export const studentSchema = yup.object().shape({
+  surName: yup.string().required('Surname is required'),
+  firstName: yup.string().required('First name is required'),
+  gender: yup.string().required('Gender is required'),
+  dateOfBirth: yup.string().required('Date of birth is required'),
+  residentialAddress: yup.object().shape({
+    city: yup.string().required('City is required'),
+    region: yup.string().required('Region is required'),
+    country: yup.string().required('Country is required'),
+  }),
+  nationality: yup.string().required('Nationality is required'),
+  livesWith: yup.string().required('This field is required'),
+  medicalInformation: yup.object().shape({
+    bloodType: yup.string().required('Blood type is required'),
+    allergiesOrConditions: yup.string().required('This field is required'),
+    emergencyContactsName: yup.string().required('Emergency contact name is required'),
+    emergencyContactsNumber: yup.string().required('Emergency contact number is required'),
+  }),
+});
+
+export const parentSchema = yup.object().shape({
+  fatherSurName: yup.string().required('Father surname is required'),
+  fatherFirstName: yup.string().required('Father first name is required'),
+  fatherContactNumber: yup.string().required('Father contact number is required'),
+  fatherOccupation: yup.string().required('Father occupation is required'),
+  fatherEmailAddress: yup.string().email('Invalid email').required('Father email is required'),
+  motherSurName: yup.string().required('Mother surname is required'),
+  motherFirstName: yup.string().required('Mother first name is required'),
+  motherContactNumber: yup.string().required('Mother contact number is required'),
+  motherOccupation: yup.string().required('Mother occupation is required'),
+  motherEmailAddress: yup.string().email('Invalid email').required('Mother email is required'),
+});
+
+export const academicSchema = yup.object().shape({
+  lastSchoolAttended: yup.string().required('Last school attended is required'),
+  lastClassCompleted: yup.string().required('Last class completed is required'),
+  classForAdmission: yup.string().required('Class for admission is required'),
+  academicYear: yup.string().required('Academic year is required'),
+  preferredSecondLanguage: yup.string().required('Preferred language is required'),
+  siblingName: yup.string().when('hasSiblingsInSchool', {
+    is: true,
+    then: yup.string().required('Sibling name is required'),
+  }),
+  siblingClass: yup.string().when('hasSiblingsInSchool', {
+    is: true,
+    then: yup.string().required('Sibling class is required'),
+  }),
+});
+
+export const documentsSchema = yup.object().shape({
+  file1: yup.mixed().required('Passport photo is required'),
+  file2: yup.mixed().required('Birth certificate is required'),
+  file3: yup.mixed().required('Previous results are required'),
+});
+
+export const fullSchema = yup.object().shape({
+  student: studentSchema,
+  parentGuardian: parentSchema,
+  previousAcademicDetail: academicSchema,
+  admissionDetail: academicSchema,
+  documents: documentsSchema,
 });
 
 // ==============================================

@@ -11,7 +11,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
     Home: { icon: 'home', label: 'Home' },
     Calendar: { icon: 'calendar', label: 'Calendar' },
     Profile: { icon: 'person', label: 'Profile' },
-    Notification: { icon: 'notifications', label: 'Notifications' },
+    // Chat: { icon: 'chatbubble', label: 'Chats' },
   };
 
   const animateTab = (index) => {

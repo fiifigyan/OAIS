@@ -47,42 +47,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  requirementsContainer: {
-    marginVertical: 12,
-    padding: 12,
-    backgroundColor: '#f5f5f5',
+  documentInput: {
+    backgroundColor: '#fff',
     borderRadius: 8,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    justifyContent: 'center',
+    height: 40,
   },
-  requirementsTitle: {
-    fontSize: 14,
+  documentText: {
+    color: '#555',
+  },
+  documentSuccessText: {
+    color: '#2e7d32',
+  },
+  sectionHeader: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333',
+    color: '#00873E',
   },
-  requirementRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  requirementIcon: {
-    marginRight: 8,
-  },
-  requirementText: {
+  sectionDescription: {
     fontSize: 14,
-  },
-  requirementMet: {
-    color: '#4CAF50',
-  },
-  requirementUnmet: {
-    color: '#757575',
+    color: '#666',
+    marginTop: 4,
   },
 });
 
-export const renderInput = (label, name, keyboardType = 'default') => {
+export const renderInput = (label, name, error, keyboardType = 'default') => {
   const { 
     formData, 
-    formErrors, 
-    formTouched,
     handleFormChange, 
     handleFormBlur 
   } = useContext(AdmissionContext);
@@ -91,8 +88,6 @@ export const renderInput = (label, name, keyboardType = 'default') => {
     path.split('.').reduce((acc, part) => acc && acc[part], obj);
 
   const value = getNestedValue(formData, name) || '';
-  const error = getNestedValue(formErrors, name);
-  const touched = getNestedValue(formTouched, name);
 
   return (
     <View style={styles.inputContainer}>
@@ -100,7 +95,7 @@ export const renderInput = (label, name, keyboardType = 'default') => {
       <TextInput
         style={[
           styles.input, 
-          error && touched && styles.errorInput
+          error && styles.errorInput
         ]}
         value={String(value)}
         onChangeText={handleFormChange(name)}
@@ -108,25 +103,21 @@ export const renderInput = (label, name, keyboardType = 'default') => {
         keyboardType={keyboardType}
         placeholder={label}
       />
-      {error && touched && (
+      {error && (
         <Text style={styles.errorText}>{error}</Text>
       )}
     </View>
   );
 };
 
-export const renderDateInput = (label, name) => {
+export const renderDateInput = (label, name, error) => {
   const { 
     formData, 
-    formErrors, 
-    formTouched,
     setFormFieldValue 
   } = useContext(AdmissionContext);
   const [showDatePicker, setShowDatePicker] = React.useState(false);
 
   const value = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formData);
-  const error = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formErrors);
-  const touched = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formTouched);
 
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
@@ -144,7 +135,7 @@ export const renderDateInput = (label, name) => {
           style={[
             styles.input,
             styles.dateInput,
-            error && touched && styles.errorInput
+            error && styles.errorInput
           ]}
           value={value}
           placeholder="YYYY-MM-DD"
@@ -167,7 +158,7 @@ export const renderDateInput = (label, name) => {
           maximumDate={new Date()}
         />
       )}
-      {error && touched && (
+      {error && (
         <Text style={styles.errorText}>{error}</Text>
       )}
     </View>
@@ -184,66 +175,39 @@ export const renderSwitch = (label, name) => {
       <Switch
         value={value || false}
         onValueChange={(val) => setFormFieldValue(name, val)}
-        trackColor={{ false: "#767577", true: "#81b0ff" }}
-        thumbColor={value ? "#f5dd4b" : "#f4f3f4"}
+        trackColor={{ false: "#767577", true: "#00873E" }}
+        thumbColor={value ? "#00873E" : "#f4f3f4"}
       />
     </View>
   );
 };
 
-export const renderDocumentUpload = (label, name) => {
-  const { 
-    formData, 
-    formErrors, 
-    formTouched,
-    setFormFieldValue 
-  } = useContext(AdmissionContext);
-
-  const handleDocumentPick = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'image/jpeg', 'image/png'],
-        copyToCacheDirectory: true,
-      });
-
-      if (result.canceled) return;
-
-      if (result.assets && result.assets.length > 0) {
-        const file = result.assets[0];
-        setFormFieldValue(name, {
-          name: file.name,
-          uri: file.uri,
-          size: file.size,
-          type: file.mimeType
-        });
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to select document. Please try again.');
-    }
-  };
-
-  const document = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formData);
-  const error = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formErrors);
-  const touched = name.split('.').reduce((obj, key) => (obj ? obj[key] : undefined), formTouched);
-
+export const renderDocumentUpload = (label, fieldName, document, error, onPress) => {
   return (
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{label}</Text>
       <TouchableOpacity
         style={[
-          styles.input,
-          error && touched && styles.errorInput,
+          styles.documentInput,
+          error && styles.errorInput,
           document?.uri && { backgroundColor: '#e6f7e6' }
         ]}
-        onPress={handleDocumentPick}
+        onPress={onPress}
       >
-        <Text style={{ color: document?.uri ? '#2e7d32' : '#555' }}>
+        <Text style={document?.uri ? styles.documentSuccessText : styles.documentText}>
           {document?.uri ? document.name : 'Select File'}
         </Text>
       </TouchableOpacity>
-      {error && touched && (
+      {error && (
         <Text style={styles.errorText}>{error}</Text>
       )}
     </View>
   );
 };
+
+export const renderSectionHeader = (title, description) => (
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    {description && <Text style={styles.sectionDescription}>{description}</Text>}
+  </View>
+);

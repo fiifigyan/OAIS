@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { CustomInput } from '../../components/CustomInput';
 
-const AddAccountScreen = ({ navigation }) => {
+const AddAccountScreen = () => {
   const [accountName, setAccountName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

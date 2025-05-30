@@ -1,8 +1,8 @@
-import React, { createContext, useState, useEffect, useRef } from 'react';
+import React, { useCallback, createContext, useState, useEffect, useRef } from 'react';
 import { Formik } from 'formik';
-import * as yup from 'yup';
 import admissionService from '../services/AdmissionService';
 import * as SecureStorage from 'expo-secure-store';
+import { studentSchema, parentSchema, academicSchema, documentsSchema, debounce } from '../utils/helpers';
 
 const INITIAL_FORM_STATE = {
   student: {
@@ -86,68 +86,13 @@ const INITIAL_FORM_STATE = {
   },
 };
 
-const validationSchema = yup.object().shape({
-  student: yup.object().shape({
-    surName: yup.string().required('Surname is required'),
-    firstName: yup.string().required('First name is required'),
-    gender: yup.string().required('Gender is required'),
-    dateOfBirth: yup.string().required('Date of birth is required'),
-    residentialAddress: yup.object().shape({
-      city: yup.string().required('City is required'),
-      region: yup.string().required('Region is required'),
-      country: yup.string().required('Country is required'),
-    }),
-    nationality: yup.string().required('Nationality is required'),
-    livesWith: yup.string().required('This field is required'),
-    medicalInformation: yup.object().shape({
-      bloodType: yup.string().required('Blood type is required'),
-      allergiesOrConditions: yup.string().required('This field is required'),
-      emergencyContactsName: yup.string().required('Emergency contact name is required'),
-      emergencyContactsNumber: yup.string().required('Emergency contact number is required'),
-    }),
-  }),
-  parentGuardian: yup.object().shape({
-    fatherSurName: yup.string().required('Father surname is required'),
-    fatherFirstName: yup.string().required('Father first name is required'),
-    fatherContactNumber: yup.string().required('Father contact number is required'),
-    fatherOccupation: yup.string().required('Father occupation is required'),
-    fatherEmailAddress: yup.string().email('Invalid email').required('Father email is required'),
-    motherSurName: yup.string().required('Mother surname is required'),
-    motherFirstName: yup.string().required('Mother first name is required'),
-    motherContactNumber: yup.string().required('Mother contact number is required'),
-    motherOccupation: yup.string().required('Mother occupation is required'),
-    motherEmailAddress: yup.string().email('Invalid email').required('Mother email is required'),
-  }),
-  previousAcademicDetail: yup.object().shape({
-    lastSchoolAttended: yup.string().required('Last school attended is required'),
-    lastClassCompleted: yup.string().required('Last class completed is required'),
-  }),
-  admissionDetail: yup.object().shape({
-    classForAdmission: yup.string().required('Class for admission is required'),
-    academicYear: yup.string().required('Academic year is required'),
-    preferredSecondLanguage: yup.string().required('Preferred language is required'),
-    siblingName: yup.string().when('hasSiblingsInSchool', {
-      is: true,
-      then: yup.string().required('Sibling name is required'),
-    }),
-    siblingClass: yup.string().when('hasSiblingsInSchool', {
-      is: true,
-      then: yup.string().required('Sibling class is required'),
-    }),
-  }),
-  documents: yup.object().shape({
-    file1: yup.mixed().required('Passport photo is required'),
-    file2: yup.mixed().required('Birth certificate is required'),
-    file3: yup.mixed().required('Previous results are required'),
-  }),
-});
-
 export const AdmissionContext = createContext();
 
-export const AdmissionProvider = ({ children }) => {
+export const AdmissionProvider = ({ children, navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [draftSaveStatus, setDraftSaveStatus] = useState(null);
+  const [activeSection, setActiveSection] = useState('student');
   const isMounted = useRef(true);
   const draftSaveTimer = useRef(null);
 
@@ -180,6 +125,12 @@ export const AdmissionProvider = ({ children }) => {
         throw new Error('Your session has expired. Please login again.');
       }
 
+      // Verify token is still valid
+      const { valid } = await AuthService.verifyToken(token);
+      if (!valid) {
+        throw new Error('Your session has expired. Please login again.');
+      }
+
       const response = await admissionService.submitAdmissionForm(values);
       await admissionService.clearFormDraft();
       return response;
@@ -201,11 +152,57 @@ export const AdmissionProvider = ({ children }) => {
     }
   };
 
+  // Debounced draft saving
+  const debouncedSaveDraft = useCallback(
+    debounce((values, errors) => {
+      if (Object.keys(errors).length === 0) {
+        saveDraft(values);
+      }
+    }, 2000),
+    []
+  );
+
+  const validateSection = async (section, values) => {
+    try {
+      let schema;
+      switch (section) {
+        case 'student':
+          schema = studentSchema;
+          break;
+        case 'parent':
+          schema = parentSchema;
+          break;
+        case 'academic':
+          schema = academicSchema;
+          break;
+        case 'documents':
+          schema = documentsSchema;
+          break;
+        default:
+          return {};
+      }
+      await schema.validate(values, { abortEarly: false });
+      return {};
+    } catch (err) {
+      const errors = {};
+      err.inner.forEach((error) => {
+        errors[error.path] = error.message;
+      });
+      return errors;
+    }
+  };
+
+  const goToSection = (sectionName) => {
+    setActiveSection(sectionName);
+    navigation.navigate(sectionName);
+  };
+
   return (
     <Formik
       initialValues={INITIAL_FORM_STATE}
-      validationSchema={validationSchema}
       onSubmit={handleSubmit}
+      validateOnBlur={false}
+      validateOnChange={false}
     >
       {({ 
         values, 
@@ -217,16 +214,13 @@ export const AdmissionProvider = ({ children }) => {
         setFieldValue, 
         isSubmitting,
         validateForm,
+        setErrors,
       }) => {
-        // Auto-save draft
+        // Auto-save draft when values change
         useEffect(() => {
           if (isLoading) return;
-          
-          draftSaveTimer.current = setTimeout(() => {
-            saveDraft(values);
-          }, 5000);
-
-          return () => clearTimeout(draftSaveTimer.current);
+          debouncedSaveDraft(values, errors);
+          return () => debouncedSaveDraft.cancel();
         }, [values, isLoading]);
 
         return (
@@ -237,12 +231,15 @@ export const AdmissionProvider = ({ children }) => {
             isLoading,
             error,
             draftSaveStatus,
+            activeSection,
             handleFormChange: handleChange,
             handleFormBlur: handleBlur,
             submitForm: handleSubmit,
             setFormFieldValue: setFieldValue,
             isSubmitting,
             validateForm,
+            validateSection,
+            goToSection,
             resetForm: () => {
               Object.keys(INITIAL_FORM_STATE).forEach(key => {
                 setFieldValue(key, INITIAL_FORM_STATE[key]);

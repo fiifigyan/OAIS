@@ -15,7 +15,7 @@ const HomeScreen = () => {
     { title: 'Attendance', icon: 'checkmark-circle-outline', route: 'Attendance' },
     { title: 'Grades', icon: 'bar-chart-outline', route: 'Grades' },
     { title: 'Reports', icon: 'document-text-outline', route: 'Reports' },
-    { title: 'Messages', icon: 'chatbubbles-outline', route: 'Communication' },
+    { title: 'Chats', icon: 'chatbubbles-outline', route: 'Chats' },
     { title: 'Events', icon: 'calendar-outline', route: 'Events' },
   ];
 

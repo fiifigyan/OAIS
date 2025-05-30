@@ -10,6 +10,8 @@ const logger = {
   info: (message) => console.log(`[AdmissionService] ${message}`),
 };
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000;
 const MAX_FILE_SIZE_MB = 10;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 
@@ -71,14 +73,17 @@ const admissionService = {
    * @param {Object} formData - The complete form data
    * @returns {Promise<Object>} - The server response
    */
-  async submitAdmissionForm(formData) {
+async submitAdmissionForm(formData) {
+  let retryCount = 0;
+  
+  while (retryCount <= MAX_RETRIES) {
     try {
-      logger.info('Starting form submission');
+      logger.info('Starting form submission attempt', { attempt: retryCount + 1 });
       
       const formSubmissionData = new FormData();
+      const { documents, ...formFields } = formData;
       
       // Add all non-document fields as JSON
-      const { documents, ...formFields } = formData;
       formSubmissionData.append('data', JSON.stringify(formFields));
 
       // Process and append documents
@@ -120,16 +125,37 @@ const admissionService = {
       const response = await axios.post(
         `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
         formSubmissionData,
-        { headers }
+        { headers, timeout: 30000 }
       );
 
       logger.info('Form submitted successfully');
       return response.data;
     } catch (error) {
-      logger.error('Form submission failed:', error);
-      throw new Error(sanitizeError(error));
+      if (retryCount >= MAX_RETRIES) {
+        logger.error('Final form submission attempt failed');
+        throw new Error(sanitizeError(error));
+      }
+      
+      if (error.response && error.response.status === 401) {
+        // Token might be expired, try to refresh
+        try {
+          const token = await SecureStorage.getItemAsync('authToken');
+          if (token) {
+            const newToken = await AuthService.refreshToken(token);
+            await SecureStorage.setItemAsync('authToken', newToken);
+          }
+        } catch (refreshError) {
+          logger.error('Token refresh failed during form submission', refreshError);
+          throw new Error('Session expired. Please login again.');
+        }
+      }
+      
+      retryCount++;
+      logger.info(`Retrying form submission in ${RETRY_DELAY}ms`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
     }
-  },
+  }
+},
 
   /**
    * Saves the current form data as a draft

@@ -7,6 +7,9 @@ import ResetPasswordScreen from '../screens/Auth/ResetPassword';
 import OnboardingScreen from '../screens/Auth/Onboarding';
 import VerifyEmailScreen from '../screens/Auth/VerifyEmail';
 import BiometricScreen from '../screens/Auth/Biometric';
+import AddAccountScreen from '../screens/Main/AddAccount';
+import SwitchAccountScreen from '../screens/Main/SwitchAccount';
+import EditProfile from '../screens/Auth/EditProfile';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +25,9 @@ const AuthStack = () => {
       <Stack.Screen name="Forgot" component={ForgotPasswordScreen} />
       <Stack.Screen name="Biometric" component={BiometricScreen} />
       <Stack.Screen name="Verify" component={VerifyEmailScreen} />
+      <Stack.Screen name="AddAccount" component={AddAccountScreen} />
+      <Stack.Screen name="SwitchAccount" component={SwitchAccountScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
     </Stack.Navigator>
   );
 };

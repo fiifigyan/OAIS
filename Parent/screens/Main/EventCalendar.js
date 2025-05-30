@@ -85,12 +85,55 @@ const EventCalendarScreen = () => {
       </SafeAreaView>
     );
   }
-
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.calendarScrollView}
-        showsVerticalScrollIndicator={false}
+      <FlatList
+        data={events[selectedDate] || []}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        renderItem={renderEventItem}
+        ListHeaderComponent={
+          <>
+            <View style={styles.calendarContainer}>
+              <Calendar
+                onDayPress={handleDayPress}
+                markedDates={{
+                  ...Object.keys(events).reduce((acc, date) => {
+                    acc[date] = { marked: true, dotColor: '#FF6B6B' };
+                    return acc;
+                  }, {}),
+                  [selectedDate]: { selected: true }
+                }}
+                theme={{
+                  calendarBackground: '#ffffff',
+                  selectedDayBackgroundColor: '#00873E',
+                  selectedDayTextColor: '#ffffff',
+                  todayTextColor: '#00873E',
+                  dayTextColor: '#2d4150',
+                  textDisabledColor: '#d9e1e8',
+                  dotColor: '#00873E',
+                  selectedDotColor: '#ffffff',
+                  arrowColor: '#00873E',
+                  monthTextColor: '#00873E',
+                  textMonthFontWeight: 'bold',
+                }}
+              />
+            </View>
+            <Text style={styles.sectionHeader}>
+              Events on {new Date(selectedDate).toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </Text>
+          </>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Icon name="calendar-remove" size={48} color="#cccccc" />
+            <Text style={styles.emptyText}>No events scheduled</Text>
+          </View>
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -99,55 +142,7 @@ const EventCalendarScreen = () => {
             tintColor="#00873E"
           />
         }
-      >
-      <View style={styles.calendarContainer}>
-        <Calendar
-          onDayPress={handleDayPress}
-          markedDates={{
-            ...Object.keys(events).reduce((acc, date) => {
-              acc[date] = { marked: true, dotColor: '#FF6B6B' };
-              return acc;
-            }, {}),
-            [selectedDate]: { selected: true }
-          }}
-          theme={{
-            calendarBackground: '#ffffff',
-            selectedDayBackgroundColor: '#00873E',
-            selectedDayTextColor: '#ffffff',
-            todayTextColor: '#00873E',
-            dayTextColor: '#2d4150',
-            textDisabledColor: '#d9e1e8',
-            dotColor: '#00873E',
-            selectedDotColor: '#ffffff',
-            arrowColor: '#00873E',
-            monthTextColor: '#00873E',
-            textMonthFontWeight: 'bold',
-          }}
-        />
-      </View>
-
-      <FlatList
-        data={events[selectedDate] || []}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={renderEventItem}
-        ListHeaderComponent={
-          <Text style={styles.sectionHeader}>
-            Events on {new Date(selectedDate).toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </Text>
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="calendar-remove" size={48} color="#cccccc" />
-            <Text style={styles.emptyText}>No events scheduled</Text>
-          </View>
-        }
       />
-      </ScrollView>
     </SafeAreaView>
   );
 };

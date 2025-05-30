@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView } from 'react-native';
-import { 
-  View, 
-  Text, 
-  List, 
-  Switch, 
-  Button,
-  Divider,
-  Icon
-} from '@expo/ui/swift-ui';
+import { View, Text, List, Switch, Button, Divider, Icon } from '@expo/ui/swift-ui';
 import { useNavigation } from '@react-navigation/native';
 import { appConfig } from '../../config';
 

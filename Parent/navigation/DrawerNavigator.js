@@ -7,8 +7,8 @@ import { Easing } from 'react-native-reanimated';
 
 import AdmissionForm from '../screens/Admission/AdmissionForm';
 import PaymentHistoryScreen from '../screens/Payment/PaymentHistory';
-import AddAccountScreen from '../screens/Auth/AddAccount';
-import SwitchAccountScreen from '../screens/Auth/SwitchAccount';
+import AddAccountScreen from '../screens/Main/AddAccount';
+import SwitchAccountScreen from '../screens/Main/SwitchAccount';
 
 const Drawer = createDrawerNavigator();
 
@@ -67,6 +67,27 @@ const DrawerNavigator = () => {
         name="Payment History"
         component={PaymentHistoryScreen}
         options={{
+          headerShown: true,
+          headerTitle: 'Payment History',
+          headerTitleAlign: 'center',
+          headerStyle: {
+            backgroundColor: '#00873E',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontSize: 20,
+            fontWeight: 'bold',
+          },
+          headerBackTitleVisible: false,
+          headerBackImage: () => (
+            <Icon name="arrow-back-outline" size={22} color="#fff" />
+          ),
+          headerRightContainerStyle: {
+            paddingRight: 10,
+          },
+          headerRight: () => (
+            <Icon name="notifications-outline" size={22} color="#fff" />
+          ),
           drawerIcon: ({ color }) => (
             <Icon name="receipt-outline" size={22} color={color} />
           ),

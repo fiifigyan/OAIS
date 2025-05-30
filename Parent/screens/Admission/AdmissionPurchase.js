@@ -64,81 +64,79 @@ const AdmissionPurchase = ({ route, navigation }) => {
     }
   };
 
-  const generateReceipt = async () => {
-    try {
-      const html = `
-        <html>
-          <head>
-            <style>
-              body { font-family: Arial; padding: 20px; }
-              .header { text-align: center; margin-bottom: 20px; }
-              h1 { color: #00873E; margin-bottom: 5px; }
-              h2 { color: #333; margin-top: 0; }
-              .info { margin-bottom: 20px; }
-              .info-item { margin-bottom: 5px; }
-              table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-              th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-              th { background-color: #f2f2f2; font-weight: bold; }
-              .total-row { font-weight: bold; background-color: #E8F5E9; }
-              .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>OFORI-ATTAH INTERNATIONAL SCHOOL</h1>
-              <h2>Admission Form Purchase Receipt</h2>
-            </div>
-            
-            <div class="info">
-              <div class="info-item"><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
-              <div class="info-item"><strong>Transaction ID:</strong> OAIS-${Math.floor(Math.random() * 1000000)}</div>
-              <div class="info-item"><strong>Student Name:</strong> ${studentName}</div>
-              <div class="info-item"><strong>Parent/Guardian:</strong> ${parentName}</div>
-              <div class="info-item"><strong>Contact:</strong> ${phoneNumber}</div>
-              <div class="info-item"><strong>Level:</strong> ${level} ${gender !== 'Unisex' ? `(${gender})` : ''}</div>
-            </div>
-            
-            <table>
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th>Amount (GHC)</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${feeDetails.filter(item => item.id !== 'total').map(item => `
-                  <tr>
-                    <td>${item.name}</td>
-                    <td>${item.amount.toFixed(2)}</td>
-                  </tr>
-                `).join('')}
-                
-                <tr class="total-row">
-                  <td>TOTAL PAID</td>
-                  <td>${amount.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
-            
-            <div class="footer">
-              <p>This is an official receipt for your records</p>
-              <p>Please present this receipt when submitting the admission form</p>
-            </div>
-          </body>
-        </html>
-      `;
+const generateReceipt = async () => {
+  try {
+    const html = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial; padding: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            h1 { color: #00873E; margin-bottom: 5px; }
+            h2 { color: #333; margin-top: 0; }
+            .info { margin-bottom: 20px; }
+            .info-item { margin-bottom: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+            th { background-color: #f2f2f2; font-weight: bold; }
+            .total-row { font-weight: bold; background-color: #E8F5E9; }
+            .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>OFORI-ATTAH INTERNATIONAL SCHOOL</h1>
+            <h2>Admission Form Purchase Receipt</h2>
+          </div>
+          
+          <div class="info">
+            <div class="info-item"><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+            <div class="info-item"><strong>Transaction ID:</strong> OAIS-${Math.floor(Math.random() * 1000000)}</div>
+            <div class="info-item"><strong>Student Name:</strong> ${studentName}</div>
+            <div class="info-item"><strong>Parent/Guardian:</strong> ${parentName}</div>
+            <div class="info-item"><strong>Contact:</strong> ${phoneNumber}</div>
+            <div class="info-item"><strong>Level:</strong> ${level} ${gender !== 'Unisex' ? `(${gender})` : ''}</div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Amount (GHC)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Admission Form Fee</td>
+                <td>100.00</td>
+              </tr>
+              
+              <tr class="total-row">
+                <td>TOTAL PAID</td>
+                <td>100.00</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="footer">
+            <p>This is an official receipt for your records</p>
+            <p>Please present this receipt when submitting the admission form</p>
+          </div>
+        </body>
+      </html>
+    `;
 
-      const { uri } = await Print.printToFileAsync({ html });
-      const fileName = `OAIS_Receipt_${studentName.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
-      const newUri = `${FileSystem.documentDirectory}${fileName}`;
-      await FileSystem.copyAsync({ from: uri, to: newUri });
-      await shareAsync(newUri);
+    const { uri } = await Print.printToFileAsync({ html });
+    const fileName = `OAIS_Receipt_${studentName.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
+    const newUri = `${FileSystem.documentDirectory}${fileName}`;
+    await FileSystem.copyAsync({ from: uri, to: newUri });
+    await shareAsync(newUri);
 
-    } catch (error) {
-      console.error('Receipt generation failed:', error);
-      throw error;
-    }
-  };
+  } catch (error) {
+    console.error('Receipt generation failed:', error);
+    throw error;
+  }
+};
 
   if (showPaymentMethod) {
     return (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons} from '@expo/vector-icons';
 
 const PaymentProcessing = ({ route, navigation }) => {
   const { method, amount } = route.params;
@@ -147,7 +147,7 @@ const PaymentProcessing = ({ route, navigation }) => {
               keyboardType="number-pad"
               value={inputs.cardNumber.replace(/(.{4})/g, '$1 ').trim()}
               onChangeText={(text) => handleInputChange('cardNumber', text)}
-              maxLength={19} // 16 digits + 3 spaces
+              maxLength={19}
             />
             {errors.cardNumber && <Text style={styles.errorText}>{errors.cardNumber}</Text>}
             
@@ -211,7 +211,7 @@ const PaymentProcessing = ({ route, navigation }) => {
 
   const DetailRow = ({ icon, label, value }) => (
     <View style={styles.detailRow}>
-      <Icon name={icon} size={18} color="#00873E" style={styles.rowIcon} />
+      <Ionicons name={icon} size={18} color="#00873E" style={styles.rowIcon} />
       <Text style={styles.detailLabel}>{label}:</Text>
       <Text style={styles.detailValue}>{value}</Text>
     </View>
@@ -220,12 +220,7 @@ const PaymentProcessing = ({ route, navigation }) => {
   return (
     <LinearGradient colors={['#f8f9ff', '#e6e9ff']} style={styles.container}>
       <View style={styles.header}>
-        <Icon 
-          name="arrow-back" 
-          size={24} 
-          color="#00873E" 
-          onPress={() => navigation.goBack()}
-        />
+        <Ionicons name="arrow-back" size={24} color="#00873E" onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>Complete Payment</Text>
         <View style={{ width: 24 }} />
       </View>
@@ -243,7 +238,7 @@ const PaymentProcessing = ({ route, navigation }) => {
         disabled={isProcessing}
       >
         <LinearGradient
-          colors={isProcessing ? ['#03c04a', '#00873E'] : ['#00873E', '#03c04A']}
+          colors={isProcessing ? ['#007848', '#00873E'] : ['#00873E', '#007848']}
           style={styles.buttonGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -259,7 +254,7 @@ const PaymentProcessing = ({ route, navigation }) => {
       </TouchableOpacity>
 
       <View style={styles.securityBadge}>
-        <Icon name="shield-checkmark" size={16} color="#4CAF50" />
+        <Ionicons name="shield-checkmark" size={16} color="#4CAF50" />
         <Text style={styles.securityText}>Secured by Ghana Premier Academy</Text>
       </View>
     </LinearGradient>

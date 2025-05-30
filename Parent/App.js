@@ -87,8 +87,8 @@ function MainAppContent() {
         });
 
         return () => {
-          receivedSubscription.remove();
-          responseSubscription.remove();
+          receivedSubscription?.remove();
+          responseSubscription?.remove();
         };
       } catch (error) {
         console.error('Notification setup error:', error);

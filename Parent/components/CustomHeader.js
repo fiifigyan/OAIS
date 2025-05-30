@@ -20,14 +20,18 @@ const CustomHeader = ({ title = 'Dashboard', navigation }) => {
           type: userType
         })}
       >
-        <Image
+        {/* <Image
           source={
             profileInfo?.profileImagePath 
               ? { uri: profileInfo.profileImagePath }
               : require('../assets/images/default-profile.png')
           }
           style={styles.profileImage}
-        />
+        /> */}
+
+      <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
+        <Icon name="notifications-outline" size={24} color="#00873E" />
+      </TouchableOpacity>
       </TouchableOpacity>
     </View>
   );

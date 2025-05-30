@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView, 
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CalendarService } from '../../services/CalendarService';
@@ -66,25 +57,10 @@ const TimetableScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* <View style={styles.header}>
-        <Text style={styles.headerText}>Class Timetable</Text>
-        <TouchableOpacity onPress={handleRefresh}>
-          <Icon name="refresh" size={24} color="#00873E" />
-        </TouchableOpacity>
-      </View> */}
-
       <ScrollView 
         horizontal 
         contentContainerStyle={styles.daySelector}
         showsHorizontalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={['#00873E']}
-            tintColor="#00873E"
-          />
-        }
       >
         {days.map(day => (
           <TouchableOpacity
@@ -105,37 +81,44 @@ const TimetableScreen = () => {
         ))}
       </ScrollView>
 
-      <ScrollView
+      <FlatList
+        data={currentDayData?.classes || []}
         contentContainerStyle={styles.content}
-
-      >
-        {currentDayData?.classes ? (
-          currentDayData.classes.map((classItem, index) => (
-            <View key={index} style={styles.classCard}>
-              <View style={styles.classTimeContainer}>
-                <Text style={styles.classTime}>{classItem.time}</Text>
-              </View>
-              <View style={styles.classDetails}>
-                <Text style={styles.classSubject}>{classItem.subject}</Text>
-                <View style={styles.classMeta}>
-                  <Icon name="person" size={14} color="#666" />
-                  <Text style={styles.classTeacher}>{classItem.teacher}</Text>
-                  <Icon name="room" size={14} color="#666" style={styles.roomIcon} />
-                  <Text style={styles.classRoom}>{classItem.room}</Text>
-                </View>
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.classCard}>
+            <View style={styles.classTimeContainer}>
+              <Text style={styles.classTime}>{item.time}</Text>
+            </View>
+            <View style={styles.classDetails}>
+              <Text style={styles.classSubject}>{item.subject}</Text>
+              <View style={styles.classMeta}>
+                <Icon name="person" size={14} color="#666" />
+                <Text style={styles.classTeacher}>{item.teacher}</Text>
+                <Icon name="room" size={14} color="#666" style={styles.roomIcon} />
+                <Text style={styles.classRoom}>{item.room}</Text>
               </View>
             </View>
-          ))
-        ) : (
+          </View>
+        )}
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Icon name="event-busy" size={48} color="#cccccc" />
             <Text style={styles.emptyText}>No classes scheduled</Text>
           </View>
-        )}
-      </ScrollView>
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#00873E']}
+            tintColor="#00873E"
+          />
+        }
+      />
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

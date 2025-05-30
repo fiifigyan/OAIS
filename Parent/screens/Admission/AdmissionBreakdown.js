@@ -276,14 +276,21 @@ const FeeBreakdownPage = ({ navigation }) => {
   };
 
   // Navigate to admission form purchase
-  const navigateToAdmissionPurchase = () => {
-    navigation.navigate('AdmissionPurchase', {
-      level: selectedLevel,
-      gender: selectedGender,
-      amount: currentFees.total,
-      feeDetails: currentFees.items
-    });
-  };
+const navigateToAdmissionPurchase = () => {
+  navigation.navigate('Purchase', {
+    level: selectedLevel,
+    gender: selectedGender,
+    amount: 100.00,
+    feeDetails: [
+      {
+        id: 'admission_form',
+        name: 'Admission Form Fee',
+        amount: 100.00,
+        description: 'Payment for school admission form'
+      }
+    ]
+  });
+};
 
   return (
     <View style={styles.container}>

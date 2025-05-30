@@ -1,165 +1,396 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, ScrollView, SafeAreaView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { 
+  View, 
+  Text, 
+  Image, 
+  ScrollView, 
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  TextInput,
+} from 'react-native';
 import { useProfile } from '../../context/ProfileContext';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { pickImage } from '../../utils/helpers';
 
 const ProfileScreen = ({ route }) => {
   const navigation = useNavigation();
-  const studentId = route.params?.studentId;
-  const { getStudentById, loading, error, parentInfo } = useProfile();
+  const [uploadError, setUploadError] = useState(null);
+  const { 
+    parent,
+    students,
+    activeStudent,
+    loading,
+    error,
+    loadProfileData,
+    setActiveStudent,
+    uploadProfileImage
+  } = useProfile();
   
-  const [studentInfo, setStudentInfo] = useState(null);
-  const [activeTab, setActiveTab] = useState('Info');
-
-  // if (!studentId) {
-  //   return (
-  //     <SafeAreaView style={styles.errorContainer}>
-  //         <Icon name="alert-circle-outline" size={48} color="#00873E" />
-  //       <Text style={styles.errorText}>Student ID not provided</Text>
-  //       <TouchableOpacity 
-  //         style={styles.retryButton}
-  //         onPress={() => navigation.goBack()}
-  //       >
-  //         <Text style={styles.retryButtonText}>Go Back</Text>
-  //       </TouchableOpacity>
-  //     </SafeAreaView>
-  //   );
-  // }
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: 'student', title: 'Student' },
+    { key: 'parent', title: 'Parent' },
+    { key: 'family', title: 'Family' }
+  ]);
 
   useEffect(() => {
-    const loadStudentData = async () => {
-      try {
-        const data = await getStudenById(studentId);
-        setStudentInfo(data);
-      } catch (err) {
-        Alert.alert('Error', 'Failed to load student profile');
-      }
-    };
-
-    loadStudentData();
-  }, [studentId]);
-
-  const renderInfoTab = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Student Information</Text>
-      <InfoItem label="Student ID" value={studentInfo?.studentId} />
-      <InfoItem label="Full Name" value={studentInfo?.fullName} />
-      <InfoItem label="Date of Birth" value={studentInfo?.dateOfBirth} />
-      <InfoItem label="Gender" value={studentInfo?.gender} />
-      <InfoItem label="Class" value={studentInfo?.className} />
-      <InfoItem label="Address" value={studentInfo?.address} />
-      <InfoItem label="Parent Name" value={parentInfo?.fullName} />
-    </View>
-  );
-
-  const renderParentTab = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Parent/Guardian Information</Text>
-      <InfoItem label="Parent Name" value={parentInfo?.fullName} />
-      <InfoItem label="Relationship" value={parentInfo?.relationship} />
-      <InfoItem label="Address" value={parentInfo?.address} />
-      <InfoItem label="Phone" value={parentInfo?.phoneNumber} />
-      <InfoItem label="Email" value={parentInfo?.email} />
-      <InfoItem label="Occupation" value={parentInfo?.occupation} />
-    </View>
-  );
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'Info':
-        return renderInfoTab();
-      case 'Parent':
-        return renderParentTab();
-      default:
-        return null;
+    const parentId = route.params?.parentId;
+    if (parentId) {
+      loadProfileData(parentId);
     }
-  };
+  }, [route.params?.parentId]);
 
-  if (loading && !studentInfo) {
+  const StudentTab = () => (
+    <ProfileDetails 
+      data={activeStudent} 
+      fields={[
+        { label: 'Full Name', key: 'fullName', icon: 'account' },
+        { label: 'Student ID', key: 'studentId', icon: 'identifier' },
+        { label: 'Class', key: 'className', icon: 'school' },
+        { label: 'Date of Birth', key: 'dateOfBirth', icon: 'cake' },
+        { label: 'Gender', key: 'gender', icon: 'gender-male-female' },
+        { label: 'Address', key: 'address', icon: 'home' }
+      ]}
+      editable={false}
+    />
+  );
+
+  const ParentTab = () => (
+    <ProfileDetails 
+      data={parent} 
+      fields={[
+        { label: 'Full Name', key: 'fullName', icon: 'account' },
+        { label: 'Relationship', key: 'relationship', icon: 'heart' },
+        { label: 'Phone', key: 'phoneNumber', icon: 'phone' },
+        { label: 'Email', key: 'email', icon: 'email' },
+        { label: 'Occupation', key: 'occupation', icon: 'briefcase' },
+        { label: 'Address', key: 'address', icon: 'home' }
+      ]}
+      editable={true}
+    />
+  );
+
+  const FamilyTab = () => (
+    <View style={styles.tabContent}>
+      <Text style={styles.sectionTitle}>Family Members</Text>
+      {students.map(student => (
+        <TouchableOpacity 
+          key={student.studentId}
+          style={styles.familyCard}
+          onPress={() => setActiveStudent(student.studentId)}
+        >
+          <Image
+            source={student.profileImagePath 
+              ? { uri: student.profileImagePath } 
+              : require('../../assets/images/default-profile.png')}
+            style={styles.familyImage}
+          />
+          <View style={styles.familyInfo}>
+            <Text style={styles.familyName}>
+              {student.fullName}
+            </Text>
+            <Text style={styles.familyClass}>
+              {student.className}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderScene = SceneMap({
+    student: StudentTab,
+    parent: ParentTab,
+    family: FamilyTab
+  });
+
+  const renderTabBar = props => (
+    <TabBar
+      {...props}
+      indicatorStyle={{ backgroundColor: '#00873E' }}
+      style={{ backgroundColor: '#00873E' }}
+      labelStyle={{ color: '#00873E' }}
+    />
+  );
+
+  if (loading && !parent) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#5E7CE2" />
-      </SafeAreaView>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00873E" />
+      </View>
     );
   }
 
-  // if (error || !studentInfo) {
-  //   return (
-  //     <SafeAreaView style={styles.errorContainer}>
-  //       <Icon name="alert-circle-outline" size={48} color="#00873E" />
-  //       <Text style={styles.errorText}>
-  //         {error || 'Failed to load student profile'}
-  //       </Text>
-  //       <TouchableOpacity 
-  //         style={styles.retryButton}
-  //         onPress={() => navigation.goBack()}
-  //       >
-  //         <Text style={styles.retryButtonText}>Go Back</Text>
-  //       </TouchableOpacity>
-  //     </SafeAreaView>
-  //   );
-  // }
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Icon name="alert-circle" size={48} color="#FF5722" />
+        <Text style={styles.errorText}>
+          {error}
+        </Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={() => loadProfileData(route.params?.parentId)}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        {/* Student Profile Header */}
-        <View style={styles.profileHeader}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
+      {/* Profile Header */}
+      <View style={styles.profileHeader}>
+        <View style={styles.profileImageContainer}>
           <Image
-            source={
-              studentInfo?.profileImagePath 
-                ? { uri: studentInfo.profileImagePath } 
-                : require('../../assets/images/default-profile.png')
-            }
+            source={activeStudent?.profileImagePath 
+              ? { uri: activeStudent.profileImagePath } 
+              : require('../../assets/images/default-profile.png')}
             style={styles.profileImage}
           />
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>
-              {studentInfo?.fullName || 'Student'}
-            </Text>
-            <Text style={styles.profileClass}>
-              {studentInfo?.className || 'Class'}
-            </Text>
-            <Text style={styles.profileId}>
-              {studentInfo?.studentId || 'Student ID'}
-            </Text>
-          </View>
+          {uploadError && (
+            <Text style={styles.errorText}>{uploadError}</Text>
+          )}
+          {index === 1 && (
+            <TouchableOpacity 
+              style={styles.editBadge}
+              onPress={async () => {
+                try {
+                  const imageUri = await pickImage();
+                  if (imageUri) {
+                    await uploadProfileImage('parent', parent?.parentId, imageUri);
+                  }
+                } catch (error) {
+                  console.error('Error uploading image:', error);
+                  // You might want to show an error message to the user here
+                  alert('Failed to upload image. Please try again.');
+                }
+              }}
+            >
+              <Icon name="camera" size={16} color="#fff" />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Tab Navigation */}
-        <View style={styles.tabBar}>
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'Info' && styles.activeTab]}
-            onPress={() => setActiveTab('Info')}
-          >
-            <Text style={styles.tabText}>Student</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'Parent' && styles.activeTab]}
-            onPress={() => setActiveTab('Parent')}
-          >
-            <Text style={styles.tabText}>Parent</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.profileName}>
+          {activeStudent?.fullName || 'Student'}
+        </Text>
+        <Text style={styles.profileRole}>
+          {activeStudent?.className || 'Class'}
+        </Text>
+      </View>
 
-        {renderTabContent()}
-      </ScrollView>
-    </SafeAreaView>
+      {/* Student Selector */}
+      {students.length > 1 && (
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.studentSelector}
+          contentContainerStyle={styles.studentSelectorContent}
+        >
+          {students.map(student => (
+            <TouchableOpacity
+              key={student.studentId}
+              style={[
+                styles.studentButton,
+                activeStudent?.studentId === student.studentId && 
+                  { backgroundColor: '#00873E' }
+              ]}
+              onPress={() => setActiveStudent(student.studentId)}
+            >
+              <Text 
+                style={[
+                  styles.studentButtonText,
+                  activeStudent?.studentId === student.studentId && 
+                    { color: '#fff' }
+                ]}
+              >
+                {student.fullName.split(' ')[0]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
+      {/* Tab View */}
+      <TabView
+        navigationState={{ index, routes }}
+        renderScene={renderScene}
+        onIndexChange={setIndex}
+        initialLayout={{ width: '100%' }}
+        renderTabBar={renderTabBar}
+        style={styles.tabView}
+      />
+    </ScrollView>
   );
 };
 
-const InfoItem = ({ label, value }) => (
-  <View style={styles.infoItem}>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value || 'N/A'}</Text>
-  </View>
-);
+const ProfileDetails = ({ data, fields, editable = false }) => {
+  return (
+    <View style={styles.tabContent}>
+      {fields.map((field) => (
+        <View key={field.key} style={styles.detailRow}>
+          <View style={styles.detailIcon}>
+            <Icon name={field.icon} size={20} color="#00873E" />
+          </View>
+          <View style={styles.detailText}>
+            <Text style={styles.detailLabel}>
+              {field.label}
+            </Text>
+            {editable ? (
+              <TextInput
+                style={styles.detailValue}
+                value={data?.[field.key] || ''}
+                onChangeText={(text) => {
+                  // Handle update logic here
+                }}
+              />
+            ) : (
+              <Text style={styles.detailValue}>
+                {data?.[field.key] || 'Not specified'}
+              </Text>
+            )}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9fbff',
+  },
+  contentContainer: {
+    paddingBottom: 20,
+  },
+  profileHeader: {
+    padding: 24,
+    alignItems: 'center',
+    paddingTop: 40,
+    marginBottom: 16,
+    backgroundColor: '#00873E',
+  },
+  profileImageContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#FF5722',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#FF5722',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  profileName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  profileRole: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  studentSelector: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  studentSelectorContent: {
+    paddingHorizontal: 8,
+  },
+  studentButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  studentButtonText: {
+    fontWeight: '500',
+    color: '#333',
+  },
+  tabView: {
+    flex: 1,
+    minHeight: 400,
+  },
+  tabContent: {
+    padding: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  detailIcon: {
+    marginRight: 16,
+  },
+  detailText: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 12,
+    marginBottom: 2,
+    color: '#666',
+  },
+  detailValue: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: '#00873E',
+  },
+  familyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+    elevation: 2,
+  },
+  familyImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
+  familyName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  familyClass: {
+    fontSize: 14,
+    color: '#666',
   },
   loadingContainer: {
     flex: 1,
@@ -171,117 +402,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 24,
     backgroundColor: '#f9fbff',
-    padding: 20,
   },
   errorText: {
-    color: '#00873E',
     fontSize: 16,
-    marginVertical: 20,
+    marginVertical: 16,
     textAlign: 'center',
+    color: '#FF5722',
   },
   retryButton: {
-    backgroundColor: '#00873E',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 6,
+    backgroundColor: '#00873E',
   },
   retryButtonText: {
-    color: 'white',
+    color: '#fff',
     fontWeight: '600',
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    padding: 20,
-    backgroundColor: 'aliceblue',
-    borderRadius: 12,
-    margin: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: '#00873E',
-  },
-  profileInfo: {
-    flex: 1,
-    marginLeft: 16,
-    justifyContent: 'center',
-  },
-  profileName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00873E',
-    marginBottom: 4,
-  },
-  profileClass: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 4,
-  },
-  profileId: {
-    fontSize: 14,
-    color: '#666',
-  },
-  tabBar: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-  },
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  activeTab: {
-    borderBottomWidth: 3,
-    borderBottomColor: '#00873E',
-  },
-  tabText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#00873E',
-  },
-  section: {
-    backgroundColor: 'aliceblue',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#00873E',
-    marginBottom: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  infoItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  infoLabel: {
-    fontSize: 15,
-    color: '#666',
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: 15,
-    color: '#333',
-    fontWeight: '500',
   },
 });
 

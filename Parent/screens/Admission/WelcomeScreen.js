@@ -62,7 +62,7 @@ const WelcomeScreen = () => {
                         iconName="document-text-outline"
                         title="View Admission Status"
                         description="Check your application progress"
-                        onPress={() => navigation.navigate('AdmissionStatus')}
+                        onPress={() => navigation.navigate('Status')}
                         color="#2196f3"
                     />
 
@@ -70,7 +70,7 @@ const WelcomeScreen = () => {
                         iconName="wallet-outline"
                         title="Bill For New Admissions"
                         description="View payment breadown"
-                        onPress={() => navigation.navigate('FeeBreakdown')}
+                        onPress={() => navigation.navigate('Breakdown')}
                         color="#ff9800"
                     />
                 </View>

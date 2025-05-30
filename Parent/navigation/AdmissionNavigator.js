@@ -10,7 +10,6 @@ import ParentFormPage from '../screens/Admission/ParentPage';
 import AcademicFormPage from '../screens/Admission/AcademicPage';
 import DocumentsFormPage from '../screens/Admission/DocumentsPage';
 import ReviewFormPage from '../screens/Admission/ReviewPage';
-import AdmissionForm from '../screens/Admission/AdmissionForm';
 
 
 
@@ -24,7 +23,6 @@ const AdmissionNavigator = () => {
         headerShown: false
       }}
     >
-      {/* <Stack.Screen name="Admission" component={AdmissionForm} /> */}
       <Stack.Screen name="Breakdown" component={AdmissionBreakdown} />
       <Stack.Screen name="Purchase" component={AdmissionPurchase} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />

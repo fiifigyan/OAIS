@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { AdmissionContext } from '../../context/AdmissionContext';
-import { renderInput, renderSwitch } from '../../components/Admission/FormComponents';
+import { renderInput, renderSwitch, renderSectionHeader } from '../../components/Admission/FormComponents';
 
 const styles = StyleSheet.create({
   container: {
@@ -9,21 +9,14 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f5f5f5',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00873E',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 8,
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 10,
   },
-  sectionSubtitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00873E',
-    marginTop: 12,
-    marginBottom: 8,
+  errorText: {
+    color: '#d32f2f',
   },
   siblingDetailsContainer: {
     backgroundColor: '#f9f9f9',
@@ -63,15 +56,23 @@ const styles = StyleSheet.create({
 });
 
 const AcademicFormPage = ({ navigation }) => {
-  const { formData, validateForm } = useContext(AdmissionContext);
+  const { 
+    formData, 
+    formErrors,
+    validateSection,
+    setFormFieldValue 
+  } = useContext(AdmissionContext);
+  const [sectionErrors, setSectionErrors] = useState({});
 
   const renderSiblingFields = () => {
     if (formData.admissionDetail?.hasSiblingsInSchool) {
       return (
         <View style={styles.siblingDetailsContainer}>
-          <Text style={styles.sectionSubtitle}>Sibling Details</Text>
-          {renderInput('Sibling Name *', 'admissionDetail.siblingName')}
-          {renderInput('Sibling Class *', 'admissionDetail.siblingClass')}
+          {renderSectionHeader('Sibling Details')}
+          {renderInput('Sibling Name *', 'admissionDetail.siblingName', 
+            formErrors.admissionDetail?.siblingName)}
+          {renderInput('Sibling Class *', 'admissionDetail.siblingClass', 
+            formErrors.admissionDetail?.siblingClass)}
         </View>
       );
     }
@@ -79,28 +80,43 @@ const AcademicFormPage = ({ navigation }) => {
   };
 
   const handleNext = async () => {
-    // Validate only academic section before proceeding
-    const errors = await validateForm();
-    const academicErrors = {
-      ...errors?.previousAcademicDetail,
-      ...errors?.admissionDetail
-    } || {};
+    const academicData = {
+      ...formData.previousAcademicDetail,
+      ...formData.admissionDetail
+    };
+    const errors = await validateSection('academic', academicData);
+    setSectionErrors(errors);
     
-    if (Object.keys(academicErrors).length === 0) {
+    if (Object.keys(errors).length === 0) {
       navigation.navigate('Documents');
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.sectionTitle}>Previous Academic Details</Text>
-      {renderInput('Last School Attended *', 'previousAcademicDetail.lastSchoolAttended')}
-      {renderInput('Last Class Completed *', 'previousAcademicDetail.lastClassCompleted')}
+      {renderSectionHeader('Academic Information', 'Provide details about previous and requested admission')}
+
+      {Object.keys(sectionErrors).length > 0 && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Please fix all errors before proceeding
+          </Text>
+        </View>
+      )}
+
+      {renderSectionHeader('Previous Academic Details')}
+      {renderInput('Last School Attended *', 'previousAcademicDetail.lastSchoolAttended', 
+        formErrors.previousAcademicDetail?.lastSchoolAttended)}
+      {renderInput('Last Class Completed *', 'previousAcademicDetail.lastClassCompleted', 
+        formErrors.previousAcademicDetail?.lastClassCompleted)}
       
-      <Text style={styles.sectionTitle}>Admission Details</Text>
-      {renderInput('Class for Admission *', 'admissionDetail.classForAdmission')}
-      {renderInput('Academic Year *', 'admissionDetail.academicYear')}
-      {renderInput('Preferred Second Language *', 'admissionDetail.preferredSecondLanguage')}
+      {renderSectionHeader('Admission Details')}
+      {renderInput('Class for Admission *', 'admissionDetail.classForAdmission', 
+        formErrors.admissionDetail?.classForAdmission)}
+      {renderInput('Academic Year *', 'admissionDetail.academicYear', 
+        formErrors.admissionDetail?.academicYear)}
+      {renderInput('Preferred Second Language *', 'admissionDetail.preferredSecondLanguage', 
+        formErrors.admissionDetail?.preferredSecondLanguage)}
       
       {renderSwitch('Has Siblings in School', 'admissionDetail.hasSiblingsInSchool')}
       {renderSiblingFields()}

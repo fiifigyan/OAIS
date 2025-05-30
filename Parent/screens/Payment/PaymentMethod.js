@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+
 const PaymentMethod = ({ route, navigation }) => {
   const totalAmount = route.params?.totalAmount || 0;
   const [method, setMethod] = useState('MoMo');
@@ -11,19 +12,19 @@ const PaymentMethod = ({ route, navigation }) => {
     { 
       label: 'Mobile Money', 
       value: 'MoMo', 
-      icon: 'phone-portrait',
+      icon: 'phone-portrait-outline',
       description: 'Pay instantly with your mobile wallet',
     },
     { 
       label: 'Credit Card', 
       value: 'Credit Card', 
-      icon: 'card',
+      icon: 'card-outline',
       description: 'Visa, Mastercard, or other cards',
     },
     { 
       label: 'Bank Transfer', 
       value: 'Bank Transfer', 
-      icon: 'swap-horizontal',
+      icon: 'swap-horizontal-outline',
       description: 'Direct transfer from your bank',
     },
   ];
@@ -38,7 +39,7 @@ const PaymentMethod = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <LinearGradient 
-        colors={['#00873E', '#03C04A']} 
+        colors={['#00873E', '#007848']} 
         style={styles.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
@@ -83,7 +84,7 @@ const PaymentMethod = ({ route, navigation }) => {
                   </Text>
                 </View>
                 {method === option.value && (
-                  <Icon name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Icon name="checkmark-circle-outline" size={20} color="#4CAF50" />
                 )}
               </TouchableOpacity>
             ))}
@@ -96,18 +97,18 @@ const PaymentMethod = ({ route, navigation }) => {
           disabled={totalAmount <= 0}
         >
           <LinearGradient
-            colors={['#00873E', '#03C04A']}
+            colors={['#00873E', '#007848']}
             style={styles.payButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
             <Text style={styles.payButtonText}>Pay GHS {totalAmount.toFixed(2)}</Text>
-            <Icon name="lock-closed" size={20} color="aliceblue" style={styles.lockIcon} />
+            <Icon name="lock-closed-outline" size={20} color="aliceblue" style={styles.lockIcon} />
           </LinearGradient>
         </TouchableOpacity>
 
         <View style={styles.securityInfo}>
-          <Icon name="shield-checkmark" size={18} color="#4CAF50" />
+          <Icon name="shield-checkmark-outline" size={18} color="#4CAF50" />
           <Text style={styles.securityText}>Secure payment encrypted with SSL</Text>
         </View>
       </ScrollView>

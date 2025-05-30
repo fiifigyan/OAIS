@@ -16,7 +16,7 @@ const HistoryScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Payment History</Text>
+      {/* <Text style={styles.title}>Payment History</Text> */}
       <FlatList
         data={payments}
         keyExtractor={(item) => item.id}

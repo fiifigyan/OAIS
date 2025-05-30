@@ -1,8 +1,9 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { AdmissionContext } from '../../context/AdmissionContext';
-import { renderDocumentUpload } from '../../components/Admission/FormComponents';
+import { renderDocumentUpload, renderSectionHeader } from '../../components/Admission/FormComponents';
 
 const styles = StyleSheet.create({
   container: {
@@ -10,14 +11,14 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f5f5f5',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00873E',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 8,
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 10,
+  },
+  errorText: {
+    color: '#d32f2f',
   },
   documentNote: {
     fontSize: 12,
@@ -57,26 +58,105 @@ const styles = StyleSheet.create({
 });
 
 const DocumentsFormPage = ({ navigation }) => {
-  const { validateForm } = useContext(AdmissionContext);
+  const { 
+    formData, 
+    formErrors,
+    validateSection,
+    setFormFieldValue 
+  } = useContext(AdmissionContext);
+  const [sectionErrors, setSectionErrors] = useState({});
+
+  const handleDocumentPick = async (fieldName) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/jpeg', 'image/png'],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      if (result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        setFormFieldValue(`documents.${fieldName}`, {
+          name: file.name,
+          uri: file.uri,
+          size: file.size,
+          type: file.mimeType
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to select document. Please try again.');
+    }
+  };
+
+  const handleImagePick = async (fieldName) => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        setFormFieldValue(`documents.${fieldName}`, {
+          name: file.fileName || `image_${Date.now()}.jpg`,
+          uri: file.uri,
+          size: file.fileSize,
+          type: file.type || 'image/jpeg'
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to select image. Please try again.');
+    }
+  };
 
   const handleReview = async () => {
-    // Validate only documents before proceeding
-    const errors = await validateForm();
-    const documentErrors = errors?.documents || {};
+    const errors = await validateSection('documents', formData.documents);
+    setSectionErrors(errors);
     
-    if (Object.keys(documentErrors).length === 0) {
+    if (Object.keys(errors).length === 0) {
       navigation.navigate('ReviewPage');
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.sectionTitle}>Required Documents</Text>
+      {renderSectionHeader('Required Documents', 'Upload all required documents to complete your application')}
+
+      {Object.keys(sectionErrors).length > 0 && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Please upload all required documents before proceeding
+          </Text>
+        </View>
+      )}
+
       <Text style={styles.documentNote}>Please upload PDF, JPEG or PNG files (max 10MB each)</Text>
 
-      {renderDocumentUpload('Passport Photo *', 'documents.file1')}
-      {renderDocumentUpload('Birth Certificate *', 'documents.file2')}
-      {renderDocumentUpload('Previous Results *', 'documents.file3')}
+      {renderDocumentUpload(
+        'Passport Photo *', 
+        'file1', 
+        formData.documents.file1, 
+        formErrors.documents?.file1,
+        () => handleImagePick('file1')
+      )}
+      
+      {renderDocumentUpload(
+        'Birth Certificate *', 
+        'file2', 
+        formData.documents.file2, 
+        formErrors.documents?.file2,
+        () => handleDocumentPick('file2')
+      )}
+      
+      {renderDocumentUpload(
+        'Previous Results *', 
+        'file3', 
+        formData.documents.file3, 
+        formErrors.documents?.file3,
+        () => handleDocumentPick('file3')
+      )}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
