@@ -9,67 +9,113 @@ import { getAuthToken, sanitizeError, logger, formatDate } from '../../utils/hel
 
 const ReportScreen = ({ navigation, route }) => {
   const studentData = route.params?.studentData || {};
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [error, setError] = useState(null);
+  const screenWidth = Dimensions.get('window').width;
 
-  // Fetch report data from API
-  useEffect(() => {
-    const fetchReportData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const token = await getAuthToken();
-        if (!token) throw new Error('No authentication token found');
+  const fetchReportData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = await getAuthToken();
+      if (!token) throw new Error('No authentication token found');
 
-        const response = await fetch(
-          `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.REPORT}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+      const response = await fetch(
+        `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.REPORT}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
         }
+      );
 
-        const data = await response.json();
-        if (!data) throw new Error('No report data returned from API');
-
-        setReportData({
-          term: data.term || 'Term 1',
-          overallGrade: data.overallGrade || 'B+',
-          attendance: data.attendance || '94%',
-          subjects: data.subjects || [],
-          comments: data.comments || [],
-          headmasterRemark: data.headmasterRemark || '',
-        });
-      } catch (error) {
-        logger.error('Failed to fetch report data:', error);
-        setError(sanitizeError(error));
-        Alert.alert('Error', 'Failed to load report data');
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    };
 
+      const data = await response.json();
+      if (!data) throw new Error('No report data returned from API');
+
+      // Generate pie chart data
+      const gradeCounts = {
+        A: 0, B: 0, C: 0, D: 0, E: 0, F: 0
+      };
+
+      data.subjects?.forEach(subject => {
+        if (subject.grade && gradeCounts.hasOwnProperty(subject.grade)) {
+          gradeCounts[subject.grade]++;
+        }
+      });
+
+      const pieData = Object.entries(gradeCounts)
+        .filter(([_, count]) => count > 0)
+        .map(([grade, count]) => ({
+          name: grade,
+          population: count,
+          color: getGradeColor(grade),
+          legendFontColor: '#7F7F7F',
+          legendFontSize: 12,
+        }));
+
+      setReportData({
+        term: data.term || 'Term 1',
+        overallGrade: data.overallGrade || 'B+',
+        attendance: data.attendance || '94%',
+        subjects: data.subjects || [],
+        comments: data.comments || [],
+        headmasterRemark: data.headmasterRemark || '',
+        pieData,
+      });
+    } catch (error) {
+      logger.error('Failed to fetch report data:', error);
+      setError(sanitizeError(error));
+      Alert.alert('Error', 'Failed to load report data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getGradeColor = (grade) => {
+    const colors = {
+      A: '#4CAF50',
+      B: '#8BC34A',
+      C: '#FFC107',
+      D: '#FF9800',
+      E: '#FF5722',
+      F: '#F44336',
+    };
+    return colors[grade] || '#9E9E9E';
+  };
+
+  useEffect(() => {
     fetchReportData();
   }, []);
 
-  // Handle PDF export
   const handleExport = async () => {
-    if (!reportData) return;
-    
-    setLoading(true);
+    if (!reportData || reportData.subjects.length === 0) {
+      Alert.alert('No Data', 'There is no report data to export');
+      return;
+    }
+
+    setPdfLoading(true);
     try {
       const html = generateReportHTML({
         studentId: studentData.studentName || 'Student',
-        ...reportData,
-      }, schoolInfo);
+        term: reportData.term,
+        overallGrade: reportData.overallGrade,
+        attendance: reportData.attendance,
+        subjects: reportData.subjects.map(subject => ({
+          name: subject.subject || subject.name,
+          grade: subject.grade,
+          progress: subject.progress || subject.totalScore || 0,
+        })),
+        comments: reportData.comments,
+        headmasterRemark: reportData.headmasterRemark,
+      });
 
-      const { filePath } = await generatePDF(html, `${studentData.studentName}_Report`);
+      const { filePath } = await generatePDF(html, `${studentData.studentName}_Report_${reportData.term}`);
       
       Alert.alert(
         "Export Successful",
@@ -84,14 +130,42 @@ const ReportScreen = ({ navigation, route }) => {
       logger.error('PDF export failed:', error);
       Alert.alert("Error", "Failed to generate PDF");
     } finally {
-      setLoading(false);
+      setPdfLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator animating={true} size="large" color="#00873E" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={fetchReportData}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (!reportData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator animating={true} size="large" color="#00873E" />
+        <Text>No report data available</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={fetchReportData}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -101,10 +175,14 @@ const ReportScreen = ({ navigation, route }) => {
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={`${studentData.studentName || 'Student'}'s Report`} />
-        {loading ? (
+        {pdfLoading ? (
           <ActivityIndicator animating={true} color="aliceblue" />
         ) : (
-          <Appbar.Action icon="download" onPress={handleExport} />
+          <Appbar.Action 
+            icon="download" 
+            onPress={handleExport} 
+            disabled={!reportData || reportData.subjects.length === 0}
+          />
         )}
       </Appbar.Header>
 
@@ -114,21 +192,21 @@ const ReportScreen = ({ navigation, route }) => {
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Overall Grade</Text>
-                <Text style={styles.summaryValue}>{reportData.overallGrade}</Text>
+                <Text style={styles.summaryValue}>{reportData.overallGrade || 'N/A'}</Text>
               </View>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Attendance</Text>
-                <Text style={styles.summaryValue}>{reportData.attendance}</Text>
+                <Text style={styles.summaryValue}>{reportData.attendance || 'N/A'}</Text>
               </View>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Position</Text>
-                <Text style={styles.summaryValue}>{studentData.generalPosition || '4th'}</Text>
+                <Text style={styles.summaryValue}>{studentData.generalPosition || 'N/A'}</Text>
               </View>
             </View>
           </Card.Content>
         </Card>
 
-        <Text style={styles.sectionHeader}>Academic Performance</Text>
+        <Text style={styles.sectionHeader}>Grade Distribution</Text>
         <Card style={styles.chartCard}>
           <Card.Content>
             <PieChart
@@ -150,56 +228,77 @@ const ReportScreen = ({ navigation, route }) => {
         </Card>
 
         <Text style={styles.sectionHeader}>Subject Breakdown</Text>
-        {reportData.subjects.map((subject, index) => (
-          <Card key={index} style={styles.subjectCard}>
-            <Card.Content>
-              <View style={styles.subjectHeader}>
-                <Text style={styles.subjectName}>{subject.name}</Text>
-                <View style={styles.gradeContainer}>
-                  <Text style={styles.subjectGrade}>{subject.grade}</Text>
-                  <Text style={styles.subjectPosition}>(Position: {subject.position})</Text>
+        {reportData.subjects.length > 0 ? (
+          reportData.subjects.map((subject, index) => (
+            <Card key={index} style={styles.subjectCard}>
+              <Card.Content>
+                <View style={styles.subjectHeader}>
+                  <Text style={styles.subjectName}>{subject.subject || subject.name}</Text>
+                  <View style={styles.gradeContainer}>
+                    <Text style={[styles.subjectGrade, { color: getGradeColor(subject.grade) }]}>
+                      {subject.grade}
+                    </Text>
+                    <Text style={styles.subjectPosition}>(Position: {subject.position || 'N/A'})</Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.progressContainer}>
-                <View style={[styles.progressBar, { width: `${subject.progress}%` }]} />
-              </View>
-              <Text style={styles.progressText}>{subject.progress}% mastery</Text>
-            </Card.Content>
-          </Card>
-        ))}
+                <View style={styles.progressContainer}>
+                  <View style={[styles.progressBar, { 
+                    width: `${subject.progress || subject.totalScore || 0}%`,
+                    backgroundColor: getGradeColor(subject.grade)
+                  }]} />
+                </View>
+                <Text style={styles.progressText}>
+                  {subject.progress || subject.totalScore || 0}% mastery
+                </Text>
+              </Card.Content>
+            </Card>
+          ))
+        ) : (
+          <Text style={styles.noDataText}>No subject data available</Text>
+        )}
 
         <Text style={styles.sectionHeader}>Teacher Comments</Text>
-        {reportData.comments.map((comment, index) => (
-          <Card key={index} style={styles.commentCard}>
-            <Card.Content>
-              <Text style={styles.commentHeader}>
-                {comment.teacher} ({comment.subject})
-              </Text>
-              <Divider style={styles.divider} />
-              <Text style={styles.commentText}>{comment.text}</Text>
-            </Card.Content>
-          </Card>
-        ))}
+        {reportData.comments.length > 0 ? (
+          reportData.comments.map((comment, index) => (
+            <Card key={index} style={styles.commentCard}>
+              <Card.Content>
+                <Text style={styles.commentHeader}>
+                  {comment.teacher} ({comment.subject})
+                </Text>
+                <Divider style={styles.divider} />
+                <Text style={styles.commentText}>{comment.text}</Text>
+              </Card.Content>
+            </Card>
+          ))
+        ) : (
+          <Text style={styles.noDataText}>No comments available</Text>
+        )}
 
-        <Text style={styles.sectionHeader}>Headmaster's Remarks</Text>
-        <Card style={styles.commentCard}>
-          <Card.Content>
-            <Text style={styles.commentText}>{reportData.headmasterRemark}</Text>
-          </Card.Content>
-        </Card>
+        {reportData.headmasterRemark && (
+          <>
+            <Text style={styles.sectionHeader}>Headmaster's Remarks</Text>
+            <Card style={styles.commentCard}>
+              <Card.Content>
+                <Text style={styles.commentText}>{reportData.headmasterRemark}</Text>
+              </Card.Content>
+            </Card>
+          </>
+        )}
 
-        <View style={styles.interestContainer}>
-          <Text style={styles.interestLabel}>Areas of Interest:</Text>
-          <Text style={styles.interestValue}>{studentData.interest || 'English, Creative Arts'}</Text>
-        </View>
+        {studentData.interest && (
+          <View style={styles.interestContainer}>
+            <Text style={styles.interestLabel}>Areas of Interest:</Text>
+            <Text style={styles.interestValue}>{studentData.interest}</Text>
+          </View>
+        )}
 
         <View style={styles.exportOptions}>
           <TouchableOpacity 
-            style={styles.exportButton}
+            style={[styles.exportButton, (!reportData || reportData.subjects.length === 0) && styles.buttonDisabled]}
             onPress={handleExport}
-            disabled={loading}
+            disabled={!reportData || reportData.subjects.length === 0 || pdfLoading}
           >
-            {loading ? (
+            {pdfLoading ? (
               <ActivityIndicator animating={true} color="aliceblue" />
             ) : (
               <Text style={styles.exportButtonText}>Export as PDF</Text>
@@ -220,6 +319,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: '#D32F2F',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#00873E',
+    padding: 12,
+    borderRadius: 4,
+    width: '50%',
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  noDataText: {
+    textAlign: 'center',
+    color: '#666',
+    marginVertical: 16,
   },
   summaryCard: {
     margin: 8,
@@ -274,7 +400,6 @@ const styles = StyleSheet.create({
   subjectGrade: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#00873E',
   },
   subjectPosition: {
     fontSize: 12,
@@ -288,7 +413,6 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#00873E',
     borderRadius: 4,
   },
   progressText: {
@@ -338,6 +462,9 @@ const styles = StyleSheet.create({
     width: '80%',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  buttonDisabled: {
+    backgroundColor: '#cccccc',
   },
   exportButtonText: {
     color: 'aliceblue',

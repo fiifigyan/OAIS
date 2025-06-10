@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { APIConfig } from '../config';
-import * as SecureStorage from 'expo-secure-store';
+import { manageAuthToken, getAuthToken, sanitizeError } from '../utils/helpers';
 
 const HomeService = {
   getStudentHomeData: async (studentId) => {
     try {
-      const token = await SecureStorage.getItemAsync('authToken');
+      const token = await getAuthToken();
       if (!token) throw new Error('Authentication required');
 
       const response = await axios.get(
@@ -27,14 +27,15 @@ const HomeService = {
         upcomingEvents: response.data.upcomingEvents || []
       };
     } catch (error) {
-      console.error('HomeService.getStudentHomeData error:', error);
-      throw error;
+      const friendlyError = sanitizeError(error);
+      console.error('HomeService.getStudentHomeData error:', friendlyError);
+      throw new Error(friendlyError);
     }
   },
 
   getUpcomingEvents: async () => {
     try {
-      const token = await SecureStorage.getItemAsync('authToken');
+      const token = await getAuthToken();
       if (!token) throw new Error('Authentication required');
 
       const response = await axios.get(
@@ -49,8 +50,9 @@ const HomeService = {
 
       return response.data.events || [];
     } catch (error) {
-      console.error('HomeService.getUpcomingEvents error:', error);
-      throw error;
+      const friendlyError = sanitizeError(error);
+      console.error('HomeService.getUpcomingEvents error:', friendlyError);
+      throw new Error(friendlyError);
     }
   }
 };

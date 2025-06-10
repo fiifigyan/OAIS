@@ -1,63 +1,112 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { PaymentContext } from '../../context/PaymentContext';
+import { formatDate } from '../../utils/helpers';
 
-const HistoryScreen = ({ route }) => {
-  const { payments } = useContext(PaymentContext);
+const PaymentHistoryScreen = ({ navigation, route }) => {
+  const { payments, refreshPayments } = useContext(PaymentContext);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [highlightedPaymentId, setHighlightedPaymentId] = useState(null);
 
-  // Check if a payment ID was passed to highlight
+  // Handle highlight from navigation params
   useEffect(() => {
     if (route.params?.highlightId) {
       setHighlightedPaymentId(route.params.highlightId);
     }
   }, [route.params?.highlightId]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshPayments();
+    setRefreshing(false);
+  };
+
+  const handlePaymentPress = (payment) => {
+    navigation.navigate('PaymentReceipt', { paymentId: payment.id });
+  };
+
+  const renderPaymentItem = ({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.paymentCard,
+        item.id === highlightedPaymentId && styles.highlightedCard,
+      ]}
+      onPress={() => handlePaymentPress(item)}
+    >
+      <View style={styles.paymentHeader}>
+        <Text style={styles.paymentMethod}>{item.method}</Text>
+        <Text style={styles.paymentAmount}>-GHS {item.amount.toFixed(2)}</Text>
+      </View>
+      
+      <View style={styles.paymentDetails}>
+        <View style={styles.paymentMeta}>
+          <Text style={styles.paymentDate}>{formatDate(item.date)}</Text>
+          <View style={styles.paymentStatus}>
+            <Icon
+              name={item.status === 'success' ? 'checkmark-circle' : 'time'}
+              size={16}
+              color={item.status === 'success' ? '#4CAF50' : '#FF9800'}
+            />
+            <Text style={[
+              styles.statusText,
+              item.status === 'success' ? styles.statusSuccess : styles.statusPending,
+            ]}>
+              {item.status === 'success' ? 'Completed' : 'Processing'}
+            </Text>
+          </View>
+        </View>
+        
+        {item.reference && (
+          <Text style={styles.paymentReference}>Ref: {item.reference}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading && !refreshing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00873E" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.title}>Payment History</Text> */}
       <FlatList
         data={payments}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.paymentCard,
-              item.id === highlightedPaymentId && styles.highlightedPaymentCard,
-            ]}
-            onPress={() => setSelectedPayment(item)}
-          >
-            <Text style={styles.label}>ID: {item.id}</Text>
-            <Text style={styles.label}>Amount: GHS {item.amount.toFixed(2)}</Text>
-            <Text style={styles.label}>Method: {item.method}</Text>
-            <Text style={styles.label}>Date: {new Date(item.date).toLocaleString()}</Text>
-          </TouchableOpacity>
-        )}
-      />
-
-      {/* Receipt Modal */}
-      <Modal visible={!!selectedPayment} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Receipt</Text>
-            {selectedPayment && (
-              <>
-                <Text style={styles.label}>ID: {selectedPayment.id}</Text>
-                <Text style={styles.label}>Amount: GHS {selectedPayment.amount.toFixed(2)}</Text>
-                <Text style={styles.label}>Method: {selectedPayment.method}</Text>
-                <Text style={styles.label}>Date: {new Date(selectedPayment.date).toLocaleString()}</Text>
-              </>
-            )}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setSelectedPayment(null)}
-            >
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
+        renderItem={renderPaymentItem}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#00873E']}
+            tintColor="#00873E"
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Icon name="receipt-outline" size={48} color="#CCCCCC" />
+            <Text style={styles.emptyText}>No payment history found</Text>
           </View>
-        </View>
-      </Modal>
+        }
+        ListHeaderComponent={
+          <Text style={styles.sectionTitle}>Payment History</Text>
+        }
+      />
     </View>
   );
 };
@@ -65,72 +114,96 @@ const HistoryScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: 'aliceblue',
+    backgroundColor: '#F8F9FF',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  paymentCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  highlightedPaymentCard: {
-    borderWidth: 2,
-    borderColor: '#007AFF',
-  },
-  label: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 5,
-  },
-  modalOverlay: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContainer: {
-    width: '90%',
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
+  listContent: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  paymentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginBottom: 20,
-    textAlign: 'center',
+  highlightedCard: {
+    borderWidth: 2,
+    borderColor: '#00873E',
   },
-  closeButton: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#007AFF',
-    borderRadius: 10,
+  paymentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
-  closeButtonText: {
-    color: '#fff',
+  paymentMethod: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  paymentAmount: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#00873E',
+  },
+  paymentDetails: {
+    flexDirection: 'column',
+  },
+  paymentMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  paymentDate: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  paymentStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  statusSuccess: {
+    color: '#4CAF50',
+  },
+  statusPending: {
+    color: '#FF9800',
+  },
+  paymentReference: {
+    fontSize: 13,
+    color: '#999999',
+    fontFamily: 'monospace',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999999',
+    marginTop: 16,
   },
 });
 
-export default HistoryScreen;
+export default PaymentHistoryScreen;

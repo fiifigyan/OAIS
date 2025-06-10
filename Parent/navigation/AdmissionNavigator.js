@@ -10,6 +10,8 @@ import ParentFormPage from '../screens/Admission/ParentPage';
 import AcademicFormPage from '../screens/Admission/AcademicPage';
 import DocumentsFormPage from '../screens/Admission/DocumentsPage';
 import ReviewFormPage from '../screens/Admission/ReviewPage';
+import PaymentProcessing from '../screens/Payment/PaymentProcessing';
+import PaymentSuccess from '../components/PaymentSuccess';
 
 
 
@@ -25,6 +27,7 @@ const AdmissionNavigator = () => {
     >
       <Stack.Screen name="Breakdown" component={AdmissionBreakdown} />
       <Stack.Screen name="Purchase" component={AdmissionPurchase} />
+      <Stack.Screen name="Processing" component={PaymentProcessing} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Tour" component={TourScreen} />
       <Stack.Screen name="Status" component={AdmissionStatus} />
@@ -33,6 +36,7 @@ const AdmissionNavigator = () => {
       <Stack.Screen name="Academic" component={AcademicFormPage} />
       <Stack.Screen name="Documents" component={DocumentsFormPage} />
       <Stack.Screen name="Review" component={ReviewFormPage} />
+      <Stack.Screen name="Success" component={PaymentSuccess} />
     </Stack.Navigator>
   );
 };

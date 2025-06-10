@@ -1,53 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking, Share, ActivityIndicator, Alert, SafeAreaView, Dimensions, Platform, PermissionsAndroid } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Image, 
+  TouchableOpacity, 
+  Linking, 
+  Share, 
+  ActivityIndicator, 
+  Alert, 
+  SafeAreaView, 
+  Dimensions, 
+  Platform, 
+  PermissionsAndroid 
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Geocoder from 'react-native-geocoding';
 import { addEventToCalendar } from '../../utils/calendar';
+import { CalendarService } from '../../services/CalendarService';
+import { sanitizeError } from '../../utils/helpers';
+import { useProfile } from '../../context/ProfileContext';
 
 const { width } = Dimensions.get('window');
 
-// Initialize Geocoder with your Google Maps API key
 Geocoder.init('GOOGLE_MAPS_API_KEY', { language: 'en' });
 
 const EventScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { event } = route.params || {};
+  const { selectedStudent } = useProfile();
+  const { event: initialEvent } = route.params || {};
   
+  const [event, setEvent] = useState(initialEvent);
   const [registering, setRegistering] = useState(false);
   const [addingToCalendar, setAddingToCalendar] = useState(false);
   const [mapRegion, setMapRegion] = useState(null);
-  const [locationPermission, setLocationPermission] = useState(null);
   const [loadingMap, setLoadingMap] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (event?.location) {
-      checkLocationPermission();
-      geocodeLocation(event.location);
+    if (initialEvent?.id && !initialEvent.detailsLoaded) {
+      loadEventDetails(initialEvent.id);
     }
-  }, [event]);
+    if (initialEvent?.location) {
+      geocodeLocation(initialEvent.location);
+    }
+  }, [initialEvent]);
 
-  const checkLocationPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-        );
-        setLocationPermission(granted === PermissionsAndroid.RESULTS.GRANTED);
-      } catch (err) {
-        console.warn(err);
-        setLocationPermission(false);
-      }
-    } else {
-      try {
-        const { status } = await MapView.requestPermissions();
-        setLocationPermission(status === 'granted');
-      } catch (e) {
-        setLocationPermission(false);
-      }
+  const loadEventDetails = async (eventId) => {
+    try {
+      const detailedEvent = await CalendarService.fetchEventById(eventId);
+      setEvent({ ...detailedEvent, detailsLoaded: true });
+    } catch (error) {
+      const friendlyError = sanitizeError(error);
+      console.error('Error loading event details:', friendlyError);
+      setError(friendlyError);
     }
   };
 
@@ -65,7 +76,6 @@ const EventScreen = () => {
       });
     } catch (error) {
       console.error('Geocoding error:', error);
-      // Fallback coordinates if geocoding fails
       setMapRegion({
         latitude: 37.78825,
         longitude: -122.4324,
@@ -75,10 +85,6 @@ const EventScreen = () => {
     } finally {
       setLoadingMap(false);
     }
-  };
-
-  const handleBack = () => {
-    navigation.goBack();
   };
 
   const handleShare = async () => {
@@ -101,8 +107,7 @@ const EventScreen = () => {
       android: `geo:0,0?q=${encodeURIComponent(event.location)}`,
     });
     
-    Linking.openURL(url).catch(err => {
-      // Fallback to web Google Maps
+    Linking.openURL(url).catch(() => {
       const webUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`;
       Linking.openURL(webUrl).catch(() => 
         Alert.alert('Error', "Couldn't open maps")
@@ -111,15 +116,16 @@ const EventScreen = () => {
   };
 
   const handleRegister = async () => {
-    if (!event || event.registered) return;
+    if (!event || event.registered || !selectedStudent?.id) return;
     
     try {
       setRegistering(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const updatedEvent = await CalendarService.registerForEvent(event.id, selectedStudent.id);
+      setEvent(updatedEvent);
       Alert.alert('Success', 'Registration successful!');
-    } catch (err) {
-      Alert.alert('Error', err.message || 'Failed to register for event');
+    } catch (error) {
+      const friendlyError = sanitizeError(error);
+      Alert.alert('Error', friendlyError);
     } finally {
       setRegistering(false);
     }
@@ -130,8 +136,9 @@ const EventScreen = () => {
       setAddingToCalendar(true);
       await addEventToCalendar(event);
       Alert.alert('Success', 'Event added to your calendar');
-    } catch (err) {
-      Alert.alert('Error', err.message || 'Failed to add to calendar');
+    } catch (error) {
+      const friendlyError = sanitizeError(error);
+      Alert.alert('Error', friendlyError);
     } finally {
       setAddingToCalendar(false);
     }
@@ -142,7 +149,9 @@ const EventScreen = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyContainer}>
           <Icon name="alert-circle-outline" size={48} color="#00873E" />
-          <Text style={styles.emptyText}>No event data available</Text>
+          <Text style={styles.emptyText}>
+            {error || 'No event data available'}
+          </Text>
         </View>
       </SafeAreaView>
     );

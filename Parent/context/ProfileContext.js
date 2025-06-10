@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import ProfileService from '../services/ProfileService';
+import { sanitizeError } from '../utils/helpers';
 
 export const ProfileContext = createContext();
 
@@ -30,8 +31,9 @@ export const ProfileProvider = ({ children }) => {
       
       return { parent: parentData, students: studentsData };
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const friendlyError = sanitizeError(err);
+      setError(friendlyError);
+      throw new Error(friendlyError);
     } finally {
       setLoading(false);
     }
@@ -80,8 +82,9 @@ export const ProfileProvider = ({ children }) => {
     } catch (err) {
       // Revert on error
       setProfileData(prevData);
-      setError(err.message);
-      throw err;
+      const friendlyError = sanitizeError(err);
+      setError(friendlyError);
+      throw new Error(friendlyError);
     } finally {
       setLoading(false);
     }
@@ -105,8 +108,9 @@ export const ProfileProvider = ({ children }) => {
       
       return result;
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const friendlyError = sanitizeError(err);
+      setError(friendlyError);
+      throw new Error(friendlyError);
     } finally {
       setLoading(false);
     }

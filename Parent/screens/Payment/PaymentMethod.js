@@ -30,7 +30,7 @@ const PaymentMethod = ({ route, navigation }) => {
   ];
 
   const handlePayment = () => {
-    navigation.navigate('PaymentProcessing', { 
+    navigation.navigate('Processing', { 
       method,
       amount: totalAmount 
     });

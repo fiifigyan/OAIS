@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import HomeService from '../services/HomeService';
 import { useProfile } from '../context/ProfileContext';
+import { sanitizeError } from '../utils/helpers';
 
 const HomeContext = createContext();
 
@@ -28,8 +29,9 @@ export const HomeProvider = ({ children }) => {
       setHomeData(homeResponse);
       setEvents(eventsResponse);
     } catch (error) {
-      console.error('Error loading home data:', error);
-      setError(error.message || 'Failed to load home data');
+      const friendlyError = sanitizeError(error);
+      console.error('Error loading home data:', friendlyError);
+      setError(friendlyError);
     } finally {
       setLoading(false);
     }

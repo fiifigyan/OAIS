@@ -1,43 +1,48 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
-import { Text, Button, useTheme } from 'react-native-paper';
+import { Text, Chip } from 'react-native-paper';
 import NotificationItem from './NotificationItem';
-import { fetchNotifications, markAsRead, deleteNotification, setBadgeCount } from '../../services/NotificationService';
+import NotificationService from '../../services/NotificationService';
 import { useNotificationContext } from '../../context/NotificationContext';
 import { groupByDate } from '../../utils/helpers';
 import EmptyState from './EmptyState';
 import ErrorState from './ErrorState';
 
 const NotificationList = () => {
-  const theme = useTheme();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState('all');
   const { settings, updateUnreadCount } = useNotificationContext();
 
-  // Memoize grouped notifications
-  const groupedNotifications = useMemo(() => {
-    return groupByDate(notifications);
-  }, [notifications]);
+  const filteredNotifications = useMemo(() => {
+    if (!Array.isArray(notifications)) return []; // Add safety check
+    if (filter === 'unread') {
+      return notifications.filter(n => !n.read);
+    }
+    return notifications;
+  }, [notifications, filter]);
 
-  // Calculate unread count
+  const groupedNotifications = useMemo(() => {
+    return groupByDate(filteredNotifications);
+  }, [filteredNotifications]);
+
   const unreadCount = useMemo(() => {
+    if (!Array.isArray(notifications)) return 0; // Add safety check
     return notifications.filter(n => !n.read).length;
   }, [notifications]);
 
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      const data = await fetchNotifications();
-      setNotifications(data);
-      
-      if (settings.badgeEnabled) {
-        updateUnreadCount(unreadCount);
-        await setBadgeCount(unreadCount);
-      }
+      setLoading(true);
+      const data = await NotificationService.fetchNotifications();
+      // Ensure data is an array before setting state
+      setNotifications(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err);
+      setNotifications([]); // Fallback to empty array on error
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -55,38 +60,39 @@ const NotificationList = () => {
 
   const handleMarkAsRead = async (id) => {
     try {
-      await markAsRead(id);
+      await NotificationService.markAsRead(id);
       setNotifications(prev => 
         prev.map(n => n.id === id ? { ...n, read: true } : n)
       );
       
       if (settings.badgeEnabled) {
         updateUnreadCount(unreadCount - 1);
-        await setBadgeCount(unreadCount - 1);
+        await NotificationService.setBadgeCount(unreadCount - 1);
       }
     } catch (err) {
-      console.error('Error marking as read:', err);
+      console.error('Error marking notification as read:', err);
     }
   };
 
   const handleDelete = async (id) => {
     try {
       const wasUnread = notifications.find(n => n.id === id)?.read === false;
-      await deleteNotification(id);
+      await NotificationService.deleteNotification(id);
       setNotifications(prev => prev.filter(n => n.id !== id));
       
       if (wasUnread && settings.badgeEnabled) {
         updateUnreadCount(unreadCount - 1);
-        await setBadgeCount(unreadCount - 1);
+        await NotificationService.setBadgeCount(unreadCount - 1);
       }
     } catch (err) {
       console.error('Error deleting notification:', err);
     }
   };
 
+
   const renderDateSection = useCallback(({ item: date }) => (
     <View style={styles.dateSection}>
-      <Text style={[styles.dateHeader, { color: theme.colors.primary }]}>
+      <Text style={styles.dateHeader}>
         {date}
       </Text>
       {groupedNotifications[date].map(notification => (
@@ -98,12 +104,12 @@ const NotificationList = () => {
         />
       ))}
     </View>
-  ), [groupedNotifications, handleMarkAsRead, handleDelete, theme]);
+  ), [groupedNotifications, handleMarkAsRead, handleDelete]);
 
   if (loading && !notifications.length) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator animating={true} color={theme.colors.primary} size="large" />
+        <ActivityIndicator animating={true} size="large" color="#00873E" />
       </View>
     );
   }
@@ -119,6 +125,27 @@ const NotificationList = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.filterContainer}>
+        <Chip
+          mode="outlined"
+          selected={filter === 'all'}
+          onPress={() => setFilter('all')}
+          style={[styles.chip, filter === 'all' && styles.selectedChip]}
+          textStyle={[styles.chipText, filter === 'all' && styles.selectedChipText]}
+        >
+          All
+        </Chip>
+        <Chip
+          mode="outlined"
+          selected={filter === 'unread'}
+          onPress={() => setFilter('unread')}
+          style={[styles.chip, filter === 'unread' && styles.selectedChip]}
+          textStyle={[styles.chipText, filter === 'unread' && styles.selectedChipText]}
+        >
+          Unread ({unreadCount})
+        </Chip>
+      </View>
+
       <FlatList
         data={Object.keys(groupedNotifications)}
         keyExtractor={(date) => date}
@@ -127,18 +154,18 @@ const NotificationList = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[theme.colors.primary]}
-            tintColor={theme.colors.primary}
+            colors={['#00873E']}
+            tintColor="#00873E"
           />
         }
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <EmptyState 
-            title="No notifications"
+            title={filter === 'unread' ? "No unread notifications" : "No notifications"}
             description={settings.pushEnabled 
-              ? "You don't have any notifications yet" 
+              ? "You're all caught up!" 
               : "Notifications are disabled in settings"}
-            icon="bell-off"
+            icon={filter === 'unread' ? "email-open" : "bell-off"}
           />
         }
         initialNumToRender={10}
@@ -153,6 +180,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
+  chip: {
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+  },
+  selectedChip: {
+    backgroundColor: '#00873E',
+    borderColor: '#00873E',
+  },
+  chipText: {
+    fontSize: 14,
+    color: '#757575',
+  },
+  selectedChipText: {
+    color: '#FFFFFF',
   },
   listContent: {
     paddingBottom: 16,
@@ -171,6 +221,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     paddingHorizontal: 8,
+    color: '#00873E',
   },
 });
 

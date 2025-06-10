@@ -130,11 +130,11 @@ const TourScreen = () => {
   };
 
   const skipTour = () => {
-    navigation.navigate('Admission');
+    navigation.navigate('Student');
   };
 
   const handleEnroll = () => {
-    navigation.navigate('Admission');
+    navigation.navigate('Student');
   };
 
   useEffect(() => {

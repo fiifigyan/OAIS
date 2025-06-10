@@ -1,24 +1,14 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import AuthService from '../services/AuthService';
+import { decodeToken } from '../utils/helpers';
 
 /**
  * @typedef {Object} UserInfo
  * @property {string} token - JWT token
  * @property {string} email - User email
- * @property {string} [StudentID] - Optional student ID
- * @property {boolean} isTemporary - Flag for temporary token (should come from backend)
- */
-
-/**
- * @typedef {Object} AuthContextType
- * @property {UserInfo|null} userInfo - Current user info
- * @property {boolean} initialLoading - Initial auth loading state
- * @property {boolean} isLoading - General loading state
- * @property {(credentials: {email: string, password: string, StudentID?: string}) => Promise<UserInfo>} login - Login function
- * @property {(userData: {email: string, password: string}) => Promise<UserInfo>} register - Registration function
- * @property {() => Promise<void>} logout - Logout function
- * @property {() => Promise<void>} refreshToken - Token refresh function
+ * @property {string} [studentId] - Student ID (for existing users)
+ * @property {string} [signUpId] - SignUp ID (for new users)
  */
 
 export const AuthContext = createContext(/** @type {AuthContextType} */ (null));
@@ -28,28 +18,24 @@ export const AuthProvider = ({ children }) => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Token refresh interval (30 minutes)
-  const TOKEN_REFRESH_INTERVAL = 30 * 60 * 1000;
-
-  /**
-   * Save user data to secure storage
-   * @param {UserInfo} data - User data to save
-   */
   const saveUserData = useCallback(async (data) => {
     try {
+      const tokenPayload = decodeToken(data.token);
+      const userData = {
+        token: data.token,
+        email: tokenPayload?.email || data.email,
+        studentId: tokenPayload?.studentId || data.studentId,
+        signUpId: tokenPayload?.signUpId || data.signUpId
+      };
+      
       await SecureStore.setItemAsync('authToken', data.token);
-      await SecureStore.setItemAsync('userInfo', JSON.stringify(data));
-      setUserInfo(data);
+      await SecureStore.setItemAsync('userInfo', JSON.stringify(userData));
+      setUserInfo(userData);
     } catch (error) {
-      console.error('Failed to save user data:', error);
       throw new Error('Failed to save session data');
     }
   }, []);
 
-  /**
-   * Load user data from secure storage
-   * @returns {Promise<UserInfo|null>}
-   */
   const loadUserData = useCallback(async () => {
     try {
       const userInfoString = await SecureStore.getItemAsync('userInfo');
@@ -59,14 +45,10 @@ export const AuthProvider = ({ children }) => {
       }
       return null;
     } catch (error) {
-      console.error('Failed to load user data:', error);
       return null;
     }
   }, []);
 
-  /**
-   * Clear all auth data from storage and state
-   */
   const clearAuthData = useCallback(async () => {
     try {
       await SecureStore.deleteItemAsync('userInfo');
@@ -77,16 +59,19 @@ export const AuthProvider = ({ children }) => {
     setUserInfo(null);
   }, []);
 
-  /**
-   * Refresh the auth token
-   */
   const refreshToken = useCallback(async () => {
     if (!userInfo?.token) return;
 
     try {
       const newToken = await AuthService.refreshToken(userInfo.token);
       if (newToken) {
-        const updatedUserInfo = { ...userInfo, token: newToken };
+        const tokenPayload = decodeToken(newToken);
+        const updatedUserInfo = { 
+          token: newToken,
+          email: tokenPayload.email,
+          studentId: tokenPayload.studentId,
+          signUpId: tokenPayload.signUpId
+        };
         await saveUserData(updatedUserInfo);
       }
     } catch (error) {
@@ -95,43 +80,23 @@ export const AuthProvider = ({ children }) => {
     }
   }, [userInfo, saveUserData, clearAuthData]);
 
-  /**
-   * Initialize auth state and set up token refresh
-   */
   const initializeAuth = useCallback(async () => {
     try {
       const storedUser = await loadUserData();
       if (storedUser) {
-        // Verify token with backend
-        const tokenResponse = await AuthService.verifyToken(storedUser.token);
-        if (tokenResponse?.valid) {
-          setUserInfo(storedUser);
-          
-          // Only set up refresh interval if token is not temporary
-          if (!storedUser.isTemporary) {
-            const refreshInterval = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL);
-            return () => clearInterval(refreshInterval);
-          }
-        } else {
-          await clearAuthData();
-        }
+        setUserInfo(storedUser);
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
     } finally {
       setInitialLoading(false);
     }
-  }, [loadUserData, clearAuthData, refreshToken]);
+  }, [loadUserData]);
 
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
 
-  /**
-   * Handle user login
-   * @param {Object} credentials - Login credentials
-   * @returns {Promise<UserInfo>}
-   */
   const login = async (credentials) => {
     setIsLoading(true);
     try {
@@ -143,11 +108,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Handle user registration
-   * @param {Object} userData - Registration data
-   * @returns {Promise<UserInfo>}
-   */
   const register = async (userData) => {
     setIsLoading(true);
     try {
@@ -159,17 +119,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Handle user logout
-   */
   const logout = async () => {
     setIsLoading(true);
     try {
       if (userInfo?.token) {
         await AuthService.logout();
       }
-    } catch (error) {
-      console.error('Logout API error:', error);
     } finally {
       await clearAuthData();
       setIsLoading(false);
@@ -193,10 +148,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-/**
- * Custom hook for auth context
- * @returns {AuthContextType}
- */
 export const useAuth = () => {
   const context = React.useContext(AuthContext);
   if (!context) {

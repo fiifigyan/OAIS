@@ -125,12 +125,6 @@ export const AdmissionProvider = ({ children, navigation }) => {
         throw new Error('Your session has expired. Please login again.');
       }
 
-      // Verify token is still valid
-      const { valid } = await AuthService.verifyToken(token);
-      if (!valid) {
-        throw new Error('Your session has expired. Please login again.');
-      }
-
       const response = await admissionService.submitAdmissionForm(values);
       await admissionService.clearFormDraft();
       return response;
@@ -152,7 +146,6 @@ export const AdmissionProvider = ({ children, navigation }) => {
     }
   };
 
-  // Debounced draft saving
   const debouncedSaveDraft = useCallback(
     debounce((values, errors) => {
       if (Object.keys(errors).length === 0) {
@@ -166,20 +159,11 @@ export const AdmissionProvider = ({ children, navigation }) => {
     try {
       let schema;
       switch (section) {
-        case 'student':
-          schema = studentSchema;
-          break;
-        case 'parent':
-          schema = parentSchema;
-          break;
-        case 'academic':
-          schema = academicSchema;
-          break;
-        case 'documents':
-          schema = documentsSchema;
-          break;
-        default:
-          return {};
+        case 'student': schema = studentSchema; break;
+        case 'parent': schema = parentSchema; break;
+        case 'academic': schema = academicSchema; break;
+        case 'documents': schema = documentsSchema; break;
+        default: return {};
       }
       await schema.validate(values, { abortEarly: false });
       return {};
@@ -195,6 +179,32 @@ export const AdmissionProvider = ({ children, navigation }) => {
   const goToSection = (sectionName) => {
     setActiveSection(sectionName);
     navigation.navigate(sectionName);
+  };
+
+  const getAdmissionStatusById = async (applicationId) => {
+    try {
+      setIsLoading(true);
+      const status = await admissionService.getAdmissionStatusById(applicationId);
+      return status;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getAdmissionStatus = async () => {
+    try {
+      setIsLoading(true);
+      const status = await admissionService.getAdmissionStatus();
+      return status;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -216,12 +226,15 @@ export const AdmissionProvider = ({ children, navigation }) => {
         validateForm,
         setErrors,
       }) => {
-        // Auto-save draft when values change
         useEffect(() => {
           if (isLoading) return;
           debouncedSaveDraft(values, errors);
-          return () => debouncedSaveDraft.cancel();
-        }, [values, isLoading]);
+          return () => {
+            if (debouncedSaveDraft.cancel) {
+              debouncedSaveDraft.cancel();
+            }
+          };
+        }, [values, errors, isLoading, debouncedSaveDraft]);
 
         return (
           <AdmissionContext.Provider value={{
@@ -240,6 +253,8 @@ export const AdmissionProvider = ({ children, navigation }) => {
             validateForm,
             validateSection,
             goToSection,
+            getAdmissionStatus,
+            getAdmissionStatusById,
             resetForm: () => {
               Object.keys(INITIAL_FORM_STATE).forEach(key => {
                 setFieldValue(key, INITIAL_FORM_STATE[key]);

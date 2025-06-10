@@ -1,8 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DrawerNavigator from './DrawerNavigator';
 import AdmissionForm from '../screens/Admission/AdmissionForm';
-import AddAccountScreen from '../screens/Main/AddAccount';
-import SwitchAccountScreen from '../screens/Main/SwitchAccount';
 import HistoryScreen from '../screens/Payment/PaymentHistory';
 import ProfileScreen from '../screens/Main/ProfileScreen';
 import NotificationScreen from '../screens/Notification/Notification';
@@ -29,6 +27,7 @@ import ChatScreen from '../screens/Main/Chat';
 import UploadProgress from '../components/UploadProgress';
 import AnnouncementsScreen from '../screens/Main/Announcements';
 import ChatList from '../components/Communication/ChatList';
+import PaymentReceiptScreen from '../screens/Payment/PaymentReceipt';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +37,7 @@ const StackNavigator = ({ initialRouteName = 'Drawer' }) => {
       initialRouteName={initialRouteName}
       screenOptions={{ headerShown: false }}
     >
+      <Stack.Screen name="Receipt" component={PaymentReceiptScreen} />
       <Stack.Screen name="Drawer" component={DrawerNavigator} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
@@ -46,8 +46,6 @@ const StackNavigator = ({ initialRouteName = 'Drawer' }) => {
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Admission" component={AdmissionForm} />
       <Stack.Screen name="AdmissionStatus" component={AdmissionStatus} />
-      <Stack.Screen name="AddAccount" component={AddAccountScreen} />
-      <Stack.Screen name="SwitchAccount" component={SwitchAccountScreen} />
       <Stack.Screen name="FeeDetail" component={FeeDetailScreen} />
       <Stack.Screen name="Payment" component={PaymentMethod} />
       <Stack.Screen name="History" component={HistoryScreen} />
@@ -92,7 +90,7 @@ const StackNavigator = ({ initialRouteName = 'Drawer' }) => {
       <Stack.Screen name="Reports" component={ReportScreen} />
       <Stack.Screen name="OTP" component={OTPVerificationScreen} />
       <Stack.Screen name="PaymentProcessing" component={PaymentProcessing} />
-      <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+      <Stack.Screen name="Success" component={PaymentSuccess} />
       <Stack.Screen name="FeeBreakdown" component={FeeBreakdown} />
       <Stack.Screen name="AdmissionPurchase" component={AdmissionPurchase} />
       <Stack.Screen name="Chats" component={ChatScreen} />

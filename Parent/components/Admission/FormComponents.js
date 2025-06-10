@@ -4,80 +4,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { AdmissionContext } from '../../context/AdmissionContext';
 
-const styles = StyleSheet.create({
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#444',
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 40,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  errorInput: {
-    borderColor: '#d32f2f',
-  },
-  errorText: {
-    color: '#d32f2f',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  dateInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateInput: {
-    flex: 1,
-  },
-  calendarButton: {
-    marginLeft: 8,
-    padding: 8,
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  documentInput: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    justifyContent: 'center',
-    height: 40,
-  },
-  documentText: {
-    color: '#555',
-  },
-  documentSuccessText: {
-    color: '#2e7d32',
-  },
-  sectionHeader: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00873E',
-  },
-  sectionDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-});
 
-export const renderInput = (label, name, error, keyboardType = 'default') => {
+export const renderInput = (label, name, error, placeholder, keyboardType = 'default') => {
   const { 
     formData, 
     handleFormChange, 
@@ -101,7 +29,7 @@ export const renderInput = (label, name, error, keyboardType = 'default') => {
         onChangeText={handleFormChange(name)}
         onBlur={handleFormBlur(name)}
         keyboardType={keyboardType}
-        placeholder={label}
+        placeholder={placeholder}
       />
       {error && (
         <Text style={styles.errorText}>{error}</Text>
@@ -211,3 +139,77 @@ export const renderSectionHeader = (title, description) => (
     {description && <Text style={styles.sectionDescription}>{description}</Text>}
   </View>
 );
+
+
+const styles = StyleSheet.create({
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#444',
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    height: 40,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  errorInput: {
+    borderColor: '#d32f2f',
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  dateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateInput: {
+    flex: 1,
+  },
+  calendarButton: {
+    marginLeft: 8,
+    padding: 8,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  documentInput: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    justifyContent: 'center',
+    height: 40,
+  },
+  documentText: {
+    color: '#555',
+  },
+  documentSuccessText: {
+    color: '#2e7d32',
+  },
+  sectionHeader: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00873E',
+  },
+  sectionDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+});

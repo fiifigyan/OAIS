@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { View, Text, List, Switch, Button, Divider, Icon } from '@expo/ui/swift-ui';
 import { useNavigation } from '@react-navigation/native';
 import { appConfig } from '../../config';
@@ -26,24 +26,29 @@ const SettingsScreen = () => {
   };
 
   return (
-    <ScrollView>
+    <ScrollView style={styles.container}>
       <View padding="large">
-        <Text variant="header" marginBottom="large">Settings</Text>
+        <Text variant="header" marginBottom="large" style={styles.headerTitle}>
+          Settings
+        </Text>
         
         {/* Notification Settings */}
         <List.Section>
-          <Text variant="subheader" marginBottom="small">NOTIFICATIONS</Text>
+          <Text variant="subheader" marginBottom="small" style={styles.sectionTitle}>
+            NOTIFICATIONS
+          </Text>
           <List.Item
             leading={<Icon name="bell" size={20} color="#00873E" />}
             trailing={
               <Switch
                 value={settings.notificationsEnabled}
                 onValueChange={() => toggleSetting('notificationsEnabled')}
-                color="#00873E"
+                trackColor={{ false: '#E0E0E0', true: '#00873E' }}
+                thumbColor="#FFFFFF"
               />
             }
           >
-            <Text>Enable Notifications</Text>
+            <Text style={styles.settingText}>Enable Notifications</Text>
           </List.Item>
           
           {settings.notificationsEnabled && (
@@ -54,11 +59,12 @@ const SettingsScreen = () => {
                   <Switch
                     value={settings.soundEnabled}
                     onValueChange={() => toggleSetting('soundEnabled')}
-                    color="#00873E"
+                    trackColor={{ false: '#E0E0E0', true: '#00873E' }}
+                    thumbColor="#FFFFFF"
                   />
                 }
               >
-                <Text>Sound</Text>
+                <Text style={styles.settingText}>Sound</Text>
               </List.Item>
               
               <List.Item
@@ -67,11 +73,12 @@ const SettingsScreen = () => {
                   <Switch
                     value={settings.vibrationEnabled}
                     onValueChange={() => toggleSetting('vibrationEnabled')}
-                    color="#00873E"
+                    trackColor={{ false: '#E0E0E0', true: '#00873E' }}
+                    thumbColor="#FFFFFF"
                   />
                 }
               >
-                <Text>Vibration</Text>
+                <Text style={styles.settingText}>Vibration</Text>
               </List.Item>
               
               <List.Item
@@ -80,11 +87,12 @@ const SettingsScreen = () => {
                   <Switch
                     value={settings.badgeEnabled}
                     onValueChange={() => toggleSetting('badgeEnabled')}
-                    color="#00873E"
+                    trackColor={{ false: '#E0E0E0', true: '#00873E' }}
+                    thumbColor="#FFFFFF"
                   />
                 }
               >
-                <Text>Badge Count</Text>
+                <Text style={styles.settingText}>Badge Count</Text>
               </List.Item>
             </>
           )}
@@ -94,21 +102,23 @@ const SettingsScreen = () => {
         
         {/* Account Settings */}
         <List.Section>
-          <Text variant="subheader" marginBottom="small">ACCOUNT</Text>
+          <Text variant="subheader" marginBottom="small" style={styles.sectionTitle}>
+            ACCOUNT
+          </Text>
           <List.Item
-            leading={<Icon name="person" size={20} color="#00873E" />}
-            trailing={<Icon name="chevron-right" size={20} color="#9e9e9e" />}
+            leading={<Icon name="account" size={20} color="#00873E" />}
+            trailing={<Icon name="chevron-right" size={20} color="#9E9E9E" />}
             onPress={() => navigation.navigate('Profile')}
           >
-            <Text>My Profile</Text>
+            <Text style={styles.settingText}>My Profile</Text>
           </List.Item>
           
           <List.Item
             leading={<Icon name="lock" size={20} color="#00873E" />}
-            trailing={<Icon name="chevron-right" size={20} color="#9e9e9e" />}
+            trailing={<Icon name="chevron-right" size={20} color="#9E9E9E" />}
             onPress={() => navigation.navigate('ResetPassword')}
           >
-            <Text>Change Password</Text>
+            <Text style={styles.settingText}>Change Password</Text>
           </List.Item>
         </List.Section>
         
@@ -116,26 +126,28 @@ const SettingsScreen = () => {
         
         {/* App Info */}
         <List.Section>
-          <Text variant="subheader" marginBottom="small">ABOUT</Text>
+          <Text variant="subheader" marginBottom="small" style={styles.sectionTitle}>
+            ABOUT
+          </Text>
           <List.Item>
-            <Text>App Version</Text>
-            <Text color="secondary">{appConfig.APP_VERSION}</Text>
+            <Text style={styles.settingText}>App Version</Text>
+            <Text style={styles.settingValue}>{appConfig.APP_VERSION}</Text>
           </List.Item>
           
           <List.Item
-            leading={<Icon name="document-text" size={20} color="#00873E" />}
-            trailing={<Icon name="chevron-right" size={20} color="#9e9e9e" />}
+            leading={<Icon name="file-document" size={20} color="#00873E" />}
+            trailing={<Icon name="chevron-right" size={20} color="#9E9E9E" />}
             onPress={() => navigation.navigate('Terms')}
           >
-            <Text>Terms of Service</Text>
+            <Text style={styles.settingText}>Terms of Service</Text>
           </List.Item>
           
           <List.Item
-            leading={<Icon name="shield-check" size={20} color="#00873E" />}
-            trailing={<Icon name="chevron-right" size={20} color="#9e9e9e" />}
+            leading={<Icon name="shield" size={20} color="#00873E" />}
+            trailing={<Icon name="chevron-right" size={20} color="#9E9E9E" />}
             onPress={() => navigation.navigate('Privacy')}
           >
-            <Text>Privacy Policy</Text>
+            <Text style={styles.settingText}>Privacy Policy</Text>
           </List.Item>
         </List.Section>
         
@@ -143,9 +155,12 @@ const SettingsScreen = () => {
         
         {/* Logout Button */}
         <Button 
-          variant="destructive" 
+          mode="contained" 
           onPress={() => navigation.replace('Login')}
           marginTop="large"
+          buttonColor="#E53935"
+          textColor="#FFFFFF"
+          icon="logout"
         >
           Log Out
         </Button>
@@ -153,5 +168,31 @@ const SettingsScreen = () => {
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2D3748',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#718096',
+    textTransform: 'uppercase',
+  },
+  settingText: {
+    fontSize: 16,
+    color: '#2D3748',
+  },
+  settingValue: {
+    fontSize: 16,
+    color: '#718096',
+  },
+});
 
 export default SettingsScreen;

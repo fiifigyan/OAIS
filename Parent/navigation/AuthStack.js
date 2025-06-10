@@ -7,8 +7,8 @@ import ResetPasswordScreen from '../screens/Auth/ResetPassword';
 import OnboardingScreen from '../screens/Auth/Onboarding';
 import VerifyEmailScreen from '../screens/Auth/VerifyEmail';
 import BiometricScreen from '../screens/Auth/Biometric';
-import AddAccountScreen from '../screens/Main/AddAccount';
-import SwitchAccountScreen from '../screens/Main/SwitchAccount';
+import AddAccountScreen from '../screens/Auth/AddAccount';
+import SwitchAccountScreen from '../screens/Auth/SwitchAccount';
 import EditProfile from '../screens/Auth/EditProfile';
 
 const Stack = createNativeStackNavigator();

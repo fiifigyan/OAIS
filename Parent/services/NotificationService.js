@@ -90,7 +90,7 @@ const NotificationService = {
       const authToken = await getAuthToken();
       if (!authToken) return;
 
-      await axios.post(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.SAVE_PUSH_TOKEN}`, {
+      await axios.post(`https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.NOTIFICATIONS.SAVE_PUSH_TOKEN}`, {
         token
       }, {
         headers: {
@@ -150,25 +150,17 @@ const NotificationService = {
       const token = await getAuthToken();
       if (!token) throw new Error('Not authenticated');
 
-      const response = await axios.get(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.GET_ALL}`, {
+      const response = await axios.get(`https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.NOTIFICATIONS.GET_ALL}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         }
       });
 
-      // Cache with timestamp
-      const cacheData = {
-        data: response.data,
-        timestamp: Date.now()
-      };
-      await SecureStorage.setItemAsync('cachedNotifications', JSON.stringify(cacheData));
-      
-      return response.data;
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       console.error('Error fetching notifications:', error);
       const cached = await this.getCachedNotifications();
-      if (cached.length > 0) return cached;
-      throw error;
+      return Array.isArray(cached) ? cached : [];
     }
   },
 
@@ -182,7 +174,7 @@ const NotificationService = {
       const token = await getAuthToken();
       if (!token) throw new Error('Not authenticated');
 
-      await axios.post(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.MARK_AS_READ}`, { id }, {
+      await axios.post(`https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.NOTIFICATIONS.MARK_AS_READ}`, { id }, {
         headers: {
           Authorization: `Bearer ${token}`,
         }
@@ -203,7 +195,7 @@ const NotificationService = {
       const token = await getAuthToken();
       if (!token) throw new Error('Not authenticated');
 
-      await axios.delete(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.DELETE}`, {
+      await axios.delete(`https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.NOTIFICATIONS.DELETE}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

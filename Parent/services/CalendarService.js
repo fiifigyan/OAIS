@@ -1,48 +1,55 @@
 import axios from 'axios';
 import { APIConfig } from '../config';
-import { getAuthToken } from '../utils/helpers';
+import { getAuthToken, sanitizeError } from '../utils/helpers';
 
 const API_TIMEOUT = 15000;
 
 export const CalendarService = {
-  // ==================== EVENTS ====================
   fetchEvents: async () => {
     try {
       const token = await getAuthToken();
+      if (!token) throw new Error('Authentication required');
+
       const response = await axios.get(APIConfig.EVENTS.UPCOMING, {
         timeout: API_TIMEOUT,
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
+          'Authorization': `Bearer ${token}`
         }
       });
-      return response.data;
+      return response.data || {};
     } catch (error) {
-      console.error('Error fetching events:', error);
-      throw error;
+      const friendlyError = sanitizeError(error);
+      console.error('Error fetching events:', friendlyError);
+      throw new Error(friendlyError);
     }
   },
 
   fetchEventById: async (id) => {
     try {
       const token = await getAuthToken();
+      if (!token) throw new Error('Authentication required');
+
       const response = await axios.get(`${APIConfig.EVENTS.UPCOMING}/${id}`, {
         timeout: API_TIMEOUT,
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
+          'Authorization': `Bearer ${token}`
         }
       });
-      return response.data;
+      return response.data || {};
     } catch (error) {
-      console.error(`Error fetching event ${id}:`, error);
-      throw error;
+      const friendlyError = sanitizeError(error);
+      console.error(`Error fetching event ${id}:`, friendlyError);
+      throw new Error(friendlyError);
     }
   },
 
   registerForEvent: async (eventId, studentId) => {
     try {
       const token = await getAuthToken();
+      if (!token) throw new Error('Authentication required');
+
       const response = await axios.put(
         `${APIConfig.EVENTS.UPCOMING}/${eventId}/register`,
         {
@@ -54,59 +61,57 @@ export const CalendarService = {
           timeout: API_TIMEOUT,
           headers: {
             'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
+            'Authorization': `Bearer ${token}`
           }
         }
       );
-      return response.data;
+      return response.data || {};
     } catch (error) {
-      console.error('Error registering for event:', error);
-      throw error;
+      const friendlyError = sanitizeError(error);
+      console.error('Error registering for event:', friendlyError);
+      throw new Error(friendlyError);
     }
   },
 
-  // ================== ATTENDANCE ==================
-  fetchAttendanceData: async () => {
+  fetchAttendanceData: async (studentId) => {
     try {
       const token = await getAuthToken();
+      if (!token) throw new Error('Authentication required');
+
       const response = await axios.get(APIConfig.STUDENT_INFO.ATTENDANCE, {
+        params: { studentId },
         timeout: API_TIMEOUT,
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
+          'Authorization': `Bearer ${token}`
         }
       });
-      return response.data;
+      return response.data || { markedDates: {}, stats: {} };
     } catch (error) {
-      console.error('Error fetching attendance data:', error);
-      throw error;
+      const friendlyError = sanitizeError(error);
+      console.error('Error fetching attendance data:', friendlyError);
+      throw new Error(friendlyError);
     }
   },
 
-  // ==================== TIMETABLE ====================
-  fetchTimetable: async () => {
+  fetchTimetable: async (studentId) => {
     try {
       const token = await getAuthToken();
+      if (!token) throw new Error('Authentication required');
+
       const response = await axios.get(APIConfig.STUDENT_INFO.PROGRESS, {
+        params: { studentId },
         timeout: API_TIMEOUT,
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
+          'Authorization': `Bearer ${token}`
         }
       });
-      return response.data;
+      return response.data || {};
     } catch (error) {
-      console.error('Error fetching timetable:', error);
-      throw error;
+      const friendlyError = sanitizeError(error);
+      console.error('Error fetching timetable:', friendlyError);
+      throw new Error(friendlyError);
     }
-  },
-
-  // ==================== COMMON ====================
-  getAuthHeaders: async () => {
-    const token = await getAuthToken();
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
-    };
   }
 };

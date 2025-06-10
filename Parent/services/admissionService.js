@@ -4,16 +4,17 @@ import { Platform } from 'react-native';
 import axios from 'axios';
 import { APIConfig } from '../config';
 import { sanitizeError } from '../utils/helpers';
+import NetInfo from '@react-native-community/netinfo';
 
 const logger = {
   error: (message, error) => console.error(`[AdmissionService] ${message}`, error),
   info: (message) => console.log(`[AdmissionService] ${message}`),
 };
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000;
+// Constants
 const MAX_FILE_SIZE_MB = 10;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+const API_TIMEOUT = 30000;
 
 const resolveFileUri = (fileInfo) => {
   if (!fileInfo) {
@@ -67,26 +68,28 @@ const getAuthHeaders = async () => {
   }
 };
 
+async function checkNetworkConnection() {
+  try {
+    const networkState = await NetInfo.fetch();
+    return networkState.isConnected;
+  } catch {
+    return false;
+  }
+}
+
 const admissionService = {
-  /**
-   * Submits the complete admission form with documents
-   * @param {Object} formData - The complete form data
-   * @returns {Promise<Object>} - The server response
-   */
-async submitAdmissionForm(formData) {
-  let retryCount = 0;
-  
-  while (retryCount <= MAX_RETRIES) {
+  async submitAdmissionForm(formData) {
     try {
-      logger.info('Starting form submission attempt', { attempt: retryCount + 1 });
+      const isConnected = await checkNetworkConnection();
+      if (!isConnected) {
+        throw new Error('No internet connection. Please check your network and try again.');
+      }
       
       const formSubmissionData = new FormData();
       const { documents, ...formFields } = formData;
       
-      // Add all non-document fields as JSON
       formSubmissionData.append('data', JSON.stringify(formFields));
 
-      // Process and append documents
       for (const [key, fileInfo] of Object.entries(documents)) {
         if (!fileInfo) {
           throw new Error(`Missing required document: ${key}`);
@@ -96,7 +99,7 @@ async submitAdmissionForm(formData) {
         if (!resolvedUri) {
           throw new Error(`Invalid file information for ${key}`);
         }
-
+        
         const mimeType = getMimeType(fileInfo.name);
         if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
           throw new Error(`Invalid file type for ${key}. Only PDF, JPEG, and PNG are allowed.`);
@@ -123,45 +126,29 @@ async submitAdmissionForm(formData) {
       headers['Content-Type'] = 'multipart/form-data';
 
       const response = await axios.post(
-        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
+        `https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.ADMISSIONS.SUBMIT}`,
         formSubmissionData,
-        { headers, timeout: 30000 }
+        { headers, timeout: API_TIMEOUT }
       );
 
       logger.info('Form submitted successfully');
       return response.data;
     } catch (error) {
-      if (retryCount >= MAX_RETRIES) {
-        logger.error('Final form submission attempt failed');
-        throw new Error(sanitizeError(error));
+      let errorMessage = 'Submission failed. Please try again.';
+      
+      if (error.message.includes('Network Error')) {
+        errorMessage = 'Network connection failed. Please check your internet connection.';
+      } else if (error.response) {
+        errorMessage = error.response.data.message || 'Server error occurred';
+      } else if (error.request) {
+        errorMessage = 'No response from server. Please try again.';
       }
       
-      if (error.response && error.response.status === 401) {
-        // Token might be expired, try to refresh
-        try {
-          const token = await SecureStorage.getItemAsync('authToken');
-          if (token) {
-            const newToken = await AuthService.refreshToken(token);
-            await SecureStorage.setItemAsync('authToken', newToken);
-          }
-        } catch (refreshError) {
-          logger.error('Token refresh failed during form submission', refreshError);
-          throw new Error('Session expired. Please login again.');
-        }
-      }
-      
-      retryCount++;
-      logger.info(`Retrying form submission in ${RETRY_DELAY}ms`);
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      logger.error('Form submission failed:', error);
+      throw new Error(errorMessage);
     }
-  }
-},
+  },
 
-  /**
-   * Saves the current form data as a draft
-   * @param {Object} formData - The form data to save
-   * @returns {Promise<boolean>} - True if successful
-   */
   async saveFormDraft(formData) {
     try {
       await SecureStorage.setItemAsync(
@@ -171,18 +158,12 @@ async submitAdmissionForm(formData) {
           timestamp: new Date().toISOString() 
         })
       );
-      logger.info('Draft saved successfully');
       return true;
     } catch (error) {
-      logger.error('Failed to save draft:', error);
       throw new Error('Failed to save draft');
     }
   },
 
-  /**
-   * Loads the saved draft form data
-   * @returns {Promise<Object|null>} - The saved form data or null if none exists
-   */
   async loadFormDraft() {
     try {
       const draftString = await SecureStorage.getItemAsync('admission_draft');
@@ -200,10 +181,6 @@ async submitAdmissionForm(formData) {
     }
   },
 
-  /**
-   * Clears the saved draft form data
-   * @returns {Promise<boolean>} - True if successful
-   */
   async clearFormDraft() {
     try {
       await SecureStorage.deleteItemAsync('admission_draft');
@@ -215,11 +192,6 @@ async submitAdmissionForm(formData) {
     }
   },
 
-  /**
-   * Validates a document file
-   * @param {Object} fileInfo - The file information
-   * @returns {Promise<boolean>} - True if valid
-   */
   async validateDocument(fileInfo) {
     try {
       if (!fileInfo) throw new Error('Invalid file information');
@@ -249,6 +221,60 @@ async submitAdmissionForm(formData) {
     } catch (error) {
       logger.error('Document validation failed', error);
       throw new Error(sanitizeError(error));
+    }
+  },
+
+  async getAdmissionStatusById(applicationId) {
+    try {
+      const isConnected = await checkNetworkConnection();
+      if (!isConnected) {
+        throw new Error('No internet connection. Please check your network and try again.');
+      }
+
+      const headers = await getAuthHeaders();
+      const response = await axios.get(
+        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}/${applicationId}`,
+        { headers, timeout: API_TIMEOUT }
+      );
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to fetch admission status:', error);
+      let errorMessage = 'Failed to load application status';
+      
+      if (error.message.includes('Network Error')) {
+        errorMessage = 'Network connection failed. Please check your internet connection.';
+      } else if (error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
+    }
+  },
+
+  async getAdmissionStatus() {
+    try {
+      const isConnected = await checkNetworkConnection();
+      if (!isConnected) {
+        throw new Error('No internet connection. Please check your network and try again.');
+      }
+
+      const headers = await getAuthHeaders();
+      const response = await axios.get(
+        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}`,
+        { headers, timeout: API_TIMEOUT }
+      );
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to fetch admission statuses:', error);
+      let errorMessage = 'Failed to load applications';
+      
+      if (error.message.includes('Network Error')) {
+        errorMessage = 'Network connection failed. Please check your internet connection.';
+      } else if (error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
     }
   }
 };

@@ -13,6 +13,7 @@ const GradebookScreen = ({ navigation, route }) => {
   const studentData = route.params?.studentData || {};
   const [selectedTerm, setSelectedTerm] = useState(studentData.term || 'Term 1');
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [gradeData, setGradeData] = useState([]);
   const [error, setError] = useState(null);
   const screenWidth = Dimensions.get('window').width;
@@ -51,70 +52,77 @@ const GradebookScreen = ({ navigation, route }) => {
     ]
   };
 
-  // Fetch grade data from API
-  useEffect(() => {
-    const fetchGradeData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const token = await getAuthToken();
-        if (!token) throw new Error('No authentication token found');
+  const fetchGradeData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = await getAuthToken();
+      if (!token) throw new Error('No authentication token found');
 
-        const response = await axios.get(
-          `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.GRADE}?term=${selectedTerm}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (response.status !== 200) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+      const response = await axios.get(
+        `${APIConfig.BASE_URL}${APIConfig.STUDENT_INFO.GRADE}?term=${selectedTerm}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
         }
+      );
 
-        const data = await response.json();
-        if (!data || !data.subjects) {
-          throw new Error('No grade data returned from API');
-        }
-
-        setGradeData(data.subjects);
-      } catch (error) {
-        logger.error('Failed to fetch grade data:', error);
-        setError(sanitizeError(error));
-        Alert.alert('Error', 'Failed to load gradebook data');
-      } finally {
-        setLoading(false);
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    };
 
+      const data = response.data;
+      if (!data || !data.subjects) {
+        throw new Error('No grade data returned from API');
+      }
+
+      setGradeData(data.subjects);
+    } catch (error) {
+      logger.error('Failed to fetch grade data:', error);
+      setError(sanitizeError(error));
+      Alert.alert('Error', 'Failed to load gradebook data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchGradeData();
   }, [selectedTerm]);
 
-  // Handle PDF export
   const handleExport = async () => {
-    setLoading(true);
+    if (gradeData.length === 0) {
+      Alert.alert('No Data', 'There is no grade data to export');
+      return;
+    }
+
+    setPdfLoading(true);
     try {
+      const assignments = gradeData.map(item => ({
+        subject: item.subject,
+        name: `${item.subject} Exam`,
+        date: formatDate(new Date()),
+        score: `${item.totalScore}/100`,
+        grade: item.grade,
+      }));
+
+      const subjects = gradeData.map(item => ({
+        name: item.subject,
+        grade: item.grade,
+        progress: item.totalScore,
+      }));
+
       const html = generateGradebookHTML({
         studentId: studentData.studentName || 'Student',
         selectedTerm,
         overallGrade: studentData.grade || 'B+',
         attendance: studentData.totalAttendance || '94%',
-        assignments: gradeData.map(item => ({
-          subject: item.name,
-          name: `${item.name} Exam`,
-          date: formatDate(new Date()),
-          score: `${item.totalScore}/100`,
-          grade: item.grade,
-        })),
-        subjects: gradeData.map(item => ({
-          name: item.name,
-          grade: item.grade,
-          progress: item.totalScore,
-        })),
+        assignments,
+        subjects,
       });
 
-      const { filePath } = await generatePDF(html, `${studentData.studentName}_Gradebook`);
+      const { filePath } = await generatePDF(html, `${studentData.studentName}_Gradebook_${selectedTerm}`);
       
       Alert.alert(
         "Export Successful",
@@ -129,11 +137,10 @@ const GradebookScreen = ({ navigation, route }) => {
       logger.error('PDF export failed:', error);
       Alert.alert("Error", "Failed to generate PDF");
     } finally {
-      setLoading(false);
+      setPdfLoading(false);
     }
   };
 
-  // Render grade item
   const renderGradeItem = ({ item }) => (
     <Card style={styles.card}>
       <Card.Content>
@@ -171,10 +178,10 @@ const GradebookScreen = ({ navigation, route }) => {
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={`${studentData.studentName || 'Student'}'s Gradebook`} />
-        {loading ? (
+        {pdfLoading ? (
           <ActivityIndicator animating={true} color="aliceblue" />
         ) : (
-          <Appbar.Action icon="download" onPress={handleExport} />
+          <Appbar.Action icon="download" onPress={handleExport} disabled={loading || gradeData.length === 0} />
         )}
       </Appbar.Header>
 
@@ -192,107 +199,132 @@ const GradebookScreen = ({ navigation, route }) => {
             placeholder="Select term"
             value={selectedTerm}
             onChange={item => setSelectedTerm(item.value)}
+            disable={loading}
           />
         </View>
 
-        <Card style={styles.summaryCard}>
-          <Card.Content>
-            <View style={styles.summaryRow}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Overall Grade</Text>
-                <Text style={styles.summaryValue}>{studentData.grade || 'B+'}</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Attendance</Text>
-                <Text style={styles.summaryValue}>{studentData.totalAttendance || '94%'}</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Position</Text>
-                <Text style={styles.summaryValue}>{studentData.generalPosition || '4th'}</Text>
-              </View>
-            </View>
-          </Card.Content>
-        </Card>
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#00873E" />
+          </View>
+        )}
 
-        <Text style={styles.sectionHeader}>Subject Performance</Text>
-        {gradeData.length > 0 && (
-          <Card style={styles.chartCard}>
+        {!loading && error && (
+          <Card style={styles.errorCard}>
             <Card.Content>
-              <BarChart
-                data={performanceData}
-                width={screenWidth - 32}
-                height={220}
-                yAxisLabel=""
-                yAxisSuffix=""
-                chartConfig={{
-                  backgroundColor: '#ffffff',
-                  backgroundGradientFrom: '#ffffff',
-                  backgroundGradientTo: '#ffffff',
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(3, 172, 19, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  style: {
-                    borderRadius: 16
-                  },
-                  propsForDots: {
-                    r: '6',
-                    strokeWidth: '2',
-                    stroke: '#00873E'
-                  }
-                }}
-                style={{
-                  marginVertical: 8,
-                  borderRadius: 16
-                }}
-              />
+              <Text style={styles.errorText}>{error}</Text>
             </Card.Content>
           </Card>
         )}
 
-        <Text style={styles.sectionHeader}>Grade Distribution</Text>
-        <Card style={styles.chartCard}>
-          <Card.Content>
-            <LineChart
-              data={gradeDistribution}
-              width={screenWidth - 32}
-              height={220}
-              chartConfig={{
-                backgroundColor: '#ffffff',
-                backgroundGradientFrom: '#ffffff',
-                backgroundGradientTo: '#ffffff',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(3, 172, 19, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              }}
-              style={{
-                marginVertical: 8,
-                borderRadius: 16
-              }}
-            />
-          </Card.Content>
-        </Card>
+        {!loading && !error && (
+          <>
+            <Card style={styles.summaryCard}>
+              <Card.Content>
+                <View style={styles.summaryRow}>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Overall Grade</Text>
+                    <Text style={styles.summaryValue}>{studentData.grade || 'B+'}</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Attendance</Text>
+                    <Text style={styles.summaryValue}>{studentData.totalAttendance || '94%'}</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Position</Text>
+                    <Text style={styles.summaryValue}>{studentData.generalPosition || '4th'}</Text>
+                  </View>
+                </View>
+              </Card.Content>
+            </Card>
 
-        <Text style={styles.sectionHeader}>Detailed Grades</Text>
-        <FlatList
-          data={gradeData}
-          renderItem={renderGradeItem}
-          keyExtractor={(item, index) => index.toString()}
-          scrollEnabled={false}
-        />
-
-        <View style={styles.exportOptions}>
-          <TouchableOpacity 
-            style={styles.exportButton}
-            onPress={handleExport}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator animating={true} color="aliceblue" />
+            <Text style={styles.sectionHeader}>Subject Performance</Text>
+            {gradeData.length > 0 ? (
+              <Card style={styles.chartCard}>
+                <Card.Content>
+                  <BarChart
+                    data={performanceData}
+                    width={screenWidth - 32}
+                    height={220}
+                    yAxisLabel=""
+                    yAxisSuffix=""
+                    chartConfig={{
+                      backgroundColor: '#ffffff',
+                      backgroundGradientFrom: '#ffffff',
+                      backgroundGradientTo: '#ffffff',
+                      decimalPlaces: 0,
+                      color: (opacity = 1) => `rgba(3, 172, 19, ${opacity})`,
+                      labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                      style: {
+                        borderRadius: 16
+                      },
+                      propsForDots: {
+                        r: '6',
+                        strokeWidth: '2',
+                        stroke: '#00873E'
+                      }
+                    }}
+                    style={{
+                      marginVertical: 8,
+                      borderRadius: 16
+                    }}
+                  />
+                </Card.Content>
+              </Card>
             ) : (
-              <Text style={styles.exportButtonText}>Export as PDF</Text>
+              <Text style={styles.noDataText}>No performance data available</Text>
             )}
-          </TouchableOpacity>
-        </View>
+
+            <Text style={styles.sectionHeader}>Grade Distribution</Text>
+            <Card style={styles.chartCard}>
+              <Card.Content>
+                <LineChart
+                  data={gradeDistribution}
+                  width={screenWidth - 32}
+                  height={220}
+                  chartConfig={{
+                    backgroundColor: '#ffffff',
+                    backgroundGradientFrom: '#ffffff',
+                    backgroundGradientTo: '#ffffff',
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(3, 172, 19, ${opacity})`,
+                    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  }}
+                  style={{
+                    marginVertical: 8,
+                    borderRadius: 16
+                  }}
+                />
+              </Card.Content>
+            </Card>
+
+            <Text style={styles.sectionHeader}>Detailed Grades</Text>
+            {gradeData.length > 0 ? (
+              <FlatList
+                data={gradeData}
+                renderItem={renderGradeItem}
+                keyExtractor={(item, index) => index.toString()}
+                scrollEnabled={false}
+              />
+            ) : (
+              <Text style={styles.noDataText}>No grade data available</Text>
+            )}
+
+            <View style={styles.exportOptions}>
+              <TouchableOpacity 
+                style={[styles.exportButton, (loading || gradeData.length === 0) && styles.buttonDisabled]}
+                onPress={handleExport}
+                disabled={loading || gradeData.length === 0 || pdfLoading}
+              >
+                {pdfLoading ? (
+                  <ActivityIndicator animating={true} color="aliceblue" />
+                ) : (
+                  <Text style={styles.exportButtonText}>Export as PDF</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -303,29 +335,46 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  errorCard: {
+    margin: 16,
+    backgroundColor: '#FFEBEE',
+  },
+  errorText: {
+    color: '#D32F2F',
+    textAlign: 'center',
+  },
+  noDataText: {
+    textAlign: 'center',
+    color: '#666',
+    marginVertical: 16,
+  },
   filterContainer: {
     padding: 16,
   },
-dropdown: {
-  height: 50,
-  backgroundColor: 'aliceblue',
-  borderRadius: 4,
-  paddingHorizontal: 12,
-  borderWidth: 1,
-  borderColor: '#00873E',
-},
-placeholderStyle: {
-  fontSize: 14,
-  color: '#666',
-},
-selectedTextStyle: {
-  fontSize: 14,
-  color: '#00873E',
-},
-iconStyle: {
-  width: 20,
-  height: 20,
-},
+  dropdown: {
+    height: 50,
+    backgroundColor: 'aliceblue',
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#00873E',
+  },
+  placeholderStyle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  selectedTextStyle: {
+    fontSize: 14,
+    color: '#00873E',
+  },
+  iconStyle: {
+    width: 20,
+    height: 20,
+  },
   summaryCard: {
     margin: 8,
     elevation: 2,
@@ -414,6 +463,9 @@ iconStyle: {
     borderRadius: 4,
     width: '80%',
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#cccccc',
   },
   exportButtonText: {
     color: 'aliceblue',

@@ -15,21 +15,30 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CalendarService } from '../../services/CalendarService';
+import { useProfile } from '../../context/ProfileContext';
+import { sanitizeError } from '../../utils/helpers';
 
 const EventCalendarScreen = () => {
   const navigation = useNavigation();
+  const { selectedStudent } = useProfile();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [events, setEvents] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
   const loadEvents = async () => {
     try {
+      if (!selectedStudent?.id) return;
+      
+      setError(null);
       setLoading(true);
       const data = await CalendarService.fetchEvents();
-      setEvents(data);
+      setEvents(data || {});
     } catch (error) {
-      console.error('Error loading events:', error);
+      const friendlyError = sanitizeError(error);
+      console.error('Error loading events:', friendlyError);
+      setError(friendlyError);
       setEvents({});
     } finally {
       setLoading(false);
@@ -39,7 +48,7 @@ const EventCalendarScreen = () => {
 
   useEffect(() => {
     loadEvents();
-  }, []);
+  }, [selectedStudent]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -85,6 +94,22 @@ const EventCalendarScreen = () => {
       </SafeAreaView>
     );
   }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Icon name="alert-circle" size={48} color="#FF5722" />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={handleRefresh}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList

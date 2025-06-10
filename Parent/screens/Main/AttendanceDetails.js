@@ -7,29 +7,39 @@ import {
   TouchableOpacity, 
   FlatList,
   ActivityIndicator,
-  RefreshControl, ScrollView
+  RefreshControl, 
+  ScrollView
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import { CalendarService } from '../../services/CalendarService';
+import { useProfile } from '../../context/ProfileContext';
+import { sanitizeError } from '../../utils/helpers';
 
 const AttendanceScreen = () => {
+  const { selectedStudent } = useProfile();
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceData, setAttendanceData] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({ present: 0, absent: 0, late: 0 });
+  const [error, setError] = useState(null);
 
   const loadData = async () => {
     try {
-      const data = await CalendarService.fetchAttendanceData();
+      if (!selectedStudent?.id) return;
+      
+      setError(null);
+      const data = await CalendarService.fetchAttendanceData(selectedStudent.id);
       setAttendanceData(data.markedDates || {});
       setStats(data.stats || { present: 0, absent: 0, late: 0 });
     } catch (error) {
-      console.error('Error loading attendance:', error);
+      const friendlyError = sanitizeError(error);
+      console.error('Error loading attendance:', friendlyError);
+      setError(friendlyError);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -40,7 +50,7 @@ const AttendanceScreen = () => {
     React.useCallback(() => {
       loadData();
       return () => {};
-    }, [])
+    }, [selectedStudent])
   );
 
   const handleRefresh = () => {
@@ -71,10 +81,25 @@ const AttendanceScreen = () => {
     );
   };
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00873E" />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Icon name="error" size={48} color="#FF5722" />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={handleRefresh}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -83,7 +108,9 @@ const AttendanceScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Attendance Tracker</Text>
-        <Icon name="refresh" size={24} color="#00873E" />
+        <TouchableOpacity onPress={handleRefresh}>
+          <Icon name="refresh" size={24} color="#00873E" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
@@ -100,6 +127,7 @@ const AttendanceScreen = () => {
           </LinearGradient>
         ))}
       </View>
+
       <ScrollView>
         <View style={styles.calendarContainer}>
           <Calendar
@@ -147,7 +175,13 @@ const AttendanceScreen = () => {
           renderItem={({ item }) => (
             <View style={styles.dateDetails}>
               <View style={styles.dateHeader}>
-                <Text style={styles.dateText}>{item}</Text>
+                <Text style={styles.dateText}>
+                  {new Date(item).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </Text>
                 {attendanceData[item] && renderStatusBadge(
                   attendanceData[item].dotColor === '#4CAF50' ? 'present' : 
                   attendanceData[item].dotColor === '#F44336' ? 'absent' : 'late'

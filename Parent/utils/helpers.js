@@ -5,7 +5,9 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 
-// Logging utility with different levels
+/**
+ * Logging utility with different levels for debugging
+ */
 const logger = {
   debug: (message, data) => console.debug(`[DEBUG] ${message}`, data),
   info: (message, data) => console.log(`[INFO] ${message}`, data),
@@ -119,6 +121,45 @@ export const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
+
+/**
+ * Decodes a JWT token to extract its payload
+ * @param {string} token - JWT token to decode
+ * @returns {object|null} Decoded token payload or null if invalid
+ */
+export const decodeToken = (token) => {
+  if (!token) {
+    logger.warn('No token provided for decoding');
+    return null;
+  }
+
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) {
+      throw new Error('Invalid token format');
+    }
+    
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    
+    const decoded = JSON.parse(jsonPayload);
+    logger.debug('Successfully decoded token', { decoded });
+    return decoded;
+  } catch (error) {
+    logger.error('Failed to decode token', {
+      error: error.message,
+      token: token.substring(0, 10) + '...'
+    });
+    return null;
+  }
+};
+
+
 // ==============================================
 // Authentication Utilities
 // ==============================================
@@ -126,21 +167,25 @@ export const formatFileSize = (bytes) => {
 /**
  * Manages authentication token in secure storage and axios headers
  * @param {string|null} token - Token to store or null to clear
+ * @throws {Error} If token management fails
  */
 export const manageAuthToken = async (token) => {
   try {
     if (token) {
       await SecureStore.setItemAsync('authToken', token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      logger.info('Auth token stored successfully');
     } else {
       await SecureStore.deleteItemAsync('authToken');
       delete axios.defaults.headers.common['Authorization'];
+      logger.info('Auth token cleared successfully');
     }
   } catch (error) {
     logger.error('Token management failed', error);
-    throw new Error('Session maintenance failed');
+    throw new Error('Failed to manage your session. Please try again.');
   }
 };
+
 
 /**
  * Retrieves authentication token from secure storage
@@ -161,20 +206,6 @@ export const getAuthToken = async () => {
  * @param {string} token - JWT token to verify
  * @returns {Promise<{valid: boolean}>}
  */
-export const verifyToken = async (token) => {
-  if (!token) return { valid: false };
-  
-  try {
-    // Just check if it's a valid JWT format - actual validation happens on backend
-    const parts = token.split('.');
-    if (parts.length !== 3) return { valid: false };
-    
-    return { valid: true };
-  } catch (error) {
-    logger.error('Token verification failed:', error);
-    return { valid: false };
-  }
-};
 
 // ==============================================
 // Validation Utilities
@@ -195,6 +226,97 @@ export const validatePassword = (password) => {
 
 export const validateStudentId = (studentId) => {
   return /^OAIS-\d{4}$/.test(studentId);
+};
+
+// ==============================================
+// Account Management Utilities
+// ==============================================
+
+/**
+ * Validates account name (3-30 chars, letters, spaces, hyphens)
+ */
+export const validateAccountName = (name) => {
+  return /^[a-zA-Z\s-]{3,30}$/.test(name);
+};
+
+/**
+ * Generates a unique ID for new accounts
+ */
+export const generateAccountId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+};
+
+/**
+ * Account validation schema using Yup
+ */
+export const accountSchema = yup.object().shape({
+  accountName: yup.string()
+    .required('Account name is required')
+    .min(3, 'Account name must be at least 3 characters')
+    .max(30, 'Account name must be at most 30 characters')
+    .matches(/^[a-zA-Z\s-]+$/, 'Only letters, spaces and hyphens allowed'),
+  email: yup.string()
+    .required('Email is required')
+    .email('Please enter a valid email'),
+  password: yup.string()
+    .required('Password is required')
+    .min(8, 'Password must be at least 8 characters')
+});
+
+/**
+ * Prepares account data for API submission
+ */
+export const prepareAccountData = (accountData) => {
+  return {
+    id: generateAccountId(),
+    name: accountData.accountName.trim(),
+    email: accountData.email.toLowerCase().trim(),
+    password: accountData.password, // Backend will encrypt
+    createdAt: new Date().toISOString()
+  };
+};
+
+/**
+ * Saves account to secure storage
+ */
+export const saveAccount = async (account) => {
+  try {
+    const accounts = await getAccounts();
+    accounts.push(account);
+    await SecureStore.setItemAsync('userAccounts', JSON.stringify(accounts));
+    return true;
+  } catch (error) {
+    logger.error('Error saving account', error);
+    return false;
+  }
+};
+
+/**
+ * Retrieves all saved accounts
+ */
+export const getAccounts = async () => {
+  try {
+    const accounts = await SecureStore.getItemAsync('userAccounts');
+    return accounts ? JSON.parse(accounts) : [];
+  } catch (error) {
+    logger.error('Error getting accounts', error);
+    return [];
+  }
+};
+
+/**
+ * Removes an account from storage
+ */
+export const removeAccount = async (accountId) => {
+  try {
+    const accounts = await getAccounts();
+    const updatedAccounts = accounts.filter(acc => acc.id !== accountId);
+    await SecureStore.setItemAsync('userAccounts', JSON.stringify(updatedAccounts));
+    return true;
+  } catch (error) {
+    logger.error('Error removing account', error);
+    return false;
+  }
 };
 
 // Yup Validation Schemas - Authentication
@@ -247,6 +369,8 @@ export const studentSchema = yup.object().shape({
   gender: yup.string().required('Gender is required'),
   dateOfBirth: yup.string().required('Date of birth is required'),
   residentialAddress: yup.object().shape({
+    street: yup.string().required('Street is required'),
+    houseNumber: yup.string().required('House number is required'),
     city: yup.string().required('City is required'),
     region: yup.string().required('Region is required'),
     country: yup.string().required('Country is required'),
@@ -275,19 +399,24 @@ export const parentSchema = yup.object().shape({
 });
 
 export const academicSchema = yup.object().shape({
-  lastSchoolAttended: yup.string().required('Last school attended is required'),
-  lastClassCompleted: yup.string().required('Last class completed is required'),
-  classForAdmission: yup.string().required('Class for admission is required'),
-  academicYear: yup.string().required('Academic year is required'),
-  preferredSecondLanguage: yup.string().required('Preferred language is required'),
-  siblingName: yup.string().when('hasSiblingsInSchool', {
-    is: true,
-    then: yup.string().required('Sibling name is required'),
+  previousAcademicDetail: yup.object().shape({
+    lastSchoolAttended: yup.string().required('Last school attended is required'),
+    lastClassCompleted: yup.string().required('Last class completed is required'),
   }),
-  siblingClass: yup.string().when('hasSiblingsInSchool', {
-    is: true,
-    then: yup.string().required('Sibling class is required'),
-  }),
+  admissionDetail: yup.object().shape({
+    classForAdmission: yup.string().required('Class for admission is required'),
+    preferredSecondLanguage: yup.string().required('Preferred language is required'),
+    academicYear: yup.string().required('Academic year is required'),
+    hasSiblingsInSchool: yup.boolean(),
+    siblingName: yup.string().when('hasSiblingsInSchool', {
+      is: true,
+      then: yup.string().required('Sibling name is required'),
+    }),
+    siblingClass: yup.string().when('hasSiblingsInSchool', {
+      is: true,
+      then: yup.string().required('Sibling class is required'),
+    })
+  })
 });
 
 export const documentsSchema = yup.object().shape({
@@ -327,28 +456,56 @@ export const getValue = (obj, path, defaultValue = '') => {
   }
 };
 
+/**
+ * Sanitizes API errors into user-friendly messages
+ * @param {any} error - The error object
+ * @returns {string} User-friendly error message
+ */
 export const sanitizeError = (error) => {
-  if (!error) return 'An unknown error occurred';
-
+  if (!error) return 'An unexpected error occurred. Please try again.';
+  
   try {
     if (typeof error === 'string') return error;
-    if (error.message) return error.message;
+    if (error.message) {
+      // Handle specific error messages
+      if (error.message.includes('Network Error')) {
+        return 'Network connection failed. Please check your internet.';
+      }
+      if (error.message.includes('timeout')) {
+        return 'Request timed out. Please try again.';
+      }
+      return error.message;
+    }
     if (error.response?.data?.message) return error.response.data.message;
-    if (error.response?.statusText) return error.response.statusText;
-
-    return 'An unexpected error occurred';
+    if (error.response?.statusText) {
+      return `Server error: ${error.response.statusText}`;
+    }
+    
+    return 'An unexpected error occurred. Please try again.';
   } catch (e) {
     logger.error('Error while sanitizing error message', e);
-    return 'An unexpected error occurred';
+    return 'An unexpected error occurred. Please try again.';
   }
 };
 
+
+// ==============================================
+// Enhanced Debounce Function with Cancel
+// ==============================================
+
 export const debounce = (func, wait = 300) => {
   let timeout;
-  return (...args) => {
+  
+  const debounced = (...args) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
+  
+  debounced.cancel = () => {
+    clearTimeout(timeout);
+  };
+  
+  return debounced;
 };
 
 export const formatDate = (date) => {
@@ -436,6 +593,26 @@ export const formatNotificationTime = (timestamp) => {
   }
 };
 
+/**
+ * Decodes and verifies a JWT token (minimal implementation - backend does main validation)
+ * @param {string} token - JWT token to verify
+ * @returns {Promise<{valid: boolean}>}
+ */
+export const verifyToken = async (token) => {
+  if (!token) return { valid: false };
+  try {
+    const decoded = decodeToken(token);
+    if (!decoded) return { valid: false };
+    if (decoded.exp && Date.now() >= decoded.exp * 1000) {
+      return { valid: false, reason: 'Token expired' };
+    }
+    return { valid: true };
+  } catch (error) {
+    logger.error('Token verification failed:', error);
+    return { valid: false };
+  }
+};
+
 export default {
   // File Handling
   pickDocument,
@@ -443,6 +620,9 @@ export default {
   takePhoto,
   getFileType,
   formatFileSize,
+
+  // Token Management
+  decodeToken,
 
   // Authentication
   manageAuthToken,

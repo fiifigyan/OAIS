@@ -15,8 +15,8 @@ import { NotificationProvider } from './context/NotificationContext';
 import NotificationService from './services/NotificationService';
 import { getAuthToken } from './utils/helpers';
 import AdmissionNavigator from './navigation/AdmissionNavigator';
+import { decodeToken } from './utils/helpers';
 
-// Configure notification handler
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldPlaySound: true,
@@ -26,7 +26,6 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Ignore specific warnings
 LogBox.ignoreLogs([
   'AsyncStorage has been extracted',
   'Setting a timer',
@@ -38,10 +37,25 @@ function MainAppContent() {
   const routeNameRef = useRef();
   const { userInfo } = useAuth();
 
-  // Initialize notifications (only for permanent tokens)
+  // Verify token on app start
   useEffect(() => {
-    if (userInfo?.isTemporary) return;
+    const verifyToken = async () => {
+      try {
+        if (userInfo?.token) {
+          const tokenData = decodeToken(userInfo.token);
+          if (!tokenData) {
+            await auth.logout();
+          }
+        }
+      } catch (error) {
+        await auth.logout();
+      }
+    };
+    
+    verifyToken();
+  }, [userInfo]);
 
+  useEffect(() => {
     const setupNotifications = async () => {
       try {
         if (Platform.OS === 'android') {
@@ -56,14 +70,12 @@ function MainAppContent() {
 
         if (Device.isDevice && userInfo) {
           const { status } = await Notifications.getPermissionsAsync();
-          
           if (status !== 'granted') {
             const { status: newStatus } = await Notifications.requestPermissionsAsync();
             if (newStatus !== 'granted') return;
           }
 
           const token = await Notifications.getExpoPushTokenAsync();
-          console.log('Push token:', token.data);
           const authToken = await getAuthToken();
           if (token.data && authToken) {
             await NotificationService.sendPushTokenToBackend(token.data);
@@ -111,16 +123,13 @@ function MainAppContent() {
       }}
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: '#00873E' }}>
-        <StatusBar 
-          barStyle="light-content" 
-          backgroundColor="#00873E" 
-        />
+        <StatusBar barStyle="light-content" backgroundColor="#00873E" />
         {!userInfo ? (
           <AuthStack />
-        ) : userInfo.isTemporary ? (
-          <AdmissionNavigator initialRouteName="Welcome" />
-        ) : (
+        ) : userInfo.studentId ? (
           <StackNavigator initialRouteName="Drawer" />
+        ) : (
+          <AdmissionNavigator initialRouteName="Welcome" />
         )}
       </SafeAreaView>
     </NavigationContainer>

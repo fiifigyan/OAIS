@@ -1,73 +1,71 @@
-import React, { createContext, useState } from 'react';
-import {
-  processMoMoPayment,
-  processStripePayment,
-  processPayPalPayment,
-  processBankTransfer,
-} from '../services/PaymentService';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { fetchFees, processPayment, getPaymentHistory } from '../services/PaymentService';
+import { sanitizeError } from '../utils/helpers';
 
 export const PaymentContext = createContext();
 
 export const PaymentProvider = ({ children }) => {
+  const [fees, setFees] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const addPayment = (payment) => {
-    setPayments((prevPayments) => [...prevPayments, payment]);
-  };
-
-  const processPayment = async (method, paymentDetails) => {
+  const loadFees = useCallback(async () => {
+    setIsLoading(true);
     try {
-      let paymentResult;
-      switch (method) {
-        case 'MoMo':
-          paymentResult = await processMoMoPayment(
-            paymentDetails.amount,
-            paymentDetails.currency,
-            paymentDetails.externalId,
-            paymentDetails.payerId
-          );
-          break;
-        case 'Credit Card':
-          paymentResult = await processStripePayment(
-            paymentDetails.amount,
-            paymentDetails.currency,
-            paymentDetails.cardDetails
-          );
-          break;
-        case 'PayPal':
-          paymentResult = await processPayPalPayment(
-            paymentDetails.amount,
-            paymentDetails.currency
-          );
-          break;
-        case 'Bank Transfer':
-          paymentResult = await processBankTransfer(
-            paymentDetails.amount,
-            paymentDetails.accountDetails
-          );
-          break;
-        default:
-          throw new Error('Invalid payment method');
-      }
+      const data = await fetchFees();
+      setFees(data);
+      setError(null);
+    } catch (err) {
+      setError(sanitizeError(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-      const payment = {
-        id: paymentResult.id || Math.random().toString(),
-        amount: paymentDetails.amount,
-        method,
+  const loadPayments = useCallback(async () => {
+    try {
+      const data = await getPaymentHistory();
+      setPayments(data);
+    } catch (err) {
+      setError(sanitizeError(err));
+    }
+  }, []);
+
+  const makePayment = async (method, details) => {
+    setIsLoading(true);
+    try {
+      const paymentResult = await processPayment(method, details);
+      const newPayment = {
+        ...paymentResult,
         date: new Date().toISOString(),
       };
-      addPayment(payment);
-      setError(null);
-      return payment;
-    } catch (error) {
-      setError(error.message);
-      throw error;
+      setPayments(prev => [newPayment, ...prev]);
+      await loadFees(); // Refresh fees after payment
+      return newPayment;
+    } catch (err) {
+      setError(sanitizeError(err));
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadFees();
+    loadPayments();
+  }, [loadFees, loadPayments]);
+
   return (
-    <PaymentContext.Provider value={{ payments, error, processPayment }}>
+    <PaymentContext.Provider value={{
+      fees,
+      payments,
+      isLoading,
+      error,
+      makePayment,
+      refreshFees: loadFees,
+      refreshPayments: loadPayments,
+    }}>
       {children}
     </PaymentContext.Provider>
   );

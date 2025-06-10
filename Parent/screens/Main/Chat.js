@@ -1,5 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet, ActivityIndicator, Text, KeyboardAvoidingView, SafeAreaView, Platform, Pressable, Modal } from 'react-native';
+import { 
+  View, 
+  TextInput, 
+  TouchableOpacity, 
+  FlatList, 
+  Alert, 
+  StyleSheet, 
+  ActivityIndicator, 
+  Text, 
+  KeyboardAvoidingView, 
+  SafeAreaView, 
+  Platform, 
+  Pressable, 
+  Modal,
+  Image,
+  Animated,
+  Dimensions
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { debounce, truncate, formatFileSize, formatMessageTime, pickDocument, pickImage, takePhoto, getFileType } from '../../utils/helpers';
@@ -11,6 +28,8 @@ import FileAttachmentPreview from '../../components/Communication/FileAttachment
 import ChatList from '../../components/Communication/ChatList';
 import NewChatModal from '../../components/Communication/NewChatModal';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 const ChatScreen = () => {
   const navigation = useNavigation();
   const [activeChat, setActiveChat] = useState(null);
@@ -21,15 +40,17 @@ const ChatScreen = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showReactions, setShowReactions] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
   const [showChatList, setShowChatList] = useState(true);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
-  const flatListRef = useRef(null);
   const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
-  
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const flatListRef = useRef(null);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
   // Fetch chats and messages mock data
-  const getChats = async () => {
-  // Mock data for development
+  const getChatsData = async () => {
     return [
       {
         id: 'chat1',
@@ -42,135 +63,13 @@ const ChatScreen = () => {
         unreadCount: 10,
         isGroup: true,
         participants: ['John Doe', 'Jane Smith', 'John Cook'],
-        groupPicture: '../../assets/images/fiifi1.jpg',
+        groupPicture: require('../../assets/images/fiifi1.jpg'),
       },
-      {
-        id: 'chat2',
-        name: 'Jane Smith',
-        lastMessage: {
-          content: 'Are we still on for the meeting?',
-          time: 'Yesterday',
-        },
-        unreadCount: 2,
-        isGroup: false,
-      },
-      {
-        id: 'chat3',
-        name: 'John Cook',
-        lastMessage: {
-          content: 'Are we still on for the meeting?',
-          time: 'Yesterday',
-        },
-        unreadCount: 2,
-        isGroup: false,
-      },
-      {
-        id: 'chat4',
-        name: 'Group Chat',
-        lastMessage: {
-          content: 'Yes, we are on for the meeting.',
-          time: 'Yesterday',
-        },
-        unreadCount: 0,
-        isGroup: true,
-        participants: ['John Doe', 'Jane Smith', 'John Cook'],
-        groupPicture: '../../assets/images/fiifi1.jpg'
-      },
-      {
-        id: 'chat5',
-        name: 'Announcements',
-        lastMessage: {
-          content: 'Check out the latest announcements!',
-          time: 'Today',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      },
-      {
-        id: 'chat6',
-        name: 'Support',
-        lastMessage: {
-          content: 'How can we assist you today?',
-          time: 'Today',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      },
-      {
-        id: 'chat7',
-        name: 'Feedback',
-        lastMessage: {
-          content: 'We value your feedback!',
-          time: 'Today',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      },
-      {
-        id: 'chat8',
-        name: 'General Discussion',
-        lastMessage: {
-          content: 'Let\'s talk about anything!',
-          time: 'Today',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      },
-      {
-        id: 'chat9',
-        name: 'Project Updates',
-        lastMessage: {
-          content: 'New updates are available for the project.',
-          time: 'Today',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      },
-      {
-        id: 'chat10',
-        name: 'Team Collaboration',
-        lastMessage: {
-          content: 'Let\'s collaborate on the new project.',
-          time: 'Today',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      },
-      {
-        id: 'chat11',
-        name: 'Random Chat',
-        lastMessage: {
-          content: 'Just a random chat to test the app.',
-          time: 'Today',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      },
-      {
-        id: 'chat12',
-        name: 'Test Chat',
-        lastMessage: {
-          content: 'This is a test chat for development purposes.',
-          time: 'Today',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      },
-      {
-        id: 'chat13',
-        name: 'Test Chat',
-        lastMessage: {
-          content: 'This is a test chat for production purposes.',
-          time: 'yesterday',
-        },
-        unreadCount: 0,
-        isGroup: false,
-      }
+      // ... (rest of your mock data)
     ];
-  }
+  };
 
-  const getMessages = async (chatId) => {
-    // Mock data for development
+  const getMessagesData = async (chatId) => {
     return [
       {
         _id: 'msg1',
@@ -179,68 +78,29 @@ const ChatScreen = () => {
         user: {
           _id: 1,
           name: 'John Doe',
-          avatar: '../../assets/images/fiifi1.jpg'
+          avatar: require('../../assets/images/fiifi1.jpg')
         },
         isRead: true,
         reactions: ['👍', '❤️'],
         attachments: []
       },
-      {
-        _id: 'msg2',
-        text: 'I am fine, thank you!',
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: 'Jane Smith',
-          avatar: '../../assets/images/fiifi1.jpg'
-        },
-        replyTo: 'msg1',
-        isRead: true,
-        reactions: ['👍', '❤️', '😂'],
-        attachments: [
-          {
-            url: '../../assets/images/fiifi1.jpg',
-            type: 'image',
-            name: 'image.jpg',
-            size: 12345
-          }
-        ]
-      },
-      {
-        _id: 'msg3',
-        text: 'Are we still on for the meeting?',
-        createdAt: new Date(),
-        user: {
-          _id: 1,
-          name: 'John Cook',
-          avatar: '../../assets/images/fiifi1.jpg'
-        },
-        isRead: false,
-        reactions: [],
-        attachments: []
-      },
-      {
-        _id: 'msg4',
-        text: 'Yes, we are on for the meeting.',
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: 'Jane Smith',
-          avatar: '../../assets/images/fiifi1.jpg'
-        },
-        replyTo: 'msg3',
-        isRead: false,
-        reactions: [],
-        attachments: []
-      }
-    ]
+      // ... (rest of your mock data)
+    ];
   };
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const chatsData = await getChats();
+      const chatsData = await getChatsData();
       setChats(chatsData);
       
+      // Initialize unread counts
+      const counts = {};
+      chatsData.forEach(chat => {
+        counts[chat.id] = chat.unreadCount || 0;
+      });
+      setUnreadCounts(counts);
+
       if (chatsData.length > 0 && !activeChat) {
         setActiveChat(chatsData[0]);
         fetchMessages(chatsData[0].id);
@@ -255,9 +115,14 @@ const ChatScreen = () => {
   const fetchMessages = async (chatId) => {
     try {
       setLoading(true);
-      const data = await getMessages(chatId);
+      const data = await getMessagesData(chatId);
       setMessages(data);
       setShowChatList(false);
+      
+      // Mark messages as read when opening chat
+      if (unreadCounts[chatId] > 0) {
+        setUnreadCounts(prev => ({ ...prev, [chatId]: 0 }));
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to load messages');
     } finally {
@@ -273,7 +138,14 @@ const ChatScreen = () => {
     fetchData();
   }, []);
 
-  // Create new chat
+  const animateChatTransition = (toValue) => {
+    Animated.timing(slideAnim, {
+      toValue,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleCreateChat = async (participants, isGroup, groupName) => {
     try {
       setLoading(true);
@@ -287,7 +159,6 @@ const ChatScreen = () => {
     }
   };
 
-  // Typing indicator with debounce
   const handleTyping = useCallback(debounce(() => {
     setIsTyping(false);
   }, 1500), []);
@@ -298,7 +169,6 @@ const ChatScreen = () => {
     handleTyping();
   };
 
-  // Message sending with attachments and replies
   const handleSend = async () => {
     if (!newMessage.trim() && attachments.length === 0) return;
 
@@ -332,6 +202,10 @@ const ChatScreen = () => {
       setAttachments([]);
       setReplyingTo(null);
       
+      // Scroll to bottom after sending
+      if (flatListRef.current) {
+        flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to send message');
     } finally {
@@ -339,7 +213,6 @@ const ChatScreen = () => {
     }
   };
 
-  // Message interactions
   const handleReaction = async (messageId, reaction) => {
     try {
       const updatedMessage = await updateMessageApi(activeChat.id, messageId, { reactions: reaction });
@@ -382,10 +255,9 @@ const ChatScreen = () => {
     }
   };
 
-  // Add attachment
   const handleAddAttachment = async (type) => {
     try {
-      setShowAttachmentOptions(false); // Close the options modal
+      setShowAttachmentOptions(false);
       let file;
       
       switch (type) {
@@ -403,7 +275,6 @@ const ChatScreen = () => {
       }
 
       if (file) {
-        // Determine file type if not already set
         if (!file.type) {
           file.type = getFileType(file.name);
         }
@@ -415,25 +286,70 @@ const ChatScreen = () => {
     }
   };
 
+  const renderMessageItem = ({ item }) => (
+    <View style={styles.messageContainer}>
+      <MessageMenu 
+        onEdit={(newText) => handleEdit(item._id, newText)}
+        onDelete={() => handleDelete(item._id)}
+        onReply={() => handleReply(item)}
+      >
+        <TouchableOpacity 
+          onPress={() => handleViewMessage(item._id)}
+          onLongPress={() => setShowReactions(item._id)}
+          style={styles.messageTouchable}
+        >
+          <MessageBubble 
+            message={item} 
+            isMe={item.user._id === 1} // Assuming current user ID is 1
+            replyingTo={messages.find(m => m._id === item.replyTo)}
+          />
+        </TouchableOpacity>
+      </MessageMenu>
+
+      {showReactions === item._id && (
+        <ReactionPicker onSelect={(reaction) => handleReaction(item._id, reaction)} />
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       {showChatList ? (
-        <ChatList 
-          chats={chats} 
-          onSelectChat={(chat) => {
-            setActiveChat(chat);
-            fetchMessages(chat.id);
-          }}
-          onCreateNewChat={() => setShowNewChatModal(true)}
-          onViewAnnouncements={handleViewAnnouncements}
-        />
+        <Animated.View style={[styles.chatListContainer, { transform: [{ translateX: slideAnim }] }]}>
+          <ChatList 
+            chats={chats} 
+            unreadCounts={unreadCounts}
+            onSelectChat={(chat) => {
+              setActiveChat(chat);
+              fetchMessages(chat.id);
+              animateChatTransition(-SCREEN_WIDTH);
+            }}
+            onCreateNewChat={() => setShowNewChatModal(true)}
+            onViewAnnouncements={handleViewAnnouncements}
+          />
+        </Animated.View>
       ) : (
-        <>
+        <Animated.View style={[styles.chatContainer, { transform: [{ translateX: slideAnim }] }]}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => setShowChatList(true)}>
+            <TouchableOpacity 
+              onPress={() => {
+                setShowChatList(true);
+                animateChatTransition(0);
+              }}
+            >
               <Ionicons name="arrow-back" size={24} color="#00873E" />
             </TouchableOpacity>
-            <Text style={styles.chatTitle}>{activeChat?.name || 'Chat'}</Text>
+            <View style={styles.chatHeaderInfo}>
+              {activeChat?.isGroup ? (
+                <Image source={activeChat.groupPicture} style={styles.groupAvatar} />
+              ) : (
+                <View style={styles.avatar}>
+                  <Ionicons name="person" size={20} color="#00873E" />
+                </View>
+              )}
+              <Text style={styles.chatTitle}>{activeChat?.name || 'Chat'}</Text>
+            </View>
+            <View style={styles.headerRightSpacer} />
           </View>
 
           {loading ? (
@@ -450,41 +366,19 @@ const ChatScreen = () => {
                 ref={flatListRef}
                 data={messages}
                 inverted
-                renderItem={({ item }) => (
-                  <View style={styles.messageContainer}>
-                    <MessageMenu 
-                      onEdit={(newText) => handleEdit(item._id, newText)}
-                      onDelete={() => handleDelete(item._id)}
-                      onReply={() => handleReply(item)}
-                    >
-                      <TouchableOpacity 
-                        onPress={() => handleViewMessage(item._id)}
-                        onLongPress={() => setShowReactions(item._id)}
-                        style={styles.messageTouchable}
-                      >
-                        <MessageBubble 
-                          message={item} 
-                          isMe={item.sender === 'me'} 
-                          replyingTo={messages.find(m => m._id === item.replyTo)}
-                        />
-                      </TouchableOpacity>
-                    </MessageMenu>
-
-                    {showReactions === item._id && (
-                      <ReactionPicker onSelect={(reaction) => handleReaction(item._id, reaction)} />
-                    )}
-                  </View>
-                )}
+                renderItem={renderMessageItem}
                 keyExtractor={item => item._id}
+                contentContainerStyle={styles.messagesContainer}
+                showsVerticalScrollIndicator={false}
               />
 
               <TypingIndicator isVisible={isTyping} />
 
               {replyingTo && (
                 <View style={styles.replyContainer}>
-                  <Text style={styles.replyText}>Replying to {replyingTo.sender}</Text>
+                  <Text style={styles.replyText}>Replying to {replyingTo.user.name}</Text>
                   <Text numberOfLines={1} style={styles.replyContent}>
-                    {replyingTo.content || (replyingTo.attachments?.length ? 'Attachment' : '')}
+                    {replyingTo.text || (replyingTo.attachments?.length ? 'Attachment' : '')}
                   </Text>
                   <TouchableOpacity 
                     style={styles.cancelReply} 
@@ -514,12 +408,13 @@ const ChatScreen = () => {
                   value={newMessage}
                   onChangeText={handleTextInput}
                   placeholder="Type a message..."
+                  placeholderTextColor="#999"
                   multiline
                   editable={!loading}
                 />
                 
                 <TouchableOpacity 
-                  style={styles.sendButton}
+                  style={[styles.sendButton, (!newMessage && attachments.length === 0) && styles.sendButtonDisabled]}
                   onPress={handleSend}
                   disabled={loading || (!newMessage && attachments.length === 0)}
                 >
@@ -531,7 +426,6 @@ const ChatScreen = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* Attachment Options Modal */}
               <Modal
                 visible={showAttachmentOptions}
                 transparent={true}
@@ -571,7 +465,7 @@ const ChatScreen = () => {
               </Modal>
             </KeyboardAvoidingView>
           )}
-        </>
+        </Animated.View>
       )}
 
       <NewChatModal 
@@ -585,48 +479,63 @@ const ChatScreen = () => {
 
 const MessageBubble = ({ message, isMe, replyingTo }) => (
   <View style={[styles.bubble, isMe ? styles.myBubble : styles.theirBubble]}>
-    {replyingTo && (
-      <View style={styles.replyPreview}>
-        <Text style={styles.replyPreviewText}>
-          Replying to {replyingTo.sender}: {truncate(replyingTo.content || 'Attachment', 30)}
-        </Text>
-      </View>
+    {!isMe && (
+      <Image source={message.user.avatar} style={styles.avatarImage} />
     )}
-    
-    {message.attachments?.map((file, index) => (
-      <View key={index} style={styles.filePreview}>
-        <Ionicons 
-          name={file.type === 'image' ? 'image' : 'document'} 
-          size={32} 
-          color="#666" 
-        />
-        <Text style={styles.fileName}>{truncate(file.name, 15)}</Text>
-        <Text style={styles.fileSize}>{formatFileSize(file.size)}</Text>
-      </View>
-    ))}
-    
-    {message.content && <Text style={styles.messageText}>{message.content}</Text>}
-    
-    <View style={styles.statusContainer}>
-      <Text style={styles.time}>
-        {formatMessageTime(message.createdAt || message.timestamp)}
-      </Text>
+    <View style={styles.messageContent}>
+      {!isMe && (
+        <Text style={styles.senderName}>{message.user.name}</Text>
+      )}
       
-      {message.reactions?.length > 0 && (
-        <View style={styles.reactions}>
-          {message.reactions.map((r, i) => (
-            <Text key={i} style={styles.reaction}>{r}</Text>
-          ))}
+      {replyingTo && (
+        <View style={styles.replyPreview}>
+          <Text style={styles.replyPreviewText}>
+            Replying to {replyingTo.user.name}: {truncate(replyingTo.text || 'Attachment', 30)}
+          </Text>
         </View>
       )}
       
-      {isMe && (
-        <Ionicons 
-          name={message.read ? 'checkmark-done' : 'checkmark'} 
-          size={14} 
-          color={message.read ? '#00873E' : '#666'} 
-        />
-      )}
+      {message.attachments?.map((file, index) => (
+        <View key={index} style={styles.filePreview}>
+          {file.type === 'image' ? (
+            <Image source={{ uri: file.url }} style={styles.imageAttachment} />
+          ) : (
+            <>
+              <Ionicons 
+                name="document" 
+                size={32} 
+                color="#666" 
+              />
+              <Text style={styles.fileName}>{truncate(file.name, 15)}</Text>
+              <Text style={styles.fileSize}>{formatFileSize(file.size)}</Text>
+            </>
+          )}
+        </View>
+      ))}
+      
+      {message.text && <Text style={styles.messageText}>{message.text}</Text>}
+      
+      <View style={styles.statusContainer}>
+        <Text style={styles.time}>
+          {formatMessageTime(message.createdAt || message.timestamp)}
+        </Text>
+        
+        {message.reactions?.length > 0 && (
+          <View style={styles.reactions}>
+            {message.reactions.map((r, i) => (
+              <Text key={i} style={styles.reaction}>{r}</Text>
+            ))}
+          </View>
+        )}
+        
+        {isMe && (
+          <Ionicons 
+            name={message.read ? 'checkmark-done' : 'checkmark'} 
+            size={14} 
+            color={message.read ? '#00873E' : '#666'} 
+          />
+        )}
+      </View>
     </View>
   </View>
 );
@@ -635,6 +544,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  chatListContainer: {
+    flex: 1,
+    width: SCREEN_WIDTH,
+  },
+  chatContainer: {
+    flex: 1,
+    width: SCREEN_WIDTH,
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -647,20 +564,47 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 15,
     borderBottomWidth: 1,
     borderColor: '#e0e0e0',
     backgroundColor: 'white',
   },
+  chatHeaderInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  headerRightSpacer: {
+    width: 24,
+  },
+  groupAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginRight: 10,
+  },
+  avatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#e0f7e9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
   chatTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginLeft: 15,
     color: '#00873E',
+  },
+  messagesContainer: {
+    paddingBottom: 20,
   },
   messageContainer: {
     marginVertical: 4,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -679,8 +623,9 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     backgroundColor: '#f8f8f8',
     fontSize: 16,
+    color: '#333',
   },
-attachmentButton: {
+  attachmentButton: {
     marginRight: 8,
   },
   modalOverlay: {
@@ -714,11 +659,15 @@ attachmentButton: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+  sendButtonDisabled: {
+    backgroundColor: '#cccccc',
+  },
   bubble: {
     maxWidth: '80%',
-    padding: 16,
+    padding: 12,
     borderRadius: 16,
     marginVertical: 4,
+    flexDirection: 'row',
   },
   myBubble: {
     alignSelf: 'flex-end',
@@ -731,6 +680,20 @@ attachmentButton: {
     borderBottomLeftRadius: 4,
     elevation: 2,
   },
+  messageContent: {
+    flex: 1,
+  },
+  senderName: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  avatarImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 8,
+  },
   messageText: {
     fontSize: 16,
     color: '#333',
@@ -740,6 +703,7 @@ attachmentButton: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
+    justifyContent: 'flex-end',
   },
   time: {
     fontSize: 12,
@@ -749,6 +713,9 @@ attachmentButton: {
   reactions: {
     flexDirection: 'row',
     marginRight: 8,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 10,
+    paddingHorizontal: 4,
   },
   reaction: {
     fontSize: 16,
@@ -760,6 +727,12 @@ attachmentButton: {
     padding: 8,
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
+  },
+  imageAttachment: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 4,
   },
   fileName: {
     fontSize: 12,

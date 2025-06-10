@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useHome } from '../../context/HomeContext';
 import { useProfile } from '../../context/ProfileContext';
+import { capitalize } from '../../utils/helpers';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -63,11 +64,15 @@ const HomeScreen = () => {
               <View style={styles.statusRow}>
                 <View style={styles.statusBadge}>
                   <Ionicons name="checkmark-circle-outline" size={16} color="#4CAF50" />
-                  <Text style={styles.statusText}>{homeData?.attendanceStatus || 'N/A'}</Text>
+                  <Text style={styles.statusText}>
+                    {capitalize(homeData?.attendanceStatus) || 'N/A'}
+                  </Text>
                 </View>
                 <View style={styles.statusBadge}>
                   <Ionicons name="wallet-outline" size={16} color="#4CAF50" />
-                  <Text style={styles.statusText}>{homeData?.feePaymentStatus || 'N/A'}</Text>
+                  <Text style={styles.statusText}>
+                    {capitalize(homeData?.feePaymentStatus) || 'N/A'}
+                  </Text>
                 </View>
               </View>
             </View>

@@ -59,37 +59,46 @@ const PaymentProcessing = ({ route, navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmitPayment = () => {
+  const handleSubmitPayment = async () => {
     let isValid = false;
-    
     switch (method) {
-      case 'MoMo':
-        isValid = validateMoMo();
-        break;
-      case 'Credit Card':
-        isValid = validateCreditCard();
-        break;
-      case 'Bank Transfer':
-        isValid = validateBankTransfer();
-        break;
-      default:
-        break;
+      case 'MoMo': isValid = validateMoMo(); 
+      break;
+      case 'Credit Card': isValid = validateCreditCard(); 
+      break;
+      case 'Bank Transfer': isValid = validateBankTransfer(); 
+      break;
+      default: break;
     }
 
     if (!isValid) return;
 
     setIsProcessing(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      navigation.replace('PaymentSuccess', { 
+    setApiError(null);
+
+    try {
+      const paymentDetails = {
         amount,
-        method,
-        reference: `TX-${Math.random().toString(36).slice(2, 10).toUpperCase()}`
-      });
-    }, 2000);
+        feeIds,
+        ...(method === 'MoMo' && { phoneNumber: inputs.phoneNumber }),
+        ...(method === 'Credit Card' && { 
+          cardNumber: inputs.cardNumber,
+          expiry: inputs.expiry,
+          cvv: inputs.cvv,
+        }),
+        ...(method === 'Bank Transfer' && { accountNumber: inputs.accountNumber }),
+      };
+
+      const result = await processPayment(method, paymentDetails);
+      await refreshPayments(); // Update payment history
+      navigation.replace('PaymentReceipt', { paymentId: result.id });
+    } catch (error) {
+      setApiError(sanitizeError(error));
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
 
   const handleInputChange = (name, value) => {
     // Format inputs as they're entered
@@ -291,7 +300,7 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#00873E',
     textAlign: 'center',
     marginBottom: 5,
   },

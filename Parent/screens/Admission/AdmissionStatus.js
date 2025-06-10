@@ -1,12 +1,34 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  StyleSheet, 
+  ActivityIndicator, 
+  RefreshControl, 
+  TouchableOpacity 
+} from 'react-native';
 import { AdmissionContext } from '../../context/AdmissionContext';
-import { useAuth } from '../../context/AuthContext';
 import Icon from 'react-native-vector-icons/Ionicons';
+
+const STATUS_COLORS = {
+  pending: '#FFA500',
+  approved: '#4CAF50',
+  rejected: '#F44336',
+  review: '#2196F3',
+  processed: '#9C27B0'
+};
+
+const STATUS_ICONS = {
+  pending: 'time-outline',
+  approved: 'checkmark-circle-outline',
+  rejected: 'close-circle-outline',
+  review: 'document-text-outline',
+  processed: 'shield-checkmark-outline'
+};
 
 const AdmissionStatus = ({ route }) => {
   const { getAdmissionStatus, getAdmissionStatusById } = useContext(AdmissionContext);
-  const { userInfo } = useAuth();
   const [admissionData, setAdmissionData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -21,19 +43,15 @@ const AdmissionStatus = ({ route }) => {
 
       let data;
       if (applicationId) {
-        // Fetch specific application if ID is provided
         data = await getAdmissionStatusById(applicationId);
-        setAdmissionData(data ? [data] : []);
-      } 
-      // else {
-      //   // Fetch all applications for the parent
-      //   data = await getAdmissionStatus();
-      //   setAdmissionData(Array.isArray(data) ? data : (data ? [data] : []));
-      // }
+        setAdmissionData(data);
+      } else {
+        data = await getAdmissionStatus();
+        setAdmissionData(Array.isArray(data) ? data : [data]);
+      }
     } catch (error) {
-      console.error('Failed to fetch admission status:', error);
-      setError(error.message || 'Failed to load admission status');
-      setAdmissionData([]);
+      setError(error.message);
+      setAdmissionData(null);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -42,65 +60,114 @@ const AdmissionStatus = ({ route }) => {
 
   useEffect(() => {
     fetchAdmissionStatus();
-  }, [applicationId, userInfo]);
+  }, [applicationId]);
 
-  const onRefresh = () => {
-    fetchAdmissionStatus();
+  const renderStatusTimeline = (admission) => {
+    const status = admission?.status?.toLowerCase() || 'pending';
+    const stages = [
+      { id: 'submitted', label: 'Submitted', active: true },
+      { id: 'review', label: 'Under Review', active: ['review', 'processed', 'approved', 'rejected'].includes(status) },
+      { id: 'processed', label: 'Processed', active: ['processed', 'approved', 'rejected'].includes(status) },
+      { id: 'completed', label: 'Completed', active: ['approved', 'rejected'].includes(status) }
+    ];
+
+    return (
+      <View style={styles.timelineContainer}>
+        {stages.map((stage, index) => (
+          <View key={stage.id} style={styles.timelineItem}>
+            <View style={[
+              styles.timelineDot,
+              { 
+                backgroundColor: stage.active ? STATUS_COLORS[status] || '#999' : '#e0e0e0',
+                borderColor: stage.active ? STATUS_COLORS[status] || '#999' : '#e0e0e0'
+              }
+            ]}>
+              {stage.active && (
+                <Icon 
+                  name={STATUS_ICONS[status] || 'checkmark-outline'} 
+                  size={16} 
+                  color="#fff" 
+                />
+              )}
+            </View>
+            <Text style={[
+              styles.timelineLabel,
+              { color: stage.active ? '#333' : '#999' }
+            ]}>
+              {stage.label}
+            </Text>
+            {index < stages.length - 1 && (
+              <View style={[
+                styles.timelineConnector,
+                { backgroundColor: stage.active ? STATUS_COLORS[status] || '#999' : '#e0e0e0' }
+              ]} />
+            )}
+          </View>
+        ))}
+      </View>
+    );
   };
 
-  const renderStatusCard = (admission) => {
+  const renderStatusDetails = (admission) => {
     const status = admission?.status?.toLowerCase() || 'pending';
-    const formattedDate = admission?.submissionDate 
-      ? new Date(admission.submissionDate).toLocaleDateString() 
+    const submissionDate = admission?.submissionDate 
+      ? new Date(admission.submissionDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
       : 'N/A';
 
     return (
-      <View key={admission.id} style={styles.statusCard}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.studentName}>
-            {admission.student?.fullName || 'Student Application'}
+      <View style={styles.detailsContainer}>
+        <View style={styles.detailRow}>
+          <Icon name="document-text-outline" size={18} color="#333" />
+          <Text style={[styles.detailLabel, { color: '#333' }]}>Reference:</Text>
+          <Text style={[styles.detailValue, { color: '#333' }]}>
+            {admission.refNumber || 'N/A'}
           </Text>
-          <View style={[styles.statusBadge, styles[`statusBadge_${status}`]]}>
-            <Text style={styles.statusText}>
+        </View>
+
+        <View style={styles.detailRow}>
+          <Icon name="calendar-outline" size={18} color="#333" />
+          <Text style={[styles.detailLabel, { color: '#333' }]}>Submitted:</Text>
+          <Text style={[styles.detailValue, { color: '#333' }]}>
+            {submissionDate}
+          </Text>
+        </View>
+
+        {admission.processedDate && (
+          <View style={styles.detailRow}>
+            <Icon name="checkmark-circle-outline" size={18} color="#333" />
+            <Text style={[styles.detailLabel, { color: '#333' }]}>Processed:</Text>
+            <Text style={[styles.detailValue, { color: '#333' }]}>
+              {new Date(admission.processedDate).toLocaleDateString()}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.statusBadgeContainer}>
+          <View style={[
+            styles.statusBadge, 
+            { backgroundColor: `${STATUS_COLORS[status]}20`, borderColor: STATUS_COLORS[status] }
+          ]}>
+            <Text style={[styles.statusText, { color: STATUS_COLORS[status] }]}>
               {formatStatus(admission.status)}
             </Text>
           </View>
         </View>
 
-        <View style={styles.detailRow}>
-          <Icon name="document-text-outline" size={16} color="#666" />
-          <Text style={styles.detailLabel}>Reference:</Text>
-          <Text style={styles.detailValue}>{admission.refNumber || 'N/A'}</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Icon name="school-outline" size={16} color="#666" />
-          <Text style={styles.detailLabel}>Class:</Text>
-          <Text style={styles.detailValue}>
-            {admission.admissionDetail?.classForAdmission || 'N/A'}
-          </Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Icon name="calendar-outline" size={16} color="#666" />
-          <Text style={styles.detailLabel}>Academic Year:</Text>
-          <Text style={styles.detailValue}>
-            {admission.admissionDetail?.academicYear || 'N/A'}
-          </Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Icon name="time-outline" size={16} color="#666" />
-          <Text style={styles.detailLabel}>Submitted:</Text>
-          <Text style={styles.detailValue}>{formattedDate}</Text>
-        </View>
-
         {admission.comments && (
           <View style={styles.commentsContainer}>
-            <Text style={styles.commentsLabel}>
-              <Icon name="chatbubble-outline" size={14} color="#666" /> Comments:
+            <Text style={[styles.commentsLabel, { color: '#333' }]}>
+              <Icon name="information-circle-outline" size={16} color="#333" /> 
+              {' '}Administrator Comments:
             </Text>
-            <Text style={styles.commentsText}>{admission.comments}</Text>
+            <Text style={[styles.commentsText, { color: '#333' }]}>
+              {admission.comments}
+            </Text>
           </View>
         )}
       </View>
@@ -110,53 +177,69 @@ const AdmissionStatus = ({ route }) => {
   if (isLoading && !admissionData) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#00873E" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#007AFF"]}
-          />
-        }
-      >
-        <Text style={styles.title}>
-          {applicationId ? 'Application Details' : 'Admission Status'}
-        </Text>
-        
-        {error && (
-          <View style={styles.errorContainer}>
-            <Icon name="warning-outline" size={20} color="#D32F2F" />
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={fetchAdmissionStatus}>
-              <Text style={styles.retryText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        
-        {admissionData?.length > 0 ? (
-          admissionData.map(renderStatusCard)
-        ) : (
-          <View style={styles.emptyState}>
-            <Icon name="document-outline" size={50} color="#999" />
-            <Text style={styles.emptyText}>
-              {applicationId ? 'Application not found' : 'No admission applications found'}
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={fetchAdmissionStatus}
+          colors={["#00873E"]}
+        />
+      }
+    >
+      {error && (
+        <View style={styles.errorContainer}>
+          <Icon name="warning-outline" size={24} color="#D32F2F" />
+          <Text style={[styles.errorText, { color: '#D32F2F' }]}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={fetchAdmissionStatus}
+          >
+            <Text style={[styles.retryText, { color: '#00873E' }]}>
+              Try Again
             </Text>
-            <Text style={styles.emptySubtext}>
-              {error ? 'Could not load applications' : 
-               applicationId ? 'Check the application ID' : 'Submit an application to view status'}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-    </View>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {admissionData ? (
+        <View style={styles.contentContainer}>
+          <Text style={[styles.title, { color: '#333' }]}>
+            {applicationId ? 'Application Details' : 'My Applications'}
+          </Text>
+
+          {Array.isArray(admissionData) ? (
+            admissionData.map((app, index) => (
+              <View key={app.id || index} style={styles.applicationCard}>
+                {renderStatusTimeline(app)}
+                {renderStatusDetails(app)}
+              </View>
+            ))
+          ) : (
+            <View style={styles.applicationCard}>
+              {renderStatusTimeline(admissionData)}
+              {renderStatusDetails(admissionData)}
+            </View>
+          )}
+        </View>
+      ) : (
+        <View style={styles.emptyState}>
+          <Icon name="document-outline" size={48} color="#999" />
+          <Text style={[styles.emptyText, { color: '#00873E' }]}>
+            {applicationId ? 'Application not found' : 'No applications found'}
+          </Text>
+          <Text style={[styles.emptySubtext, { color: '#999' }]}>
+            {applicationId ? 'Please check the application ID' : 'Submit an application to view status'}
+          </Text>
+        </View>
+      )}
+    </ScrollView>
   );
 };
 
@@ -167,12 +250,9 @@ const formatStatus = (status) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  scrollContainer: {
+    flexGrow: 1,
     padding: 20,
-    paddingBottom: 40,
+    backgroundColor: '#f8f9fa',
   },
   loaderContainer: {
     flex: 1,
@@ -180,127 +260,141 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
   },
+  contentContainer: {
+    flex: 1,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#00873E',
+    marginBottom: 20,
   },
-  statusCard: {
+  applicationCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
   },
-  cardHeader: {
+  timelineContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  timelineItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  timelineDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  timelineLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  timelineConnector: {
+    position: 'absolute',
+    top: 13,
+    left: '50%',
+    right: '-50%',
+    height: 2,
+    zIndex: -1,
+  },
+  detailsContainer: {
+    marginTop: 10,
+  },
+  detailRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 12,
   },
-  studentName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2c3e50',
+  detailLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
+    width: 90,
+  },
+  detailValue: {
+    fontSize: 14,
+    flex: 1,
+  },
+  statusBadgeContainer: {
+    alignItems: 'center',
+    marginVertical: 16,
   },
   statusBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 20,
-  },
-  statusBadge_pending: {
-    backgroundColor: '#fff4e5',
-  },
-  statusBadge_approved: {
-    backgroundColor: '#e6f7e6',
-  },
-  statusBadge_rejected: {
-    backgroundColor: '#ffebee',
+    borderWidth: 1,
   },
   statusText: {
     fontSize: 14,
     fontWeight: '600',
   },
-  statusText_pending: {
-    color: '#ff9800',
-  },
-  statusText_approved: {
-    color: '#4caf50',
-  },
-  statusText_rejected: {
-    color: '#f44336',
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 8,
-    width: 100,
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-  },
   commentsContainer: {
-    marginTop: 12,
+    marginTop: 16,
     padding: 12,
-    backgroundColor: '#f8f9fa',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: '#f8f9fa',
   },
   commentsLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   commentsText: {
     fontSize: 14,
-    color: '#444',
+    lineHeight: 20,
   },
   emptyState: {
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 40,
   },
   emptyText: {
     fontSize: 18,
-    color: '#666',
+    fontWeight: '500',
     marginTop: 16,
     textAlign: 'center',
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
     marginTop: 8,
     textAlign: 'center',
   },
   errorContainer: {
-    backgroundColor: '#ffebee',
+    alignItems: 'center',
     padding: 16,
     borderRadius: 8,
     marginBottom: 20,
-    flexDirection: 'column',
-    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    borderColor: '#ef9a9a',
+    borderWidth: 1,
   },
   errorText: {
-    color: '#d32f2f',
+    fontSize: 16,
     textAlign: 'center',
     marginVertical: 8,
   },
+  retryButton: {
+    marginTop: 8,
+  },
   retryText: {
-    color: '#007AFF',
+    fontSize: 16,
     fontWeight: '500',
   },
 });

@@ -84,6 +84,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   card: {
+    width: '90%',
+    alignSelf: 'center',
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: 'aliceblue',

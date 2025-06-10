@@ -112,7 +112,7 @@ const CustomDrawer = (props) => {
             activeOpacity={0.7}
           >
             <View style={styles.iconContainer}>
-              <Icon name="settings-outline" size={20} color="#00873E" />
+              <Icon name="settings-outline" size={20} color="aliceblue" />
             </View>
             <Text style={styles.footerItemText}>Settings</Text>
           </TouchableOpacity>
@@ -127,7 +127,7 @@ const CustomDrawer = (props) => {
             activeOpacity={0.7}
           >
             <View style={styles.iconContainer}>
-              <Icon name="help-circle-outline" size={20} color="#00873E" />
+              <Icon name="help-circle-outline" size={20} color="aliceblue" />
             </View>
             <Text style={styles.footerItemText}>Help Center</Text>
           </TouchableOpacity>
@@ -155,18 +155,24 @@ const CustomDrawer = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#00873E',
+    backgroundColor: 'aliceblue',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   scrollContainer: {
     paddingBottom: 20,
   },
   drawerHeader: {
+    // backgroundColor: '#00873E',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#00873E',
   },
   logo: {
     width: 36,
@@ -177,7 +183,7 @@ const styles = StyleSheet.create({
   schoolName: {
     fontSize: 18,
     fontWeight: '700',
-    color: 'aliceblue',
+    color: '#00873E',
   },
   profileSection: {
     padding: 20,
@@ -191,7 +197,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     marginRight: 16,
     borderWidth: 2,
-    borderColor: 'aliceblue',
+    borderColor: '#00873E',
   },
   profileInfo: {
     flex: 1,
@@ -199,7 +205,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'aliceblue',
+    color: '#00873E',
     marginBottom: 2,
   },
   userEmail: {
@@ -219,7 +225,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#00873E',
     marginVertical: 8,
     marginHorizontal: 20,
   },
@@ -227,7 +233,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
+    borderTopColor: '#00873E',
   },
   footerItem: {
     flexDirection: 'row',
@@ -240,7 +246,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 12,
-    backgroundColor: '#eef2ff',
+    backgroundColor: '#00873E',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -248,7 +254,7 @@ const styles = StyleSheet.create({
   footerItemText: {
     fontSize: 15,
     fontWeight: '500',
-    color: 'aliceblue',
+    color: '#00873E',
   },
   logoutItem: {
     marginTop: 8,

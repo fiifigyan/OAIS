@@ -1,100 +1,9 @@
-import React, { useContext } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, SafeAreaView, ActivityIndicator } from 'react-native';
 import { AdmissionContext } from '../../context/AdmissionContext';
+import SuccessModal from '../../components/SuccessModal'
 import Collapsible from 'react-native-collapsible';
 import Icon from 'react-native-vector-icons/Ionicons';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00873E',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 8,
-  },
-  sectionSubtitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00873E',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  reviewItem: {
-    marginBottom: 12,
-  },
-  reviewLabel: {
-    fontWeight: 'bold',
-    color: '#555',
-  },
-  reviewValue: {
-    color: '#333',
-  },
-  errorContainer: {
-    backgroundColor: '#ffebee',
-    padding: 10,
-    borderRadius: 4,
-    marginBottom: 10,
-  },
-  errorText: {
-    color: '#d32f2f',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-  },
-  backButton: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 4,
-    padding: 12,
-    width: 120,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#00873E',
-  },
-  backButtonText: {
-    color: '#00873E',
-    fontWeight: '500',
-  },
-  submitButton: {
-    backgroundColor: '#00873E',
-    borderRadius: 4,
-    padding: 12,
-    width: 120,
-    alignItems: 'center',
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: '500',
-  },
-  collapsibleHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  collapsibleTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00873E',
-  },
-  editButton: {
-    color: '#00873E',
-    fontSize: 14,
-  },
-  collapsibleContent: {
-    paddingVertical: 8,
-  },
-});
 
 const ReviewFormPage = ({ navigation }) => {
   const { 
@@ -120,19 +29,31 @@ const ReviewFormPage = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    try {
-      const result = await submitForm();
-      if (result) {
-        Alert.alert(
-          'Success',
-          'Your application has been submitted successfully!',
-          [{ text: 'OK', onPress: () => navigation.popToTop() }]
-        );
-      }
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Submission failed. Please try again.');
+  try {
+    const result = await submitForm();
+    if (result) {
+      // Show success modal
+      <SuccessModal
+        visible={true}
+        title="Application Success!"
+        message="Your application has been successfully submitted!"
+        onClose={() => navigation.navigate('AdmissionStatus')}
+      />;
     }
-  };
+  } catch (error) {
+    Alert.alert(
+      'Submission Error',
+      error.message,
+      [
+        { text: 'OK', style: 'cancel' },
+        { 
+          text: 'Try Again', 
+          onPress: handleSubmit
+        }
+      ]
+    );
+  }
+};
 
   const renderReviewItem = (label, value) => (
     <View style={styles.reviewItem}>
@@ -169,9 +90,9 @@ const ReviewFormPage = ({ navigation }) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.sectionTitle}>Review Your Application</Text>
-      <Text>Please review all information before submitting.</Text>
+      <Text style={styles.headerSubtitle}>Please review all information before submitting.</Text>
 
       {Object.keys(formErrors).length > 0 && (
         <View style={styles.errorContainer}>
@@ -180,6 +101,7 @@ const ReviewFormPage = ({ navigation }) => {
           </Text>
         </View>
       )}
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
 
       {renderSection('Student Information', 'student', (
         <>
@@ -204,9 +126,14 @@ const ReviewFormPage = ({ navigation }) => {
       {renderSection('Parent Information', 'parent', (
         <>
           {renderReviewItem('Father', `${formData.parentGuardian.fatherSurName} ${formData.parentGuardian.fatherFirstName}`)}
-          {renderReviewItem('Mother', `${formData.parentGuardian.motherSurName} ${formData.parentGuardian.motherFirstName}`)}
           {renderReviewItem('Father Contact', formData.parentGuardian.fatherContactNumber)}
+          {renderReviewItem('Father Address', `${formData.parentGuardian.fatherAddress.street} ${formData.parentGuardian.fatherAddress.houseNumber}, ${formData.parentGuardian.fatherAddress.city}, ${formData.parentGuardian.fatherAddress.country}`)}
+          {renderReviewItem('Father Occupation', formData.parentGuardian.fatherOccupation)} 
+          
+          {renderReviewItem('Mother', `${formData.parentGuardian.motherSurName} ${formData.parentGuardian.motherFirstName}`)}
           {renderReviewItem('Mother Contact', formData.parentGuardian.motherContactNumber)}
+          {renderReviewItem('Mother Address', `${formData.parentGuardian.motherAddress.street} ${formData.parentGuardian.motherAddress.houseNumber}, ${formData.parentGuardian.motherAddress.city}, ${formData.parentGuardian.motherAddress.country}`)}
+          {renderReviewItem('Mother Occupation', formData.parentGuardian.motherOccupation)} 
         </>
       ))}
 
@@ -215,6 +142,11 @@ const ReviewFormPage = ({ navigation }) => {
           {renderReviewItem('Last School Attended', formData.previousAcademicDetail.lastSchoolAttended)}
           {renderReviewItem('Class for Admission', formData.admissionDetail.classForAdmission)}
           {renderReviewItem('Academic Year', formData.admissionDetail.academicYear)}
+          {renderReviewItem('Class for Admission', formData.admissionDetail.classForAdmission)}
+          {renderReviewItem('Has Siblings in School', formData.admissionDetail.hasSiblingsInSchool ? 'Yes' : 'No')}
+          {renderReviewItem('Sibling Name', formData.admissionDetail.siblingName)}
+          {renderReviewItem('Sibling Class', formData.admissionDetail.siblingClass)}
+          {renderReviewItem('Preferred Second Language', formData.admissionDetail.preferredSecondLanguage)}
         </>
       ))}
 
@@ -242,13 +174,119 @@ const ReviewFormPage = ({ navigation }) => {
           onPress={handleSubmit}
           disabled={isSubmitting || Object.keys(formErrors).length > 0}
         >
+          {isSubmitting && <ActivityIndicator size="small" color="#fff" />}
           <Text style={styles.submitButtonText}>
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00873E',
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#999',
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#00873E',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  reviewItem: {
+    marginBottom: 12,
+  },
+  reviewLabel: {
+    fontWeight: 'bold',
+    color: '#555',
+  },
+  reviewValue: {
+    color: '#333',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 10,
+  },
+  errorText: {
+    color: '#d32f2f',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  backButton: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+    padding: 12,
+    width: 120,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#00873E',
+  },
+  backButtonText: {
+    color: '#00873E',
+    fontWeight: '500',
+  },
+  submitButton: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#00873E',
+    borderRadius: 4,
+    padding: 12,
+    width: 120,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  collapsibleTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#00873E',
+  },
+  editButton: {
+    color: '#00873E',
+    fontSize: 14,
+  },
+  collapsibleContent: {
+    paddingVertical: 8,
+  },
+});
 export default ReviewFormPage;

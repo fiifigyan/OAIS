@@ -1,14 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, FlatList } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  SafeAreaView, 
+  TouchableOpacity, 
+  ActivityIndicator, 
+  RefreshControl, 
+  FlatList 
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CalendarService } from '../../services/CalendarService';
+import { useProfile } from '../../context/ProfileContext';
+import { sanitizeError } from '../../utils/helpers';
 
 const TimetableScreen = () => {
+  const { selectedStudent } = useProfile();
   const [timetableData, setTimetableData] = useState({});
   const [currentDay, setCurrentDay] = useState(new Date().getDay());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
   const days = [
     { id: 1, name: 'Monday' },
@@ -20,11 +33,16 @@ const TimetableScreen = () => {
 
   const loadTimetable = async () => {
     try {
+      if (!selectedStudent?.id) return;
+      
+      setError(null);
       setLoading(true);
-      const data = await CalendarService.fetchTimetable();
-      setTimetableData(data);
+      const data = await CalendarService.fetchTimetable(selectedStudent.id);
+      setTimetableData(data || {});
     } catch (error) {
-      console.error('Error loading timetable:', error);
+      const friendlyError = sanitizeError(error);
+      console.error('Error loading timetable:', friendlyError);
+      setError(friendlyError);
       setTimetableData({});
     } finally {
       setLoading(false);
@@ -34,7 +52,7 @@ const TimetableScreen = () => {
 
   useEffect(() => {
     loadTimetable();
-  }, []);
+  }, [selectedStudent]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -53,38 +71,53 @@ const TimetableScreen = () => {
     );
   }
 
-  const currentDayData = timetableData[days[currentDay-1]?.name] || null;
+  if (error) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Icon name="error" size={48} color="#FF5722" />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={handleRefresh}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  const currentDayData = timetableData[days[currentDay-1]?.name] || [];
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
-        horizontal 
-        contentContainerStyle={styles.daySelector}
-        showsHorizontalScrollIndicator={false}
-      >
-        {days.map(day => (
-          <TouchableOpacity
-            key={day.id}
-            onPress={() => handleDayChange(day.id)}
-          >
+      {/* Horizontal day selector - now using FlatList instead of ScrollView */}
+      <FlatList
+        horizontal
+        data={days}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => handleDayChange(item.id)}>
             <LinearGradient
-              colors={currentDay === day.id ? ['#00873E', '#4CAF50'] : ['#ffffff', '#f5f5f5']}
-              style={[styles.dayTab, currentDay === day.id && styles.activeDayTab]}
+              colors={currentDay === item.id ? ['#00873E', '#4CAF50'] : ['#ffffff', '#f5f5f5']}
+              style={[styles.dayTab, currentDay === item.id && styles.activeDayTab]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 0}}
             >
-              <Text style={[styles.dayText, currentDay === day.id && styles.activeDayText]}>
-                {day.name}
+              <Text style={[styles.dayText, currentDay === item.id && styles.activeDayText]}>
+                {item.name}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        )}
+        contentContainerStyle={styles.daySelector}
+        showsHorizontalScrollIndicator={false}
+      />
 
+      {/* Main content FlatList */}
       <FlatList
-        data={currentDayData?.classes || []}
+        data={currentDayData}
         contentContainerStyle={styles.content}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item, index) => `${index}_${item.time}`}
         renderItem={({ item }) => (
           <View style={styles.classCard}>
             <View style={styles.classTimeContainer}>
@@ -130,31 +163,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
-  headerText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#00873E',
+  errorText: {
+    fontSize: 16,
+    color: '#FF5722',
+    marginVertical: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 6,
+    backgroundColor: '#00873E',
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   daySelector: {
     padding: 5,
     height: 50,
-    width: '100%',
-    gap: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dayTab: {
     padding: 10,
     borderRadius: 10,
+    marginHorizontal: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -177,6 +217,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 15,
+    flexGrow: 1,
   },
   classCard: {
     flexDirection: 'row',
@@ -228,6 +269,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   emptyContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,

@@ -7,8 +7,8 @@ import { Easing } from 'react-native-reanimated';
 
 import AdmissionForm from '../screens/Admission/AdmissionForm';
 import PaymentHistoryScreen from '../screens/Payment/PaymentHistory';
-import AddAccountScreen from '../screens/Main/AddAccount';
-import SwitchAccountScreen from '../screens/Main/SwitchAccount';
+import AddAccountScreen from '../screens/Auth/AddAccount';
+import SwitchAccountScreen from '../screens/Auth/SwitchAccount';
 
 const Drawer = createDrawerNavigator();
 
@@ -18,16 +18,13 @@ const DrawerNavigator = () => {
       drawerContent={(props) => <CustomDrawer {...props} />}
       screenOptions={{
         headerShown: false,
-        drawerType: 'slide',
+        drawerType: 'slider',
         overlayColor: 'transparent',
         drawerStyle: {
           width: '80%',
         },
-        sceneContainerStyle: {
-          backgroundColor: 'aliceblue',
-        },
         drawerActiveTintColor: '#0B6623',
-        drawerInactiveTintColor: 'aliceblue',
+        drawerInactiveTintColor: '#00873E',
         drawerLabelStyle: {
           fontSize: 15,
           fontWeight: '500',
@@ -35,7 +32,7 @@ const DrawerNavigator = () => {
         drawerItemStyle: {
           borderRadius: 12,
         },
-        drawerActiveBackgroundColor: '#eef2ff',
+        // drawerActiveBackgroundColor: '#03b2ff',
         transitionConfig: () => ({
           transitionSpec: {
             duration: 300,

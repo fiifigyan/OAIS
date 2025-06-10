@@ -8,12 +8,13 @@ import {
   StyleSheet,
   ActivityIndicator,
   TextInput,
+  Alert
 } from 'react-native';
 import { useProfile } from '../../context/ProfileContext';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
-import { pickImage } from '../../utils/helpers';
+import { pickImage, sanitizeError } from '../../utils/helpers';
 
 const ProfileScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -26,7 +27,8 @@ const ProfileScreen = ({ route }) => {
     error,
     loadProfileData,
     setActiveStudent,
-    uploadProfileImage
+    uploadProfileImage,
+    updateProfile
   } = useProfile();
   
   const [index, setIndex] = useState(0);
@@ -43,15 +45,39 @@ const ProfileScreen = ({ route }) => {
     }
   }, [route.params?.parentId]);
 
+  const handleImageUpload = async () => {
+    try {
+      const imageUri = await pickImage();
+      if (imageUri) {
+        await uploadProfileImage('parent', parent?.parentId, imageUri);
+        setUploadError(null);
+      }
+    } catch (error) {
+      const friendlyError = sanitizeError(error);
+      console.error('Error uploading image:', friendlyError);
+      setUploadError(friendlyError);
+      Alert.alert('Upload Failed', friendlyError);
+    }
+  };
+
+  const handleFieldUpdate = async (fieldKey, value) => {
+    try {
+      await updateProfile('parent', parent?.parentId, { [fieldKey]: value });
+    } catch (error) {
+      const friendlyError = sanitizeError(error);
+      Alert.alert('Update Failed', friendlyError);
+    }
+  };
+
   const StudentTab = () => (
     <ProfileDetails 
       data={activeStudent} 
       fields={[
-        { label: 'Full Name', key: 'fullName', icon: 'account' },
-        { label: 'Student ID', key: 'studentId', icon: 'identifier' },
+        { label: 'Full Name', key: 'fullName', icon: 'person' },
+        { label: 'Student ID', key: 'studentId', icon: 'id-card' },
         { label: 'Class', key: 'className', icon: 'school' },
-        { label: 'Date of Birth', key: 'dateOfBirth', icon: 'cake' },
-        { label: 'Gender', key: 'gender', icon: 'gender-male-female' },
+        { label: 'Date of Birth', key: 'dateOfBirth', icon: 'calendar' },
+        { label: 'Gender', key: 'gender', icon: 'gender' },
         { label: 'Address', key: 'address', icon: 'home' }
       ]}
       editable={false}
@@ -70,6 +96,7 @@ const ProfileScreen = ({ route }) => {
         { label: 'Address', key: 'address', icon: 'home' }
       ]}
       editable={true}
+      onFieldUpdate={handleFieldUpdate}
     />
   );
 
@@ -161,18 +188,7 @@ const ProfileScreen = ({ route }) => {
           {index === 1 && (
             <TouchableOpacity 
               style={styles.editBadge}
-              onPress={async () => {
-                try {
-                  const imageUri = await pickImage();
-                  if (imageUri) {
-                    await uploadProfileImage('parent', parent?.parentId, imageUri);
-                  }
-                } catch (error) {
-                  console.error('Error uploading image:', error);
-                  // You might want to show an error message to the user here
-                  alert('Failed to upload image. Please try again.');
-                }
-              }}
+              onPress={handleImageUpload}
             >
               <Icon name="camera" size={16} color="#fff" />
             </TouchableOpacity>
@@ -232,7 +248,24 @@ const ProfileScreen = ({ route }) => {
   );
 };
 
-const ProfileDetails = ({ data, fields, editable = false }) => {
+const ProfileDetails = ({ data, fields, editable = false, onFieldUpdate }) => {
+  const [editingField, setEditingField] = useState(null);
+  const [fieldValue, setFieldValue] = useState('');
+
+  const handleFieldPress = (key, value) => {
+    if (editable) {
+      setEditingField(key);
+      setFieldValue(value || '');
+    }
+  };
+
+  const handleBlur = (key) => {
+    if (editable && onFieldUpdate && fieldValue !== data?.[key]) {
+      onFieldUpdate(key, fieldValue);
+    }
+    setEditingField(null);
+  };
+
   return (
     <View style={styles.tabContent}>
       {fields.map((field) => (
@@ -244,18 +277,20 @@ const ProfileDetails = ({ data, fields, editable = false }) => {
             <Text style={styles.detailLabel}>
               {field.label}
             </Text>
-            {editable ? (
+            {editable && editingField === field.key ? (
               <TextInput
                 style={styles.detailValue}
-                value={data?.[field.key] || ''}
-                onChangeText={(text) => {
-                  // Handle update logic here
-                }}
+                value={fieldValue}
+                onChangeText={setFieldValue}
+                onBlur={() => handleBlur(field.key)}
+                autoFocus
               />
             ) : (
-              <Text style={styles.detailValue}>
-                {data?.[field.key] || 'Not specified'}
-              </Text>
+              <TouchableOpacity onPress={() => handleFieldPress(field.key, data?.[field.key])}>
+                <Text style={styles.detailValue}>
+                  {data?.[field.key] || 'Not specified'}
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
         </View>
