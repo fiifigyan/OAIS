@@ -150,7 +150,7 @@ const NotificationService = {
       const token = await getAuthToken();
       if (!token) throw new Error('Not authenticated');
 
-      const response = await axios.get(`https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.NOTIFICATIONS.GET_ALL}`, {
+      const response = await axios.get(`${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.GET_ALL}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         }
@@ -164,46 +164,65 @@ const NotificationService = {
     }
   },
 
-  /**
-   * Mark notification as read
+/**
+   * Mark notification as read (hybrid approach)
    * @param {string} id - Notification ID
    * @returns {Promise<void>}
    */
   async markAsRead(id) {
+    // 1. Optimistic update: Mark as read locally first
+    const cached = await this.getCachedNotifications();
+    const updated = cached.map(n => 
+      n.id === id ? { ...n, read: true } : n
+    );
+    await SecureStorage.setItemAsync('cachedNotifications', JSON.stringify({
+      data: updated,
+      timestamp: Date.now()
+    }));
+
+    // 2. Sync with server in the background (fire-and-forget)
     try {
       const token = await getAuthToken();
-      if (!token) throw new Error('Not authenticated');
-
-      await axios.post(`https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.NOTIFICATIONS.MARK_AS_READ}`, { id }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        }
-      });
+      if (token) {
+        await axios.post(
+          `${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.MARK_AS_READ}`,
+          { id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
-      throw error;
+      console.error('Background sync failed (markAsRead):', error);
     }
   },
 
   /**
-   * Delete notification
+   * Delete notification (hybrid approach)
    * @param {string} id - Notification ID
    * @returns {Promise<void>}
    */
   async deleteNotification(id) {
+    // 1. Optimistic update: Delete locally first
+    const cached = await this.getCachedNotifications();
+    const updated = cached.filter(n => n.id !== id);
+    await SecureStorage.setItemAsync('cachedNotifications', JSON.stringify({
+      data: updated,
+      timestamp: Date.now()
+    }));
+
+    // 2. Sync with server in the background (fire-and-forget)
     try {
       const token = await getAuthToken();
-      if (!token) throw new Error('Not authenticated');
-
-      await axios.delete(`https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.NOTIFICATIONS.DELETE}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: { id }
-      });
+      if (token) {
+        await axios.delete(
+          `${APIConfig.BASE_URL}${APIConfig.NOTIFICATIONS.DELETE}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            data: { id }
+          }
+        );
+      }
     } catch (error) {
-      console.error('Error deleting notification:', error);
-      throw error;
+      console.error('Background sync failed (deleteNotification):', error);
     }
   },
 

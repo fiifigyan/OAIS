@@ -1,10 +1,9 @@
-import * as SecureStorage from 'expo-secure-store';
+import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import axios from 'axios';
 import { APIConfig } from '../config';
-import { sanitizeError } from '../utils/helpers';
-import NetInfo from '@react-native-community/netinfo';
+import { sanitizeError, getAuthToken,getAuthHeaders } from '../utils/helpers';
 
 const logger = {
   error: (message, error) => console.error(`[AdmissionService] ${message}`, error),
@@ -14,7 +13,7 @@ const logger = {
 // Constants
 const MAX_FILE_SIZE_MB = 10;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
-const API_TIMEOUT = 30000;
+const API_TIMEOUT = 60000;
 
 const resolveFileUri = (fileInfo) => {
   if (!fileInfo) {
@@ -51,45 +50,76 @@ const getMimeType = (fileName) => {
   }
 };
 
-const getAuthHeaders = async () => {
-  try {
-    const token = await SecureStorage.getItemAsync('authToken');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    return {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  } catch (error) {
-    logger.error('Failed to get auth headers:', error);
-    throw new Error('Authentication failed - please login again');
-  }
-};
-
-async function checkNetworkConnection() {
-  try {
-    const networkState = await NetInfo.fetch();
-    return networkState.isConnected;
-  } catch {
-    return false;
-  }
-}
-
 const admissionService = {
+  // async submitAdmissionForm(formData) {
+  //   try {
+  //     logger.info(`API_URL: ${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`);
+      
+  //     const formSubmissionData = new FormData();
+  //     const { documents, ...formFields } = formData;
+      
+  //     formSubmissionData.append('data', JSON.stringify(formFields));
+
+  //     for (const [key, fileInfo] of Object.entries(documents)) {
+  //       if (!fileInfo) {
+  //         throw new Error(`Missing required document: ${key}`);
+  //       }
+
+  //       const resolvedUri = resolveFileUri(fileInfo);
+  //       if (!resolvedUri) {
+  //         throw new Error(`Invalid file information for ${key}`);
+  //       }
+        
+  //       const mimeType = getMimeType(fileInfo.name);
+  //       if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+  //         throw new Error(`Invalid file type for ${key}. Only PDF, JPEG, and PNG are allowed.`);
+  //       }
+
+  //       const fileStats = await FileSystem.getInfoAsync(resolvedUri);
+  //       if (!fileStats.exists || !fileStats.size) {
+  //         throw new Error(`File for ${key} does not exist or is empty`);
+  //       }
+
+  //       const fileSizeMB = fileStats.size / (1024 * 1024);
+  //       if (fileSizeMB > MAX_FILE_SIZE_MB) {
+  //         throw new Error(`File for ${key} exceeds ${MAX_FILE_SIZE_MB}MB size limit`);
+  //       }
+
+  //       formSubmissionData.append(key, {
+  //         uri: resolvedUri,
+  //         name: fileInfo.name,
+  //         type: mimeType,
+  //       });
+  //     }
+
+  //     const headers = await getAuthHeaders();
+  //     headers['Content-Type'] = 'multipart/form-data';
+
+  //     const response = await axios.post(
+  //       `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
+  //       formSubmissionData,
+  //       { headers, timeout: API_TIMEOUT }
+  //     );
+
+  //     logger.info('Form submitted successfully');
+  //     return response.data;
+  //   } catch (error) {
+  //     logger.error('Failed to submit form:', error);
+  //     throw sanitizeError(error);
+  //   }
+  // },
+
+
   async submitAdmissionForm(formData) {
     try {
-      const isConnected = await checkNetworkConnection();
-      if (!isConnected) {
-        throw new Error('No internet connection. Please check your network and try again.');
-      }
+      logger.info(`API_URL: ${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`);
       
       const formSubmissionData = new FormData();
       const { documents, ...formFields } = formData;
       
       formSubmissionData.append('data', JSON.stringify(formFields));
 
+      // File validation and preparation
       for (const [key, fileInfo] of Object.entries(documents)) {
         if (!fileInfo) {
           throw new Error(`Missing required document: ${key}`);
@@ -123,35 +153,42 @@ const admissionService = {
       }
 
       const headers = await getAuthHeaders();
-      headers['Content-Type'] = 'multipart/form-data';
+      // Don't set Content-Type header - let the browser set it with boundary
+      delete headers['Content-Type'];
 
-      const response = await axios.post(
-        `https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.ADMISSIONS.SUBMIT}`,
-        formSubmissionData,
-        { headers, timeout: API_TIMEOUT }
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+      const response = await fetch(
+        `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.SUBMIT}`,
+        {
+          method: 'POST',
+          headers,
+          body: formSubmissionData,
+          signal: controller.signal,
+        }
       );
 
-      logger.info('Form submitted successfully');
-      return response.data;
-    } catch (error) {
-      let errorMessage = 'Submission failed. Please try again.';
-      
-      if (error.message.includes('Network Error')) {
-        errorMessage = 'Network connection failed. Please check your internet connection.';
-      } else if (error.response) {
-        errorMessage = error.response.data.message || 'Server error occurred';
-      } else if (error.request) {
-        errorMessage = 'No response from server. Please try again.';
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
-      
-      logger.error('Form submission failed:', error);
-      throw new Error(errorMessage);
+
+      const responseData = await response.json();
+      logger.info('Form submitted successfully');
+      return responseData;
+    } catch (error) {
+      clearTimeout(timeoutId); // Clean up timeout if still pending
+      logger.error('Failed to submit form:', error);
+      throw sanitizeError(error);
     }
   },
-
   async saveFormDraft(formData) {
     try {
-      await SecureStorage.setItemAsync(
+      await SecureStore.setItemAsync(
         'admission_draft', 
         JSON.stringify({ 
           formData, 
@@ -166,7 +203,7 @@ const admissionService = {
 
   async loadFormDraft() {
     try {
-      const draftString = await SecureStorage.getItemAsync('admission_draft');
+      const draftString = await SecureStore.getItemAsync('admission_draft');
       if (!draftString) {
         logger.info('No draft found');
         return null;
@@ -183,7 +220,7 @@ const admissionService = {
 
   async clearFormDraft() {
     try {
-      await SecureStorage.deleteItemAsync('admission_draft');
+      await SecureStore.deleteItemAsync('admission_draft');
       logger.info('Draft cleared successfully');
       return true;
     } catch (error) {
@@ -226,10 +263,6 @@ const admissionService = {
 
   async getAdmissionStatusById(applicationId) {
     try {
-      const isConnected = await checkNetworkConnection();
-      if (!isConnected) {
-        throw new Error('No internet connection. Please check your network and try again.');
-      }
 
       const headers = await getAuthHeaders();
       const response = await axios.get(
@@ -239,25 +272,12 @@ const admissionService = {
       return response.data;
     } catch (error) {
       logger.error('Failed to fetch admission status:', error);
-      let errorMessage = 'Failed to load application status';
-      
-      if (error.message.includes('Network Error')) {
-        errorMessage = 'Network connection failed. Please check your internet connection.';
-      } else if (error.response) {
-        errorMessage = error.response.data.message || errorMessage;
-      }
-      
-      throw new Error(errorMessage);
+      throw new Error(error.response.data.message);
     }
   },
 
   async getAdmissionStatus() {
     try {
-      const isConnected = await checkNetworkConnection();
-      if (!isConnected) {
-        throw new Error('No internet connection. Please check your network and try again.');
-      }
-
       const headers = await getAuthHeaders();
       const response = await axios.get(
         `${APIConfig.BASE_URL}${APIConfig.ADMISSIONS.STATUS}`,
@@ -265,16 +285,8 @@ const admissionService = {
       );
       return response.data;
     } catch (error) {
-      logger.error('Failed to fetch admission statuses:', error);
-      let errorMessage = 'Failed to load applications';
-      
-      if (error.message.includes('Network Error')) {
-        errorMessage = 'Network connection failed. Please check your internet connection.';
-      } else if (error.response) {
-        errorMessage = error.response.data.message || errorMessage;
-      }
-      
-      throw new Error(errorMessage);
+      logger.error('Failed to fetch admission status:', error);
+      throw new Error(error.response.data.message);
     }
   }
 };

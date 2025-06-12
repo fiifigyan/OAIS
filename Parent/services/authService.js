@@ -15,7 +15,7 @@ const AuthService = {
   async signup(userData) {
     try {
       const response = await axios.post(
-        `https://73xd35pq-2025.uks1.devtunnels.ms${APIConfig.AUTH.SIGNUP}`,
+        `${APIConfig.BASE_URL}${APIConfig.AUTH.SIGNUP}`,
         userData,
         { 
           timeout: 30000,

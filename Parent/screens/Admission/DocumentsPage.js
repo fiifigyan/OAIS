@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, SafeAreaView } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
 import { AdmissionContext } from '../../context/AdmissionContext';
 import { renderDocumentUpload, renderSectionHeader } from '../../components/Admission/FormComponents';
+import { Ionicons } from '@expo/vector-icons';
 
 const DocumentsFormPage = ({ navigation }) => {
   const { 
@@ -42,11 +42,12 @@ const DocumentsFormPage = ({ navigation }) => {
       const errors = await validateSection('documents', formData.documents);
       setSectionErrors(errors);
       
-      if (Object.keys(errors).length === 0) {
+      if (!errors || Object.keys(errors).length === 0) {
         navigation.navigate('Review');
       }
     } catch (error) {
-      Alert.alert('Submission Error', error.message);
+      console.error('Validation error:', error);
+      setSectionErrors({ general: 'Validation failed. Please check your documents.' });
     }
   };
 
@@ -54,58 +55,60 @@ const DocumentsFormPage = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.sectionTitle}>Upload Required Documents</Text>
       <Text style={styles.headerSubtitle}>
-        Please upload all required documents to complete your application - PDF, JPEG or PNG files (max 10MB each)
+        Please upload all required documents (* indicates required field)
       </Text>
+
       {Object.keys(sectionErrors).length > 0 && (
         <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={24} color="#d32f2f" />
           <Text style={styles.errorText}>
             Please upload all required documents before proceeding
           </Text>
         </View>
       )}
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
 
-      {renderDocumentUpload(
-        'Passport Photo *', 
-        'file1', 
-        formData.documents.file1, 
-        formErrors.documents?.file1,
-        () => handleDocumentPick('file1')
-      )}
-      
-      {renderDocumentUpload(
-        'Birth Certificate *', 
-        'file2', 
-        formData.documents.file2, 
-        formErrors.documents?.file2,
-        () => handleDocumentPick('file2')
-      )}
-      
-      {renderDocumentUpload(
-        'Previous Results *', 
-        'file3', 
-        formData.documents.file3, 
-        formErrors.documents?.file3,
-        () => handleDocumentPick('file3')
-      )}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {renderDocumentUpload(
+          'Passport Photo *', 
+          'file1', 
+          formData.documents.file1, 
+          formErrors.documents?.file1,
+          () => handleDocumentPick('file1')
+        )}
+        
+        {renderDocumentUpload(
+          'Birth Certificate *', 
+          'file2', 
+          formData.documents.file2, 
+          formErrors.documents?.file2,
+          () => handleDocumentPick('file2')
+        )}
+        
+        {renderDocumentUpload(
+          'Previous Results *', 
+          'file3', 
+          formData.documents.file3, 
+          formErrors.documents?.file3,
+          () => handleDocumentPick('file3')
+        )}
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.submitButton}
-          onPress={handleReview}
-        >
-          <Text style={styles.submitButtonText}>Review</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.nextButton}
+            onPress={handleReview}
+          >
+            <Text style={styles.nextButtonText}>Review</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
-);
+  );
 };
 
 const styles = StyleSheet.create({
@@ -114,69 +117,66 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f5f5f5',
   },
-  errorContainer: {
-    backgroundColor: '#ffebee',
-    padding: 10,
-    borderRadius: 4,
-    marginBottom: 10,
-  },
-  errorText: {
-    color: '#d32f2f',
-  },
-  documentNote: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 16,
-    fontStyle: 'italic',
+  scrollContent: {
+    paddingBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#00873E',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 8,
+    marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#999',
+    color: '#666',
     marginBottom: 16,
-    fontStyle: 'italic',
   },
-  sectionSubtitle: {
-    fontSize: 16,
-    color: '#555',
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#ffebee',
+    padding: 12,
+    borderRadius: 8,
     marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#d32f2f',
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 14,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: 24,
   },
   backButton: {
     backgroundColor: '#f0f0f0',
-    borderRadius: 4,
-    padding: 12,
-    width: 120,
+    borderRadius: 8,
+    padding: 14,
+    width: '48%',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#00873E',
   },
   backButtonText: {
     color: '#00873E',
-    fontWeight: '500',
+    fontWeight: '600',
+    fontSize: 16,
   },
-  submitButton: {
+  nextButton: {
     backgroundColor: '#00873E',
-    borderRadius: 4,
-    padding: 12,
-    width: 120,
+    borderRadius: 8,
+    padding: 14,
+    width: '48%',
     alignItems: 'center',
   },
-  submitButtonText: {
+  nextButtonText: {
     color: 'white',
-    fontWeight: '500',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });
+
 export default DocumentsFormPage;

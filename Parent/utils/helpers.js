@@ -201,6 +201,15 @@ export const getAuthToken = async () => {
   }
 };
 
+export const getAuthHeaders = async () => {
+  const token = await getAuthToken();
+  if (!token) throw new Error('No authentication token found');
+  return { 
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${token}` 
+  };
+};
+
 /**
  * Decodes and verifies a JWT token (minimal implementation - backend does main validation)
  * @param {string} token - JWT token to verify
@@ -271,7 +280,7 @@ export const prepareAccountData = (accountData) => {
     id: generateAccountId(),
     name: accountData.accountName.trim(),
     email: accountData.email.toLowerCase().trim(),
-    password: accountData.password, // Backend will encrypt
+    password: accountData.password,
     createdAt: new Date().toISOString()
   };
 };

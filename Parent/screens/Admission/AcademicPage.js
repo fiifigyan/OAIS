@@ -29,6 +29,7 @@ const AcademicFormPage = ({ navigation }) => {
 
   const handleNext = async () => {
     try {
+      // Prepare validation data
       const validationData = {
         previousAcademicDetail: {
           lastSchoolAttended: formData.previousAcademicDetail.lastSchoolAttended,
@@ -46,28 +47,41 @@ const AcademicFormPage = ({ navigation }) => {
         }
       };
 
+      // Validate the section
       const errors = await validateSection('academic', validationData);
       
-      // Transform errors to match your field paths
+      // Handle case where errors is undefined (validation passed)
+      if (!errors) {
+        navigation.navigate('Documents');
+        return;
+      }
+
+      // Transform errors to match field paths
       const transformedErrors = {};
-      Object.entries(errors).forEach(([path, message]) => {
-        if (path.startsWith('previousAcademicDetail.')) {
-          transformedErrors[path] = message;
-        } else if (path.startsWith('admissionDetail.')) {
-          transformedErrors[path] = message;
-        } else {
-          transformedErrors[`admissionDetail.${path}`] = message;
-        }
-      });
+      
+      if (errors) {  // Check if errors exists before processing
+        Object.entries(errors).forEach(([path, message]) => {
+          if (path.startsWith('previousAcademicDetail.')) {
+            transformedErrors[path] = message;
+          } else if (path.startsWith('admissionDetail.')) {
+            transformedErrors[path] = message;
+          } else {
+            transformedErrors[`admissionDetail.${path}`] = message;
+          }
+        });
+      }
       
       setSectionErrors(transformedErrors);
       
+      // Only navigate if there are no errors
       if (Object.keys(transformedErrors).length === 0) {
         navigation.navigate('Documents');
       }
     } catch (error) {
       console.error('Validation error:', error);
-      setSectionErrors({ general: 'Validation failed. Please check your inputs.' });
+      setSectionErrors({ 
+        general: 'Validation failed. Please check your inputs.' 
+      });
     }
   };
 
@@ -85,25 +99,17 @@ const AcademicFormPage = ({ navigation }) => {
         </View>
       )}
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {
-          renderInput('Previous School Name *', 'previousAcademicDetail.lastSchoolAttended', 
-          formErrors.previousAcademicDetail?.lastSchoolAttended, 'eg. ABC International School')
-        }
+        {renderInput('Previous School Name *', 'previousAcademicDetail.lastSchoolAttended', 
+          formErrors.previousAcademicDetail?.lastSchoolAttended, 'eg. ABC International School')}
 
-        {
-          renderInput('Last Class Attended *', 'previousAcademicDetail.lastClassCompleted', 
-          formErrors.previousAcademicDetail?.lastClassCompleted, 'eg. Grade 5')
-        }
+        {renderInput('Last Class Attended *', 'previousAcademicDetail.lastClassCompleted', 
+          formErrors.previousAcademicDetail?.lastClassCompleted, 'eg. Grade 5')}
 
-        {
-          renderInput('Academic Year *', 'admissionDetail.academicYear', 
-          formErrors.admissionDetail?.academicYear, 'eg. 2018', 'numeric')
-        }
+        {renderInput('Academic Year *', 'admissionDetail.academicYear', 
+          formErrors.admissionDetail?.academicYear, 'eg. 2018', 'numeric')}
 
-        {
-          renderInput('Admission Class *', 'admissionDetail.classForAdmission', 
-          formErrors.admissionDetail?.classForAdmission, 'eg. Grade 6')
-        }
+        {renderInput('Admission Class *', 'admissionDetail.classForAdmission', 
+          formErrors.admissionDetail?.classForAdmission, 'eg. Grade 6')}
 
         {renderInput('Preferred Second Language *', 'admissionDetail.preferredSecondLanguage',
           formErrors.admissionDetail?.preferredSecondLanguage, 'eg. English')}
